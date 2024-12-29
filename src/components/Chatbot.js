@@ -139,23 +139,28 @@ const Chatbot = () => {
     return (
         <Card className="w-full h-full">
             <CardBody className="flex flex-col h-full">
-                <Typography variant="h5" color="blue-gray" className="mb-4">
+                <Typography variant="h6" color="blue-gray" className="mb-2">
                     MappieTalkie
                 </Typography>
-                <div className="flex-grow overflow-y-auto mb-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md">
                     {responses.map((msg, index) => (
                         <div
                             key={index}
-                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
+                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
                         >
                             <div
-                                className={`p-3 rounded-lg max-w-[80%] ${
+                                className={`py-2 px-4 rounded-md max-w-[80%] font-['Roboto'] ${
                                     msg.role === 'user'
-                                        ? 'bg-teal-500 text-white'
-                                        : 'bg-gray-200 text-gray-900'
+                                        ? 'bg-teal-100 text-blue-gray-800 text-left'
+                                        : 'bg-gray-200 text-gray-900 text-left'
                                 }`}
                             >
-                                <Typography variant="small">{msg.content}</Typography>
+                                <Typography 
+                                    variant="small" 
+                                    className="font-['Roboto'] font-normal leading-[1.2]"
+                                >
+                                    {msg.content}
+                                </Typography>
                             </div>
                         </div>
                     ))}
@@ -163,13 +168,22 @@ const Chatbot = () => {
                 <div className="flex gap-2">
                     <Input
                         type="text"
-                        label="Type your message"
+                        label="Ask MappieTalkie"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        className="flex-1"
+                        className="flex-1 font-['Roboto']"
+                        labelProps={{
+                            className: "!text-teal-500"
+                        }}
+                        color="teal"
                     />
-                    <Button onClick={handleSendMessage}>Send</Button>
+                    <Button 
+                        onClick={handleSendMessage}
+                        className='bg-teal-500 text-white'
+                    >
+                        Send
+                    </Button>
                 </div>
             </CardBody>
         </Card>
