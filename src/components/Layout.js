@@ -12,7 +12,7 @@ const Layout = () => {
             </div>
 
             {/* Chatbot section - 1/4 width */}
-            <div className="w-1/4 h-full p-4 bg-gray-50 border-r border-gray-200">
+            <div className="w-1/4 h-full bg-gray-50 border-r border-gray-200">
                 <Chatbot />
             </div>
             

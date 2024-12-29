@@ -1,14 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import populationDensity from '../data/population_density.geojson';
 
 const ChoroplethMap = () => {
     const mapContainer = useRef(null);
     const map = useRef(null);
+    const [clickedStateIds, setClickedStateIds] = useState([]);
+    const [clickedStates, setClickedStates] = useState([]);
 
     useEffect(() => {
-        if (map.current) return; // initialize map only once
-        
+        if (map.current) return;
+
         mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
@@ -19,13 +21,13 @@ const ChoroplethMap = () => {
 
         // Add navigation control (zoom buttons and rotation)
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-        
-        // Add fullscreen control
+
+        // Fullscreen control
         map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-        
-        // Add scale control
+
+        // Scale control
         map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
-        
+
         // Add geolocate control
         map.current.addControl(
             new mapboxgl.GeolocateControl({
@@ -53,25 +55,86 @@ const ChoroplethMap = () => {
                         ['linear'],
                         ['get', 'ppl_density'],
                         0, '#F2F12D',
-                        50, '#EED322',
                         100, '#E6B71E',
-                        500, '#DA9C20',
                         1000, '#CA8323',
-                        2000, '#B86B25',
-                        4000, '#A25626',
                         8000, '#8B4225',
                         12000, '#723122'
                     ],
                     'fill-opacity': 0.75
                 }
             });
+
+            map.current.addLayer({
+                id: 'state-borders',
+                type: 'line',
+                source: 'population',
+                paint: {
+                    'line-color': '#627BC1',
+                    'line-width': 2,
+                    'line-opacity': [
+                        'case',
+                        ['in', ['get', 'GEOID'], ['literal', clickedStateIds]],
+                        1,
+                        0
+                    ]
+                }
+            });
+
+            // Click geometry interaction
+            map.current.on('click', 'population-density', (e) => {
+                if (e.features.length > 0) {
+                    const stateId = e.features[0].properties.GEOID;
+                    const stateName = e.features[0].properties.state_name;
+            
+                    setClickedStates((prev) => {
+                        // Check if the geometry is already in the list
+                        const stateIndex = prev.findIndex((state) => state.id === stateId);
+                        
+                        let updatedStates;
+                        if (stateIndex > -1) {
+                            // If found, remove the geometry
+                            updatedStates = prev.filter((state) => state.id !== stateId);
+                        } else {
+                            // If not found, add the geometry
+                            updatedStates = [...prev, { id: stateId, name: stateName }];
+                        }
+            
+                        // Log the updated list of state names
+                        console.log(
+                            'Clicked states:',
+                            updatedStates.map((state) => state.name)
+                        );
+            
+                        // Update the border visibility
+                        map.current.setPaintProperty('state-borders', 'line-opacity', [
+                            'case',
+                            ['in', ['get', 'GEOID'], ['literal', updatedStates.map((s) => s.id)]],
+                            1,
+                            0
+                        ]);
+            
+                        return updatedStates;
+                    });
+                }
+            });
+            
+
+
+            // Change cursor on hover
+            map.current.on('mouseenter', 'population-density', () => {
+                map.current.getCanvas().style.cursor = 'pointer';
+            });
+
+            map.current.on('mouseleave', 'population-density', () => {
+                map.current.getCanvas().style.cursor = '';
+            });
         });
-    }, []);
+    }, [clickedStateIds]);
 
     return (
         <div className="relative h-full">
             <div ref={mapContainer} className="h-full" />
-            
+
             {/* Legend */}
             <div className="absolute bottom-0 right-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90">
                 <h3 className="text-sm font-bold mb-2">Population Density</h3>
@@ -103,6 +166,3 @@ const ChoroplethMap = () => {
 };
 
 export default ChoroplethMap;
-
-
-
