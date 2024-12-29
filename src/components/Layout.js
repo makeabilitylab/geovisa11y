@@ -4,13 +4,18 @@ import ChoroplethMap from './ChoroplethMap';
 
 const Layout = () => {
     return (
-        <div style={{ display: 'flex', height: '100vh' }}>
-            <div style={{ flex: 1, maxWidth: '25%', borderRight: '1px solid #ddd' }}>
-                <Chatbot />
-            </div>
-            <div style={{ flex: 3 }}>
+        <div className="flex h-screen w-full">
+
+            {/* Map section - 3/4 width */}
+            <div className="w-3/4 h-full">
                 <ChoroplethMap />
             </div>
+
+            {/* Chatbot section - 1/4 width */}
+            <div className="w-1/4 h-full p-4 bg-gray-50 border-r border-gray-200">
+                <Chatbot />
+            </div>
+            
         </div>
     );
 };

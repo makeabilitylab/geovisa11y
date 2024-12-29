@@ -1,27 +1,135 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import OpenAI from 'openai';
+import {
+    Card,
+    CardBody,
+    Typography,
+    Input,
+    Button,
+} from '@material-tailwind/react';
 
 const Chatbot = () => {
     const [input, setInput] = useState('');
     const [responses, setResponses] = useState([]);
+    const [geoData, setGeoData] = useState(null);
 
-    const openai = new OpenAI({
-        apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-        dangerouslyAllowBrowser: true
-    });
+    useEffect(() => {
+        // Load the GeoJSON data
+        fetch('/data/population_density.geojson')
+            .then(response => response.json())
+            .then(data => {
+                // Transform the data for easier access
+                const transformedData = {
+                    type: "FeatureCollection",
+                    features: data.features.map(feature => ({
+                        type: "Feature",
+                        properties: {
+                            name: feature.properties.state_name,
+                            ppl_density: feature.properties.ppl_density
+                        },
+                        geometry: feature.geometry
+                    }))
+                };
+                setGeoData(transformedData);
+                console.log("Loaded GeoJSON data:", transformedData);
+            })
+            .catch(error => {
+                console.error('Error loading GeoJSON:', error);
+            });
+    }, []);
+
+    const analyzeGeoData = (question) => {
+        if (!geoData || !geoData.features) {
+            console.log("No data available:", geoData);
+            return "Sorry, I don't have access to the population density data.";
+        }
+
+        const lowerQuestion = question.toLowerCase();
+        
+        // Only process if the question is specifically about population density
+        if (!lowerQuestion.includes('population') && !lowerQuestion.includes('density')) {
+            return null;  // Return null to trigger GPT response for non-density questions
+        }
+
+        if (lowerQuestion.includes("highest population density") || 
+            lowerQuestion.includes("most densely populated")) {
+            const sorted = [...geoData.features].sort((a, b) => 
+                b.properties.ppl_density - a.properties.ppl_density
+            );
+            const highest = sorted[0];
+            return `${highest.properties.name} has the highest population density with ${highest.properties.ppl_density.toFixed(2)} people per square mile.`;
+        }
+
+        if (lowerQuestion.includes("lowest population density") || 
+            lowerQuestion.includes("least densely populated")) {
+            const sorted = [...geoData.features].sort((a, b) => 
+                a.properties.ppl_density - b.properties.ppl_density
+            );
+            const lowest = sorted[0];
+            return `${lowest.properties.name} has the lowest population density with ${lowest.properties.ppl_density.toFixed(2)} people per square mile.`;
+        }
+
+        if ((lowerQuestion.includes("average") || lowerQuestion.includes("mean")) 
+            && (lowerQuestion.includes("population") || lowerQuestion.includes("density"))) {
+            const sum = geoData.features.reduce((acc, feature) => 
+                acc + feature.properties.ppl_density, 0
+            );
+            const avg = sum / geoData.features.length;
+            return `The average population density across all states is ${avg.toFixed(2)} people per square mile.`;
+        }
+
+        // Only check for state if the question is about population or density
+        if (lowerQuestion.includes("population") || lowerQuestion.includes("density")) {
+            const stateMatch = geoData.features.find(feature => 
+                lowerQuestion.includes(feature.properties.name.toLowerCase())
+            );
+            if (stateMatch) {
+                return `${stateMatch.properties.name} has a population density of ${stateMatch.properties.ppl_density.toFixed(2)} people per square mile.`;
+            }
+        }
+
+        return null;  // Return null for any other type of question
+    };
 
     const handleSendMessage = async () => {
-        try {
-            const completion = await openai.chat.completions.create({
-                model: "gpt-4o-mini",  // Make sure to use the correct model identifier
-                messages: [
-                    { role: "system", content: "You are a helpful assistant." },
-                    { role: "user", content: input },
-                ],
-            });
+        if (!input.trim()) return;
 
-            setResponses([...responses, { role: 'user', content: input }, completion.choices[0].message]);
-            setInput('');  // Clear input after sending
+        try {
+            // First try to get local answer about population density
+            const localAnswer = analyzeGeoData(input);
+
+            if (localAnswer) {
+                setResponses([
+                    ...responses, 
+                    { role: 'user', content: input },
+                    { role: 'assistant', content: localAnswer }
+                ]);
+            } else {
+                const openai = new OpenAI({
+                    apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+                    dangerouslyAllowBrowser: true,
+                });
+
+                const completion = await openai.chat.completions.create({
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        { 
+                            role: 'system', 
+                            content: `You are a helpful assistant specializing in spatial data analysis. 
+                                     For questions about US states' population density, refer to the data.` 
+                        },
+                        { role: 'user', content: input },
+                    ],
+                });
+
+                setResponses([
+                    ...responses, 
+                    { role: 'user', content: input }, 
+                    completion.choices[0].message
+                ]);
+            }
+
+            setInput('');
         } catch (error) {
             console.error('Error:', error);
             alert('Error: ' + error.message);
@@ -29,22 +137,42 @@ const Chatbot = () => {
     };
 
     return (
-        <div>
-            <div>
-                {responses.map((msg, index) => (
-                    <p key={index} style={{ textAlign: msg.role === 'user' ? 'right' : 'left' }}>
-                        {msg.content}
-                    </p>
-                ))}
-            </div>
-            <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your question"
-            />
-            <button onClick={handleSendMessage}>Send</button>
-        </div>
+        <Card className="w-full h-full">
+            <CardBody className="flex flex-col h-full">
+                <Typography variant="h5" color="blue-gray" className="mb-4">
+                    MappieTalkie
+                </Typography>
+                <div className="flex-grow overflow-y-auto mb-4 p-4 bg-gray-50 rounded-lg">
+                    {responses.map((msg, index) => (
+                        <div
+                            key={index}
+                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-3`}
+                        >
+                            <div
+                                className={`p-3 rounded-lg max-w-[80%] ${
+                                    msg.role === 'user'
+                                        ? 'bg-teal-500 text-white'
+                                        : 'bg-gray-200 text-gray-900'
+                                }`}
+                            >
+                                <Typography variant="small">{msg.content}</Typography>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <div className="flex gap-2">
+                    <Input
+                        type="text"
+                        label="Type your message"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        className="flex-1"
+                    />
+                    <Button onClick={handleSendMessage}>Send</Button>
+                </div>
+            </CardBody>
+        </Card>
     );
 };
 
