@@ -2,11 +2,22 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import populationDensity from '../data/population_density.geojson';
 
-const ChoroplethMap = () => {
+const ChoroplethMap = ({ onStateClick, selectedStates }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
-    const [clickedStateIds, setClickedStateIds] = useState([]);
-    const [clickedStates, setClickedStates] = useState([]);
+
+    // Update borders whenever selectedStates changes
+    useEffect(() => {
+        if (map.current && map.current.isStyleLoaded()) {
+            const selectedStateIds = selectedStates.map(state => state.id);
+            map.current.setPaintProperty('state-borders', 'line-opacity', [
+                'case',
+                ['in', ['get', 'GEOID'], ['literal', selectedStateIds]],
+                1,
+                0
+            ]);
+        }
+    }, [selectedStates]);
 
     useEffect(() => {
         if (map.current) return;
@@ -71,12 +82,7 @@ const ChoroplethMap = () => {
                 paint: {
                     'line-color': '#627BC1',
                     'line-width': 2,
-                    'line-opacity': [
-                        'case',
-                        ['in', ['get', 'GEOID'], ['literal', clickedStateIds]],
-                        1,
-                        0
-                    ]
+                    'line-opacity': 0  // Start with all borders invisible
                 }
             });
 
@@ -85,36 +91,9 @@ const ChoroplethMap = () => {
                 if (e.features.length > 0) {
                     const stateId = e.features[0].properties.GEOID;
                     const stateName = e.features[0].properties.state_name;
-            
-                    setClickedStates((prev) => {
-                        // Check if the geometry is already in the list
-                        const stateIndex = prev.findIndex((state) => state.id === stateId);
-                        
-                        let updatedStates;
-                        if (stateIndex > -1) {
-                            // If found, remove the geometry
-                            updatedStates = prev.filter((state) => state.id !== stateId);
-                        } else {
-                            // If not found, add the geometry
-                            updatedStates = [...prev, { id: stateId, name: stateName }];
-                        }
-            
-                        // Log the updated list of state names
-                        console.log(
-                            'Clicked states:',
-                            updatedStates.map((state) => state.name)
-                        );
-            
-                        // Update the border visibility
-                        map.current.setPaintProperty('state-borders', 'line-opacity', [
-                            'case',
-                            ['in', ['get', 'GEOID'], ['literal', updatedStates.map((s) => s.id)]],
-                            1,
-                            0
-                        ]);
-            
-                        return updatedStates;
-                    });
+                    
+                    // Call the callback with state info
+                    onStateClick(stateId, stateName);
                 }
             });
             
@@ -129,7 +108,7 @@ const ChoroplethMap = () => {
                 map.current.getCanvas().style.cursor = '';
             });
         });
-    }, [clickedStateIds]);
+    }, [onStateClick]); // Remove clickedStateIds from dependencies here
 
     return (
         <div className="relative h-full">
