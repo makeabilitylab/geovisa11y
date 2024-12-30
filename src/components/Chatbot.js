@@ -8,7 +8,7 @@ import {
     Button,
 } from '@material-tailwind/react';
 
-const Chatbot = () => {
+const Chatbot = ({ selectedStates, onStateRemove }) => {
     const [input, setInput] = useState('');
     const [responses, setResponses] = useState([]);
     const [geoData, setGeoData] = useState(null);
@@ -142,6 +142,48 @@ const Chatbot = () => {
                 <Typography variant="h6" color="blue-gray" className="mb-2">
                     MappieTalkie
                 </Typography>
+
+                {/* Selected Geographies Section */}
+                <div className="mb-4 p-3 bg-gray-50 rounded-md">
+                    <Typography variant="small" color="blue-gray" className="font-medium mb-2 text-left">
+                        Selected Geographies
+                    </Typography>
+                    {selectedStates.length === 0 ? (
+                        <Typography variant="small" className="text-gray-600 italic text-left">
+                            Click on areas of interest
+                        </Typography>
+                    ) : (
+                        <div className="flex flex-wrap gap-2">
+                            {selectedStates.map((state) => (
+                                <div
+                                    key={state.id}
+                                    className="bg-teal-100 text-teal-800 px-2 py-1 rounded-md text-sm flex items-center gap-1"
+                                >
+                                    <button
+                                        onClick={() => onStateRemove(state.id)}
+                                        className="hover:text-teal-600 focus:outline-none"
+                                        aria-label={`Remove ${state.name}`}
+                                    >
+                                        <svg 
+                                            xmlns="http://www.w3.org/2000/svg" 
+                                            className="h-3 w-3" 
+                                            viewBox="0 0 20 20" 
+                                            fill="currentColor"
+                                        >
+                                            <path 
+                                                fillRule="evenodd" 
+                                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" 
+                                                clipRule="evenodd" 
+                                            />
+                                        </svg>
+                                    </button>
+                                    {state.name}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 <div className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md">
                     {responses.map((msg, index) => (
                         <div
@@ -165,6 +207,7 @@ const Chatbot = () => {
                         </div>
                     ))}
                 </div>
+
                 <div className="flex gap-2">
                     <Input
                         type="text"
