@@ -96,8 +96,6 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
                     onStateClick(stateId, stateName);
                 }
             });
-            
-
 
             // Change cursor on hover
             map.current.on('mouseenter', 'population-density', () => {
@@ -108,7 +106,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
                 map.current.getCanvas().style.cursor = '';
             });
         });
-    }, [onStateClick]); // Remove clickedStateIds from dependencies here
+    }, [onStateClick]);
 
     return (
         <div className="relative h-full">
