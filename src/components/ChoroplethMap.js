@@ -1,15 +1,46 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import populationDensity from '../data/population_density.geojson';
 
 const ChoroplethMap = ({ onStateClick, selectedStates }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
+    const [geoData, setGeoData] = useState(null); // State to store GeoJSON data
+
+    // Fetch GeoJSON data from Flask backend
+    useEffect(() => {
+        const fetchGeoJSON = async () => {
+            try {
+                // const apiUrl = `${process.env.REACT_APP_API_URL}/geojson/population-density`;
+                const apiUrl = `${process.env.REACT_APP_API_URL}/geojson/population-density`;
+
+                // const apiUrl = `http://127.0.0.1:5000/api/geojson/population-density`;
+                console.log('Fetching GeoJSON from:', apiUrl);
+
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Fetched GeoJSON data:', data);
+
+                setGeoData(data); // Store fetched data
+            } catch (error) {
+                console.error('Error fetching GeoJSON data:', error);
+            }
+        };
+
+        fetchGeoJSON();
+    }, []);
 
     // Update borders whenever selectedStates changes
     useEffect(() => {
-        if (map.current && map.current.isStyleLoaded()) {
-            const selectedStateIds = selectedStates.map(state => state.id);
+        if (map.current && map.current.isStyleLoaded() && geoData) {
+            console.log('Selected states:', selectedStates);
+
+            const selectedStateIds = selectedStates.map((state) => state.id);
+            console.log('Selected state GEOIDs:', selectedStateIds);
+
             map.current.setPaintProperty('state-borders', 'line-opacity', [
                 'case',
                 ['in', ['get', 'GEOID'], ['literal', selectedStateIds]],
@@ -17,12 +48,23 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
                 0
             ]);
         }
-    }, [selectedStates]);
+    }, [selectedStates, geoData]);
 
     useEffect(() => {
-        if (map.current) return;
+        if (!geoData) {
+            console.log('GeoJSON not yet loaded. Waiting...');
+            return; // Wait for GeoJSON data
+        }
 
+        if (map.current) {
+            console.log('Map already initialized.');
+            return;
+        }
+
+        console.log('Initializing Mapbox map...');
         mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+        console.log('Mapbox Token:', process.env.REACT_APP_MAPBOX_TOKEN);
+
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
             style: 'mapbox://styles/mapbox/light-v10',
@@ -30,32 +72,29 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
             zoom: 4
         });
 
-        // Add navigation control (zoom buttons and rotation)
+        // Add navigation controls
+        console.log('Adding navigation controls...');
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-        // Fullscreen control
         map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-
-        // Scale control
         map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
-
-        // Add geolocate control
         map.current.addControl(
             new mapboxgl.GeolocateControl({
-                positionOptions: {
-                    enableHighAccuracy: true
-                },
+                positionOptions: { enableHighAccuracy: true },
                 trackUserLocation: true
             }),
             'top-right'
         );
 
         map.current.on('load', () => {
+            console.log('Map loaded. Adding layers...');
+
+            // Add GeoJSON source with fetched data
             map.current.addSource('population', {
                 type: 'geojson',
-                data: populationDensity
+                data: geoData
             });
 
+            // Add choropleth layer
             map.current.addLayer({
                 id: 'population-density',
                 type: 'fill',
@@ -64,7 +103,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
                     'fill-color': [
                         'interpolate',
                         ['linear'],
-                        ['get', 'ppl_density'],
+                        ['get', 'ppl_densit'],
                         0, '#F2F12D',
                         100, '#E6B71E',
                         1000, '#CA8323',
@@ -75,6 +114,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
                 }
             });
 
+            // Add state borders layer
             map.current.addLayer({
                 id: 'state-borders',
                 type: 'line',
@@ -82,16 +122,20 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
                 paint: {
                     'line-color': '#627BC1',
                     'line-width': 2,
-                    'line-opacity': 0  // Start with all borders invisible
+                    'line-opacity': 0
                 }
             });
 
+            console.log('Layers added. Setting up interactions...');
+
             // Click geometry interaction
             map.current.on('click', 'population-density', (e) => {
-                if (e.features.length > 0) {
+                if (e.features && e.features.length > 0) {
                     const stateId = e.features[0].properties.GEOID;
                     const stateName = e.features[0].properties.state_name;
-                    
+
+                    console.log('State clicked:', { stateId, stateName });
+
                     // Call the callback with state info
                     onStateClick(stateId, stateName);
                 }
@@ -106,7 +150,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
                 map.current.getCanvas().style.cursor = '';
             });
         });
-    }, [onStateClick]);
+    }, [geoData, onStateClick]);
 
     return (
         <div className="relative h-full">
