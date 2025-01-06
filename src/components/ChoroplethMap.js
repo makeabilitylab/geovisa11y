@@ -10,10 +10,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
     useEffect(() => {
         const fetchGeoJSON = async () => {
             try {
-                // const apiUrl = `${process.env.REACT_APP_API_URL}/geojson/population-density`;
                 const apiUrl = `${process.env.REACT_APP_API_URL}/geojson/population-density`;
-
-                // const apiUrl = `http://127.0.0.1:5000/api/geojson/population-density`;
                 console.log('Fetching GeoJSON from:', apiUrl);
 
                 const response = await fetch(apiUrl);
