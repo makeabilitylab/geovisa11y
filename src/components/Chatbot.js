@@ -12,193 +12,38 @@ import {
 const Chatbot = ({ selectedStates, onStateRemove }) => {
     const [input, setInput] = useState('');
     const [responses, setResponses] = useState([]);
-    const [geoData, setGeoData] = useState(null);
     const [showSuggestion, setShowSuggestion] = useState(false);
     const [suggestion, setSuggestion] = useState('');
-
-    useEffect(() => {
-        // Load the GeoJSON data
-        fetch('/data/population_density.geojson')
-            .then(response => response.json())
-            .then(data => {
-                // Transform the data for easier access
-                const transformedData = {
-                    type: "FeatureCollection",
-                    features: data.features.map(feature => ({
-                        type: "Feature",
-                        properties: {
-                            name: feature.properties.state_name,
-                            ppl_density: feature.properties.ppl_density
-                        },
-                        geometry: feature.geometry
-                    }))
-                };
-                setGeoData(transformedData);
-                console.log("Loaded GeoJSON data:", transformedData);
-            })
-            .catch(error => {
-                console.error('Error loading GeoJSON:', error);
-            });
-    }, []);
-
-    const analyzeGeoData = (question) => {
-        if (!geoData || !geoData.features) {
-            console.log("No data available:", geoData);
-            return "Sorry, I don't have access to the population density data.";
-        }
-
-        const lowerQuestion = question.toLowerCase();
-        
-        // Only process if the question is specifically about population density
-        if (!lowerQuestion.includes('population') && !lowerQuestion.includes('density')) {
-            return null;  // Return null to trigger GPT response for non-density questions
-        }
-
-        // Check if any state name is mentioned in the question
-        const mentionedState = geoData.features.find(feature => 
-            lowerQuestion.includes(feature.properties.name.toLowerCase())
-        );
-
-        // If no valid state is mentioned in the question, return null to trigger GPT
-        if (!mentionedState && !lowerQuestion.includes('compare') && 
-            !lowerQuestion.includes('which') && 
-            !selectedStates.some(state => 
-                lowerQuestion.includes(state.name.toLowerCase())
-            )) {
-            return null;
-        }
-
-        // Handle "which state has higher/highest" questions
-        if (lowerQuestion.includes('which') && 
-            (lowerQuestion.includes('higher') || lowerQuestion.includes('highest'))) {
-            const states = selectedStates.map(state => {
-                const stateData = geoData.features.find(feature => 
-                    feature.properties.name.toLowerCase() === state.name.toLowerCase()
-                );
-                return {
-                    name: state.name,
-                    density: stateData ? stateData.properties.ppl_density : null
-                };
-            }).filter(state => state.density !== null);
-
-            if (states.length === 0) return null;
-
-            // Sort states by density and get the highest
-            const sortedStates = [...states].sort((a, b) => b.density - a.density);
-            const highest = sortedStates[0];
-
-            return `${highest.name} has the highest population density with ${highest.density.toFixed(2)} people per square mile.`;
-        }
-
-        // Handle comparison questions with "compare"
-        if (lowerQuestion.includes('compare')) {
-            const states = selectedStates.map(state => {
-                const stateData = geoData.features.find(feature => 
-                    feature.properties.name.toLowerCase() === state.name.toLowerCase()
-                );
-                return {
-                    name: state.name,
-                    density: stateData ? stateData.properties.ppl_density : null
-                };
-            }).filter(state => state.density !== null);
-
-            if (states.length === 0) return null;
-
-            // Sort states by density for comparison
-            const sortedStates = [...states].sort((a, b) => b.density - a.density);
-            const highest = sortedStates[0];
-            const lowest = sortedStates[sortedStates.length - 1];
-
-            // Build comparison response
-            const densityDescriptions = states.map(state => 
-                `${state.name} has a population density of ${state.density.toFixed(2)} people per square mile`
-            ).join(', ');
-
-            return `${densityDescriptions}. ${highest.name} has the highest population density and ${lowest.name} has the lowest population density among the selected states.`;
-        }
-
-        // Handle single state queries
-        if (lowerQuestion.includes("highest population density") || 
-            lowerQuestion.includes("most densely populated")) {
-            const sorted = [...geoData.features].sort((a, b) => 
-                b.properties.ppl_density - a.properties.ppl_density
-            );
-            const highest = sorted[0];
-            return `${highest.properties.name} has the highest population density with ${highest.properties.ppl_density.toFixed(2)} people per square mile.`;
-        }
-
-        if (lowerQuestion.includes("lowest population density") || 
-            lowerQuestion.includes("least densely populated")) {
-            const sorted = [...geoData.features].sort((a, b) => 
-                a.properties.ppl_density - b.properties.ppl_density
-            );
-            const lowest = sorted[0];
-            return `${lowest.properties.name} has the lowest population density with ${lowest.properties.ppl_density.toFixed(2)} people per square mile.`;
-        }
-
-        if ((lowerQuestion.includes("average") || lowerQuestion.includes("mean")) 
-            && (lowerQuestion.includes("population") || lowerQuestion.includes("density"))) {
-            const sum = geoData.features.reduce((acc, feature) => 
-                acc + feature.properties.ppl_density, 0
-            );
-            const avg = sum / geoData.features.length;
-            return `The average population density across all states is ${avg.toFixed(2)} people per square mile.`;
-        }
-
-        // Handle "what's/what is the population density" questions for multiple states
-        if ((lowerQuestion.startsWith("what's the population density of") || 
-             lowerQuestion.startsWith("what is the population density of")) && 
-            selectedStates.length > 1) {
-            const states = selectedStates.map(state => {
-                const stateData = geoData.features.find(feature => 
-                    feature.properties.name.toLowerCase() === state.name.toLowerCase()
-                );
-                return {
-                    name: state.name,
-                    density: stateData ? stateData.properties.ppl_density : null
-                };
-            }).filter(state => state.density !== null);
-
-            if (states.length === 0) return null;
-
-            // Build simple density description for each state
-            const densityDescriptions = states.map(state => 
-                `${state.name} has a population density of ${state.density.toFixed(2)} people per square mile`
-            ).join(', ');
-
-            return densityDescriptions + '.';
-        }
-
-        // Handle single state queries
-        if (lowerQuestion.includes("population density") || 
-            lowerQuestion.includes("how dense")) {
-            const stateMatch = geoData.features.find(feature => 
-                selectedStates.some(state => 
-                    state.name.toLowerCase() === feature.properties.name.toLowerCase()
-                )
-            );
-            if (stateMatch) {
-                return `${stateMatch.properties.name} has a population density of ${stateMatch.properties.ppl_density.toFixed(2)} people per square mile.`;
-            }
-        }
-
-        return null;  // Return null for any other type of question
-    };
 
     const handleSendMessage = async () => {
         if (!input.trim()) return;
 
         try {
-            // First try to get local answer about population density
-            const localAnswer = analyzeGeoData(input);
+            // Add user message to responses immediately
+            setResponses(prev => [...prev, { role: 'user', content: input }]);
 
-            if (localAnswer) {
-                setResponses([
-                    ...responses, 
-                    { role: 'user', content: input },
-                    { role: 'assistant', content: localAnswer }
-                ]);
+            // First try to get analysis from backend
+            const response = await fetch(`http://127.0.0.1:5000/api/analyze-density`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    question: input,
+                    selected_states: selectedStates.map(state => state.name)
+                })
+            });
+
+            const data = await response.json();
+            console.log('Backend response:', data);
+
+            if (data.result) {
+                // If we got a valid analysis from backend, use it
+                setResponses(prev => [...prev, { role: 'assistant', content: data.result }]);
             } else {
+                console.log('No result from backend, falling back to OpenAI');
+                // Fall back to OpenAI for non-density questions
                 const openai = new OpenAI({
                     apiKey: process.env.REACT_APP_OPENAI_API_KEY,
                     dangerouslyAllowBrowser: true,
@@ -216,11 +61,7 @@ const Chatbot = ({ selectedStates, onStateRemove }) => {
                     ],
                 });
 
-                setResponses([
-                    ...responses, 
-                    { role: 'user', content: input }, 
-                    completion.choices[0].message
-                ]);
+                setResponses(prev => [...prev, completion.choices[0].message]);
             }
 
             setInput('');
