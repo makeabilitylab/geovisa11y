@@ -9,4 +9,6 @@ class ProductionConfig(Config):
     DEBUG = False
 
 class DevelopmentConfig(Config):
+    DEBUG = True
+    OPENAI_API_KEY = '***REDACTED***'
     pass

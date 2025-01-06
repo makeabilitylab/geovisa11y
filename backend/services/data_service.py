@@ -4,6 +4,12 @@ import duckdb
 import geopandas as gpd
 import json
 from flask import jsonify
+import numpy as np
+import pandas as pd
+from libpysal.weights import KNN
+from esda import Moran_Local
+import openai
+from config import DevelopmentConfig  # Import your config to get the OpenAI API key
 
 # Initialize DuckDB connection
 con = duckdb.connect('database/spatial-db.db', read_only=True)
@@ -21,7 +27,7 @@ def fetch_density_data(table_name, accuracy, value_column='ppl_densit'):
     geojson_data = json.loads(gdf.to_json())
     return jsonify(geojson_data)
 
-# Add these functions to handle population density analysis
+#Question and answering functions
 
 def execute_query(query):
     """Execute a DuckDB query and return results as a list of dictionaries"""
@@ -37,6 +43,115 @@ def execute_query(query):
         print(f"Error executing query: {str(e)}")
         return None
 
+def get_gpt_summary(spatial_pattern_text):
+    """Get a more natural summary of the spatial patterns using GPT"""
+    try:
+        openai.api_key = DevelopmentConfig.OPENAI_API_KEY
+        
+        prompt = f"""
+        Summarize the following US population density patterns in a single, concise paragraph following this structure:
+        1. First mention high-density clusters with 1-2 example states
+        2. Then mention low-density clusters with 1-2 example states
+        3. Finally, mention any notable outliers (high density areas surrounded by low density or vice versa)
+        
+        Keep the summary brief and focused on the most significant patterns.
+        
+        Raw analysis:
+        {spatial_pattern_text}
+        """
+        
+        response = openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system", 
+                    "content": """You are a spatial analysis expert who provides concise summaries. 
+                    Focus on the most significant patterns and use clear geographic references. 
+                    Keep responses to a single paragraph and always include example states."""
+                },
+                {"role": "user", "content": prompt}
+            ]
+        )
+        
+        return response.choices[0].message.content
+        
+    except Exception as e:
+        print(f"Error getting GPT summary: {str(e)}")
+        return None
+
+def analyze_spatial_patterns():
+    """Analyze spatial patterns using Local Moran's I"""
+    try:
+        # Get state geometries and population density data
+        query = """
+            SELECT state_name, ppl_densit as density, ST_AsText(geom) as geometry
+            FROM state
+        """
+        result = con.execute(query).fetchdf()
+        
+        # Convert to GeoDataFrame
+        gdf = gpd.GeoDataFrame(
+            result, 
+            geometry=gpd.GeoSeries.from_wkt(result['geometry'])
+        )
+        
+        # Create spatial weights matrix using KNN
+        w = KNN.from_dataframe(gdf, k=10)
+        # Normalize the weights
+        w.transform = 'r'
+        
+        # Calculate local Moran's I
+        moran = Moran_Local(gdf['density'], w, permutations=999)
+        
+        # Add LISA statistics to the dataframe
+        gdf['LISA_I'] = moran.Is
+        gdf['LISA_P'] = moran.p_sim
+        gdf['LISA_CL'] = 0
+        
+        # Assign cluster categories where p < 0.05
+        significant = gdf['LISA_P'] < 0.05
+        gdf.loc[significant & (moran.q == 1), 'LISA_CL'] = 1  # High-High
+        gdf.loc[significant & (moran.q == 2), 'LISA_CL'] = 2  # Low-High
+        gdf.loc[significant & (moran.q == 3), 'LISA_CL'] = 3  # Low-Low
+        gdf.loc[significant & (moran.q == 4), 'LISA_CL'] = 4  # High-Low
+        
+        # Create lists of states in each category
+        hh_states = gdf[gdf['LISA_CL'] == 1]['state_name'].tolist()
+        lh_states = gdf[gdf['LISA_CL'] == 2]['state_name'].tolist()
+        ll_states = gdf[gdf['LISA_CL'] == 3]['state_name'].tolist()
+        hl_states = gdf[gdf['LISA_CL'] == 4]['state_name'].tolist()
+        
+        # Create a human-readable description
+        description = []
+        if hh_states:
+            description.append(f"High-High clusters (states with high density surrounded by high-density neighbors): {', '.join(hh_states)}")
+        if ll_states:
+            description.append(f"Low-Low clusters (states with low density surrounded by low-density neighbors): {', '.join(ll_states)}")
+        if hl_states:
+            description.append(f"High-Low outliers (states with high density surrounded by low-density neighbors): {', '.join(hl_states)}")
+        if lh_states:
+            description.append(f"Low-High outliers (states with low density surrounded by high-density neighbors): {', '.join(lh_states)}")
+        
+        raw_description = '. '.join(description)
+        
+        # Get GPT summary of the patterns
+        gpt_summary = get_gpt_summary(raw_description)
+        
+        response = {
+            'HH': hh_states,
+            'LL': ll_states,
+            'HL': hl_states,
+            'LH': lh_states,
+            'raw_description': raw_description,
+            'description': gpt_summary if gpt_summary else raw_description
+        }
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error analyzing spatial patterns: {str(e)}")
+        return None
+
 def analyze_population_density(question, selected_states=None):
     """Analyze population density data based on user question"""
     try:
@@ -44,9 +159,21 @@ def analyze_population_density(question, selected_states=None):
         print(f"Analyzing question: {question}")
         print(f"Selected states: {selected_states}")
         
-        # Convert question to lowercase for easier matching
         question = question.lower()
         
+        # Check for spatial pattern analysis request
+        if any(phrase in question for phrase in [
+            "spatial pattern",
+            "spatial distribution",
+            "clustering pattern",
+            "density pattern",
+            "density distribution"
+        ]):
+            spatial_analysis = analyze_spatial_patterns()
+            if spatial_analysis:
+                return spatial_analysis['description']  # This will now return the GPT summary
+            return None
+            
         # Get population density data from database
         query = f"""
             SELECT state_name, ppl_densit as density
