@@ -7,7 +7,7 @@ from flask import jsonify
 import numpy as np
 import pandas as pd
 from libpysal.weights import KNN
-from esda import Moran_Local
+from esda import Moran_Local, Moran
 import openai
 from config import DevelopmentConfig
 
@@ -170,15 +170,74 @@ def analyze_spatial_patterns():
         print(f"Error analyzing spatial patterns: {str(e)}")
         return None
 
+def analyze_global_pattern():
+    """Analyze global spatial pattern using Moran's I"""
+    try:
+        # Get state geometries and population density data
+        query = """
+            SELECT state_name, ppl_densit as density, ST_AsText(geom) as geometry
+            FROM state
+        """
+        result = con.execute(query).fetchdf()
+        
+        # Convert to GeoDataFrame
+        gdf = gpd.GeoDataFrame(
+            result, 
+            geometry=gpd.GeoSeries.from_wkt(result['geometry'])
+        )
+        
+        # Create spatial weights matrix using KNN
+        w = KNN.from_dataframe(gdf, k=10)
+        w.transform = 'r'  # Row-standardize weights
+        
+        # Calculate global Moran's I
+        moran = Moran(gdf['density'], w)
+        
+        # Interpret the results and provide simple response
+        if moran.p_sim < 0.05:  # Statistically significant
+            if moran.I > 0:
+                response = {
+                    'pattern': 'clustered',
+                    'description': 'Yes, there is a clustered pattern in the map, similar values tend to be located near each other.'
+                }
+            else:
+                response = {
+                    'pattern': 'dispersed',
+                    'description': 'Yes, there is a dispersed pattern in the map, dissimilar values tend to be located near each other.'
+                }
+        else:
+            response = {
+                'pattern': 'random',
+                'description': 'No, there is no obvious spatial pattern in this map.'
+            }
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error analyzing global pattern: {str(e)}")
+        return None
+
 def analyze_population_density(question, selected_states=None):
     """Analyze population density data based on user question"""
     try:
-        # Add debug logging
         print(f"Analyzing question: {question}")
         print(f"Selected states: {selected_states}")
         
         question = question.lower()
         
+        # Check for pattern analysis request
+        if any(phrase in question for phrase in [
+            "is there a pattern",
+            "can you find a pattern",
+            "do you see a pattern",
+            "identify pattern",
+            "detect pattern"
+        ]):
+            global_pattern = analyze_global_pattern()
+            if global_pattern:
+                return global_pattern['description']
+            return None
+            
         # Check for spatial pattern analysis request
         if any(phrase in question for phrase in [
             "spatial pattern",
@@ -189,7 +248,7 @@ def analyze_population_density(question, selected_states=None):
         ]):
             spatial_analysis = analyze_spatial_patterns()
             if spatial_analysis:
-                return spatial_analysis['description']  # This will now return the GPT summary
+                return spatial_analysis['description']
             return None
             
         # Get population density data from database
