@@ -9,7 +9,7 @@ import pandas as pd
 from libpysal.weights import KNN
 from esda import Moran_Local
 import openai
-from config import DevelopmentConfig  # Import your config to get the OpenAI API key
+from config import DevelopmentConfig
 
 # Initialize DuckDB connection
 con = duckdb.connect('database/spatial-db.db', read_only=True)
@@ -23,6 +23,24 @@ def fetch_density_data(table_name, accuracy, value_column='ppl_densit'):
     """
     query_result = con.execute(query).fetchdf()
     gdf = gpd.GeoDataFrame(query_result, geometry=gpd.GeoSeries.from_wkt(query_result['geom_wkt']))
+    
+    # Add LISA classifications
+    lisa_results = analyze_spatial_patterns()
+    if lisa_results:
+        # Create a mapping of state names to their LISA classification
+        lisa_mapping = {}
+        for state in lisa_results['HH']:
+            lisa_mapping[state] = 'HH'
+        for state in lisa_results['LL']:
+            lisa_mapping[state] = 'LL'
+        for state in lisa_results['HL']:
+            lisa_mapping[state] = 'HL'
+        for state in lisa_results['LH']:
+            lisa_mapping[state] = 'LH'
+        
+        # Add LISA classification to GeoDataFrame
+        gdf['lisa_class'] = gdf['state_name'].map(lisa_mapping)
+    
     gdf.drop(columns=['geom_wkt'], inplace=True)
     geojson_data = json.loads(gdf.to_json())
     return jsonify(geojson_data)

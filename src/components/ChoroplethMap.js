@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-const ChoroplethMap = ({ onStateClick, selectedStates }) => {
+const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSpatialClustersToggle }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const [geoData, setGeoData] = useState(null); // State to store GeoJSON data
@@ -47,10 +47,26 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
         }
     }, [selectedStates, geoData]);
 
+    // Update clusters visibility whenever showSpatialClusters changes
+    useEffect(() => {
+        if (map.current && map.current.isStyleLoaded()) {
+            map.current.setLayoutProperty(
+                'lisa-clusters-fill',
+                'visibility',
+                showSpatialClusters ? 'visible' : 'none'
+            );
+            map.current.setLayoutProperty(
+                'lisa-clusters',
+                'visibility',
+                showSpatialClusters ? 'visible' : 'none'
+            );
+        }
+    }, [showSpatialClusters]);
+
     useEffect(() => {
         if (!geoData) {
             console.log('GeoJSON not yet loaded. Waiting...');
-            return; // Wait for GeoJSON data
+            return;
         }
 
         if (map.current) {
@@ -60,7 +76,6 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
 
         console.log('Initializing Mapbox map...');
         mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
-        console.log('Mapbox Token:', process.env.REACT_APP_MAPBOX_TOKEN);
 
         map.current = new mapboxgl.Map({
             container: mapContainer.current,
@@ -73,7 +88,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
         console.log('Adding navigation controls...');
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
         map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-        map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+        map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
         map.current.addControl(
             new mapboxgl.GeolocateControl({
                 positionOptions: { enableHighAccuracy: true },
@@ -85,7 +100,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
         map.current.on('load', () => {
             console.log('Map loaded. Adding layers...');
 
-            // Add GeoJSON source with fetched data
+            // Add GeoJSON source
             map.current.addSource('population', {
                 type: 'geojson',
                 data: geoData
@@ -108,6 +123,62 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
                         12000, '#723122'
                     ],
                     'fill-opacity': 0.75
+                }
+            });
+                   // Add LISA cluster fills
+                   map.current.addLayer({
+                    id: 'lisa-clusters-fill',
+                    type: 'fill',
+                    source: 'population',
+                    layout: {
+                        'visibility': 'none'  // Initially hidden
+                    },
+                    paint: {
+                        'fill-color': [
+                            'match',
+                            ['get', 'lisa_class'],
+                            'LL', '#01579b',  // Blue for Low-Low
+                            'HL', '#f06292',  // Pink for High-Low
+                            'LH', '#00bcd4',  // Light Blue for Low-High
+                            'HH', '#d81b60',  // Red for High-High
+                            'transparent'
+                        ],
+                        'fill-opacity': [
+                            'case',
+                            ['has', 'lisa_class'],
+                            0.2,  // Lower opacity for fills
+                            0
+                        ]
+                    }
+                });
+
+            // Add LISA cluster outlines
+            map.current.addLayer({
+                id: 'lisa-clusters',
+                type: 'line',
+                source: 'population',
+                layout: {
+                    'visibility': 'none'  // Initially hidden
+                },
+                paint: {
+                    'line-color': [
+                        'match',
+                        ['get', 'lisa_class'],
+                        'LL', '#01579b',  // Blue for Low-Low
+                        'HL', '#f06292',  // Pink for High-Low
+                        'LH', '#00bcd4',  // Light Blue for Low-High
+                        'HH', '#d81b60',  // Red for High-High
+                        'transparent'
+                    ],
+                    'line-width': 2,
+                    'line-opacity': [
+                        'case',
+                        ['has', 'lisa_class'],
+                        0.8,
+                        0
+                    ],
+                    'line-offset': 1,
+                    'line-join': 'round',
                 }
             });
 
@@ -153,8 +224,8 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
         <div className="relative h-full">
             <div ref={mapContainer} className="h-full" />
 
-            {/* Legend */}
-            <div className="absolute bottom-0 right-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90">
+            {/* Population Density Legend */}
+            <div className="absolute top-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90">
                 <h3 className="text-sm font-bold mb-2">Population Density</h3>
                 <div className="flex flex-col gap-1">
                     <div className="flex items-center">
@@ -179,6 +250,31 @@ const ChoroplethMap = ({ onStateClick, selectedStates }) => {
                     </div>
                 </div>
             </div>
+
+            {/* LISA Clusters Legend - Only show when clusters are visible */}
+            {showSpatialClusters && (
+                <div className="absolute bottom-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90">
+                    <h3 className="text-sm font-bold mb-2">Hot and Cold Spots</h3>
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center">
+                            <div className="w-4 h-4 mr-2 border-2 border-[#d81b60] bg-[#d81b60] bg-opacity-20"></div>
+                            <span className="text-xs">High-High Cluster</span>
+                        </div>
+                        <div className="flex items-center">
+                            <div className="w-4 h-4 mr-2 border-2 border-[#01579b] bg-[#01579b] bg-opacity-20"></div>
+                            <span className="text-xs">Low-Low Cluster</span>
+                        </div>
+                        <div className="flex items-center">
+                            <div className="w-4 h-4 mr-2 border-2 border-[#f06292] bg-[#f06292] bg-opacity-20"></div>
+                            <span className="text-xs">High-Low Outlier</span>
+                        </div>
+                        <div className="flex items-center">
+                            <div className="w-4 h-4 mr-2 border-2 border-[#00bcd4] bg-[#00bcd4] bg-opacity-20"></div>
+                            <span className="text-xs">Low-High Outlier</span>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

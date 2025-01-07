@@ -9,18 +9,41 @@ import {
     Button,
 } from '@material-tailwind/react';
 
-const Chatbot = ({ selectedStates, onStateRemove }) => {
+const Chatbot = ({ 
+    selectedStates, 
+    onStateRemove, 
+    onSpatialClustersChange,
+    showSpatialClusters
+}) => {
     const [input, setInput] = useState('');
     const [responses, setResponses] = useState([]);
     const [showSuggestion, setShowSuggestion] = useState(false);
     const [suggestion, setSuggestion] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSendMessage = async () => {
         if (!input.trim()) return;
 
         try {
-            // Add user message to responses immediately
             setResponses(prev => [...prev, { role: 'user', content: input }]);
+            
+            setIsLoading(true);
+
+            const spatialPatternKeywords = [
+                "spatial pattern",
+                "spatial distribution",
+                "clustering pattern",
+                "density pattern",
+                "density distribution"
+            ];
+
+            const isSpatialPatternQuestion = spatialPatternKeywords.some(
+                keyword => input.toLowerCase().includes(keyword)
+            );
+
+            if (isSpatialPatternQuestion) {
+                onSpatialClustersChange(true);
+            }
 
             // First try to get analysis from backend
             const response = await fetch(`http://127.0.0.1:5000/api/analyze-density`, {
@@ -68,6 +91,8 @@ const Chatbot = ({ selectedStates, onStateRemove }) => {
         } catch (error) {
             console.error('Error:', error);
             alert('Error: ' + error.message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -145,6 +170,10 @@ const Chatbot = ({ selectedStates, onStateRemove }) => {
         setShowSuggestion(false);
     };
 
+    const handleSpatialClustersRemove = () => {
+        onSpatialClustersChange(false);
+    };
+
     return (
         <Card className="w-full h-full">
             <CardBody className="flex flex-col h-full">
@@ -157,7 +186,7 @@ const Chatbot = ({ selectedStates, onStateRemove }) => {
                     <Typography variant="small" color="blue-gray" className="font-medium mb-2 text-left">
                         Selected Geographies
                     </Typography>
-                    {selectedStates.length === 0 ? (
+                    {selectedStates.length === 0 && !showSpatialClusters ? (
                         <Typography variant="small" className="text-gray-600 italic text-left text-xs">
                             Click on areas of interest
                         </Typography>
@@ -173,22 +202,27 @@ const Chatbot = ({ selectedStates, onStateRemove }) => {
                                         className="hover:text-light-green-800 focus:outline-none"
                                         aria-label={`Remove ${state.name}`}
                                     >
-                                        <svg 
-                                            xmlns="http://www.w3.org/2000/svg" 
-                                            className="h-3 w-3" 
-                                            viewBox="0 0 20 20" 
-                                            fill="currentColor"
-                                        >
-                                            <path 
-                                                fillRule="evenodd" 
-                                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" 
-                                                clipRule="evenodd" 
-                                            />
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                                         </svg>
                                     </button>
                                     {state.name}
                                 </div>
                             ))}
+                            {showSpatialClusters && (
+                                <div className="bg-blue-gray-50 text-blue-gray-800 px-2 py-1 rounded-md text-xs flex items-center gap-1">
+                                    <button
+                                        onClick={handleSpatialClustersRemove}
+                                        className="hover:text-blue-gray-800 focus:outline-none"
+                                        aria-label="Remove hot and cold spots"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    Hot and Cold Spots
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -215,6 +249,18 @@ const Chatbot = ({ selectedStates, onStateRemove }) => {
                             </div>
                         </div>
                     ))}
+                    {isLoading && (
+                        <div className="flex justify-start mb-2">
+                            <div className="py-2 px-4 rounded-md bg-gray-200 text-gray-900 text-left text-xs">
+                                <Typography 
+                                    variant="small" 
+                                    className="font-['Roboto'] font-normal leading-[1.2] italic"
+                                >
+                                    Looking for answers...
+                                </Typography>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Updated Suggestion UI */}
