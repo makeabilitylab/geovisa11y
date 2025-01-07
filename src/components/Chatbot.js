@@ -13,7 +13,8 @@ const Chatbot = ({
     selectedStates, 
     onStateRemove, 
     onSpatialClustersChange,
-    showSpatialClusters
+    showSpatialClusters,
+    currentDataset
 }) => {
     const [input, setInput] = useState('');
     const [responses, setResponses] = useState([]);
@@ -54,7 +55,8 @@ const Chatbot = ({
                 },
                 body: JSON.stringify({
                     question: input,
-                    selected_states: selectedStates.map(state => state.name)
+                    selected_states: selectedStates.map(state => state.name),
+                    dataset: currentDataset
                 })
             });
 
