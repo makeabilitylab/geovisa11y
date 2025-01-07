@@ -7,6 +7,7 @@ import Chatbot from './components/Chatbot';
 function App() {
   const [selectedStates, setSelectedStates] = useState([]);
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
+  const [selectedDataset, setSelectedDataset] = useState('ppl_densit');
 
   const handleStateClick = (stateId, stateName) => {
     setSelectedStates(prev => {
@@ -27,6 +28,14 @@ function App() {
     setSelectedStates(prev => prev.filter(state => state.id !== stateId));
   };
 
+  const handleSpatialClustersChange = (show) => {
+    setShowSpatialClusters(show);
+  };
+
+  const handleDatasetChange = (dataset) => {
+    setSelectedDataset(dataset);
+  };
+
   return (
     <div className="flex h-screen">
       <div className="w-2/3 h-full">
@@ -35,14 +44,16 @@ function App() {
           selectedStates={selectedStates}
           showSpatialClusters={showSpatialClusters}
           onSpatialClustersToggle={setShowSpatialClusters}
+          onDatasetChange={handleDatasetChange}
         />
       </div>
       <div className="w-1/3 h-full p-4">
         <Chatbot
           selectedStates={selectedStates}
           onStateRemove={handleStateRemove}
-          onSpatialClustersChange={setShowSpatialClusters}
+          onSpatialClustersChange={handleSpatialClustersChange}
           showSpatialClusters={showSpatialClusters}
+          currentDataset={selectedDataset}
         />
       </div>
     </div>

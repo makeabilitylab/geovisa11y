@@ -17,33 +17,49 @@ con.execute("INSTALL 'spatial';")
 con.execute("LOAD 'spatial';")
 
 def fetch_density_data(table_name, accuracy, value_column='ppl_densit'):
-    query = f"""
-    SELECT GEOID, state_name, {value_column}, ST_AsText(ST_Simplify(geom, {accuracy})) AS geom_wkt
-    FROM {table_name}
-    """
-    query_result = con.execute(query).fetchdf()
-    gdf = gpd.GeoDataFrame(query_result, geometry=gpd.GeoSeries.from_wkt(query_result['geom_wkt']))
-    
-    # Add LISA classifications
-    lisa_results = analyze_spatial_patterns()
-    if lisa_results:
-        # Create a mapping of state names to their LISA classification
-        lisa_mapping = {}
-        for state in lisa_results['HH']:
-            lisa_mapping[state] = 'HH'
-        for state in lisa_results['LL']:
-            lisa_mapping[state] = 'LL'
-        for state in lisa_results['HL']:
-            lisa_mapping[state] = 'HL'
-        for state in lisa_results['LH']:
-            lisa_mapping[state] = 'LH'
+    try:
+        query = f"""
+        SELECT GEOID, state_name, 
+               CASE 
+                   WHEN '{value_column}' IN ('walk_to_wo', 'transit_to')
+                   THEN COALESCE({value_column}, 0) * 100  -- Multiply percentages by 100
+                   ELSE COALESCE({value_column}, 0)
+               END as value,
+               ST_AsText(ST_Simplify(geom, {accuracy})) AS geom_wkt
+        FROM {table_name}
+        """
+        print(f"Executing query: {query}")  # Debug log
+        query_result = con.execute(query).fetchdf()
+        print(f"Query result columns: {query_result.columns}")  # Debug log
+        print(f"First few rows: {query_result.head()}")  # Debug log
         
-        # Add LISA classification to GeoDataFrame
-        gdf['lisa_class'] = gdf['state_name'].map(lisa_mapping)
-    
-    gdf.drop(columns=['geom_wkt'], inplace=True)
-    geojson_data = json.loads(gdf.to_json())
-    return jsonify(geojson_data)
+        gdf = gpd.GeoDataFrame(query_result, geometry=gpd.GeoSeries.from_wkt(query_result['geom_wkt']))
+        
+        # Add LISA classifications
+        lisa_results = analyze_spatial_patterns(value_column)  # Pass the current dataset
+        if lisa_results:
+            lisa_mapping = {}
+            for state in lisa_results['HH']:
+                lisa_mapping[state] = 'HH'
+            for state in lisa_results['LL']:
+                lisa_mapping[state] = 'LL'
+            for state in lisa_results['HL']:
+                lisa_mapping[state] = 'HL'
+            for state in lisa_results['LH']:
+                lisa_mapping[state] = 'LH'
+            
+            gdf['lisa_class'] = gdf['state_name'].map(lisa_mapping)
+        
+        gdf.drop(columns=['geom_wkt'], inplace=True)
+        geojson_data = json.loads(gdf.to_json())
+        
+        # Debug log
+        print(f"GeoJSON properties for first feature: {geojson_data['features'][0]['properties']}")
+        
+        return jsonify(geojson_data)
+    except Exception as e:
+        print(f"Error in fetch_density_data: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 #Question and answering functions
 
@@ -61,22 +77,28 @@ def execute_query(query):
         print(f"Error executing query: {str(e)}")
         return None
 
-def get_gpt_summary(spatial_pattern_text):
+def get_gpt_summary(spatial_pattern_text, dataset='ppl_densit'):
     """Get a more natural summary of the spatial patterns using GPT"""
     try:
-        openai.api_key = DevelopmentConfig.OPENAI_API_KEY
+        metric_name = {
+            'ppl_densit': 'population density',
+            'walk_to_wo': 'walking to work percentage',
+            'transit_to': 'public transit usage'
+        }.get(dataset, 'value')
         
         prompt = f"""
-        Summarize the following US population density patterns in a single, concise paragraph following this structure:
-        1. First mention high-density clusters with 1-2 example states
-        2. Then mention low-density clusters with 1-2 example states
-        3. Finally, mention any notable outliers (high density areas surrounded by low density or vice versa)
+        Summarize the following US {metric_name} patterns in a single, concise paragraph following this structure:
+        1. First mention high-value clusters with 1-2 example states
+        2. Then mention low-value clusters with 1-2 example states
+        3. Finally, mention any notable outliers (high values surrounded by low or vice versa)
         
         Keep the summary brief and focused on the most significant patterns.
         
         Raw analysis:
         {spatial_pattern_text}
         """
+        
+        openai.api_key = DevelopmentConfig.OPENAI_API_KEY
         
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
@@ -97,15 +119,28 @@ def get_gpt_summary(spatial_pattern_text):
         print(f"Error getting GPT summary: {str(e)}")
         return None
 
-def analyze_spatial_patterns():
+def analyze_spatial_patterns(dataset='ppl_densit'):
     """Analyze spatial patterns using Local Moran's I"""
     try:
-        # Get state geometries and population density data
-        query = """
-            SELECT state_name, ppl_densit as density, ST_AsText(geom) as geometry
+        print(f"\n=== Spatial Pattern Analysis ===")
+        print(f"Dataset: {dataset}")
+        
+        # Get state geometries and data for the specified dataset
+        query = f"""
+            SELECT state_name, 
+                   CASE 
+                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
+                       THEN {dataset} * 100  -- Multiply percentages by 100
+                       ELSE {dataset}
+                   END as value,
+                   ST_AsText(geom) as geometry
             FROM state
         """
         result = con.execute(query).fetchdf()
+        
+        # Log the values we're analyzing
+        print("\nSample of values being analyzed:")
+        print(result[['state_name', 'value']].head())
         
         # Convert to GeoDataFrame
         gdf = gpd.GeoDataFrame(
@@ -119,7 +154,7 @@ def analyze_spatial_patterns():
         w.transform = 'r'
         
         # Calculate local Moran's I
-        moran = Moran_Local(gdf['density'], w, permutations=999)
+        moran = Moran_Local(gdf['value'], w, permutations=999)
         
         # Add LISA statistics to the dataframe
         gdf['LISA_I'] = moran.Is
@@ -141,19 +176,39 @@ def analyze_spatial_patterns():
         
         # Create a human-readable description
         description = []
+        metric_name = {
+            'ppl_densit': 'population density',
+            'walk_to_wo': 'walking to work percentage',
+            'transit_to': 'public transit usage'
+        }.get(dataset, 'value')
+        
         if hh_states:
-            description.append(f"High-High clusters (states with high density surrounded by high-density neighbors): {', '.join(hh_states)}")
+            description.append(f"High-High clusters (states with high {metric_name} surrounded by high-{metric_name} neighbors): {', '.join(hh_states)}")
         if ll_states:
-            description.append(f"Low-Low clusters (states with low density surrounded by low-density neighbors): {', '.join(ll_states)}")
+            description.append(f"Low-Low clusters (states with low {metric_name} surrounded by low-{metric_name} neighbors): {', '.join(ll_states)}")
         if hl_states:
-            description.append(f"High-Low outliers (states with high density surrounded by low-density neighbors): {', '.join(hl_states)}")
+            description.append(f"High-Low outliers (states with high {metric_name} surrounded by low-{metric_name} neighbors): {', '.join(hl_states)}")
         if lh_states:
-            description.append(f"Low-High outliers (states with low density surrounded by high-density neighbors): {', '.join(lh_states)}")
+            description.append(f"Low-High outliers (states with low {metric_name} surrounded by high-{metric_name} neighbors): {', '.join(lh_states)}")
         
         raw_description = '. '.join(description)
         
         # Get GPT summary of the patterns
-        gpt_summary = get_gpt_summary(raw_description)
+        gpt_summary = get_gpt_summary(raw_description, dataset)
+        
+        # After creating the clusters, log them:
+        print("\n=== LISA Clusters ===")
+        print(f"High-High (HH) clusters: {hh_states}")
+        print(f"Low-Low (LL) clusters: {ll_states}")
+        print(f"High-Low (HL) outliers: {hl_states}")
+        print(f"Low-High (LH) outliers: {lh_states}")
+        
+        # Also log some statistics about the values
+        print("\n=== Value Statistics ===")
+        print(f"Min value: {result['value'].min():.2f}")
+        print(f"Max value: {result['value'].max():.2f}")
+        print(f"Mean value: {result['value'].mean():.2f}")
+        print("===============================\n")
         
         response = {
             'HH': hh_states,
@@ -170,12 +225,12 @@ def analyze_spatial_patterns():
         print(f"Error analyzing spatial patterns: {str(e)}")
         return None
 
-def analyze_global_pattern():
+def analyze_global_pattern(dataset='ppl_densit'):
     """Analyze global spatial pattern using Moran's I"""
     try:
-        # Get state geometries and population density data
-        query = """
-            SELECT state_name, ppl_densit as density, ST_AsText(geom) as geometry
+        # Get state geometries and data for the specified dataset
+        query = f"""
+            SELECT state_name, {dataset} as value, ST_AsText(geom) as geometry
             FROM state
         """
         result = con.execute(query).fetchdf()
@@ -191,7 +246,7 @@ def analyze_global_pattern():
         w.transform = 'r'  # Row-standardize weights
         
         # Calculate global Moran's I
-        moran = Moran(gdf['density'], w)
+        moran = Moran(gdf['value'], w)
         
         # Interpret the results and provide simple response
         if moran.p_sim < 0.05:  # Statistically significant
@@ -217,14 +272,42 @@ def analyze_global_pattern():
         print(f"Error analyzing global pattern: {str(e)}")
         return None
 
-def analyze_population_density(question, selected_states=None):
-    """Analyze population density data based on user question"""
+def analyze_population_density(question, selected_states=None, dataset='ppl_densit'):
+    """Analyze data based on user question"""
     try:
         print(f"Analyzing question: {question}")
         print(f"Selected states: {selected_states}")
+        print(f"Current dataset: {dataset}")
         
         question = question.lower()
         
+        # Set unit based on dataset
+        unit = 'people per square mile' if dataset == 'ppl_densit' else 'percent'
+        is_percentage = dataset in ['walk_to_wo', 'transit_to']
+        
+        # Override dataset only if explicitly mentioned in question
+        if ('walk' in question or 'walking' in question) and 'pattern' not in question:
+            dataset = 'walk_to_wo'
+            unit = 'percent'
+            is_percentage = True
+        elif ('transit' in question or 'public transport' in question) and 'pattern' not in question:
+            dataset = 'transit_to'
+            unit = 'percent'
+            is_percentage = True
+            
+        # Check for pattern analysis request
+        if any(phrase in question for phrase in [
+            "spatial pattern",
+            "spatial distribution",
+            "clustering pattern",
+            "density pattern",
+            "density distribution"
+        ]):
+            spatial_analysis = analyze_spatial_patterns(dataset)
+            if spatial_analysis:
+                return spatial_analysis['description']
+            return None
+            
         # Check for pattern analysis request
         if any(phrase in question for phrase in [
             "is there a pattern",
@@ -233,27 +316,19 @@ def analyze_population_density(question, selected_states=None):
             "identify pattern",
             "detect pattern"
         ]):
-            global_pattern = analyze_global_pattern()
+            global_pattern = analyze_global_pattern(dataset)
             if global_pattern:
                 return global_pattern['description']
             return None
             
-        # Check for spatial pattern analysis request
-        if any(phrase in question for phrase in [
-            "spatial pattern",
-            "spatial distribution",
-            "clustering pattern",
-            "density pattern",
-            "density distribution"
-        ]):
-            spatial_analysis = analyze_spatial_patterns()
-            if spatial_analysis:
-                return spatial_analysis['description']
-            return None
-            
         # Get population density data from database
         query = f"""
-            SELECT state_name, ppl_densit as density
+            SELECT state_name, 
+                   CASE 
+                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
+                       THEN {dataset} * 100  -- Multiply percentages by 100
+                       ELSE {dataset}
+                   END as value
             FROM state
         """
         
@@ -278,13 +353,17 @@ def analyze_population_density(question, selected_states=None):
             "what's the population density of",
             "what is the population density of",
             "how dense is",
-            "population density of"
+            "population density of",
+            "what's the percentage",
+            "what is the percentage",
+            "how many people",
+            "what percent",
+            "percentage of"
         ]):
             # If multiple states are selected
             if selected_states and len(selected_states) > 1:
-                # Build density descriptions for each state
                 descriptions = [
-                    f"{r['state_name']} has a population density of {r['density']:.2f} people per square mile"
+                    f"{r['state_name']} has {float(r['value']):.2f} {unit}"
                     for r in results
                 ]
                 return f"{', '.join(descriptions)}."
@@ -293,25 +372,33 @@ def analyze_population_density(question, selected_states=None):
             for state_data in results:
                 state_name = state_data['state_name'].lower()
                 if state_name in question.lower():
-                    return f"{state_data['state_name']} has a population density of {state_data['density']:.2f} people per square mile."
+                    value = float(state_data['value'])
+                    return f"{state_data['state_name']} has {value:.2f} {unit}."
             
             # If we have a single selected state but state wasn't found in question
             if selected_states and len(selected_states) == 1:
-                state_data = results[0]  # Should only be one result
-                return f"{state_data['state_name']} has a population density of {state_data['density']:.2f} people per square mile."
+                state_data = results[0]
+                value = float(state_data['value'])
+                return f"{state_data['state_name']} has {value:.2f} {unit}."
         
-        # Handle highest/most dense questions
-        if "highest" in question or "most densely" in question:
-            highest = max(results, key=lambda x: x['density'])
-            return f"{highest['state_name']} has the highest population density with {highest['density']:.2f} people per square mile."
+        # Handle highest questions
+        if any(word in question for word in ["highest", "most", "largest", "greatest", "biggest"]):
+            highest = max(results, key=lambda x: x['value'])
+            metric_name = {
+                'ppl_densit': 'population density',
+                'walk_to_wo': 'percentage of people walking to work',
+                'transit_to': 'percentage of people using public transit'
+            }[dataset]
+            value = highest['value'] * 100 if is_percentage else highest['value']
+            return f"{highest['state_name']} has the highest {metric_name} with {value:.2f} {unit}."
             
         # Handle comparison questions
         if "compare" in question and len(results) > 1:
             descriptions = [
-                f"{r['state_name']} has a population density of {r['density']:.2f} people per square mile" 
+                f"{r['state_name']} has {r['value'] * 100 if is_percentage else r['value']:.2f} {unit}" 
                 for r in results
             ]
-            sorted_results = sorted(results, key=lambda x: x['density'], reverse=True)
+            sorted_results = sorted(results, key=lambda x: x['value'], reverse=True)
             return f"{', '.join(descriptions)}. {sorted_results[0]['state_name']} has the highest density and {sorted_results[-1]['state_name']} has the lowest density among the selected states."
         
         print("No matching question pattern found")
