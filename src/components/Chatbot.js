@@ -8,13 +8,42 @@ import {
     Input,
     Button,
 } from '@material-tailwind/react';
+import { DATASET_CONFIG, SPATIAL_PATTERN_KEYWORDS } from '../constants';
+
+const SuggestionText = ({ text, datasetPhrase }) => {
+    const parts = text.split(' in ');
+    const beforeIn = parts[0];
+    const afterIn = parts[1];
+
+    // Split the text before 'in' into pre-dataset and dataset parts
+    const [preDataset, ...rest] = beforeIn.split(new RegExp(`(${datasetPhrase})`, 'i'));
+    const dataset = rest.join(''); // Join in case the regex split created multiple parts
+
+    return (
+        <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs">{preDataset}</span>
+            <div className="bg-purple-50 text-purple-800 px-2 py-1 rounded-md text-xs">
+                {datasetPhrase}
+            </div>
+            {afterIn && (
+                <>
+                    <span className="text-xs">in</span>
+                    <div className="bg-light-green-50 text-light-green-800 px-2 py-1 rounded-md text-xs">
+                        {afterIn}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
 
 const Chatbot = ({ 
     selectedStates, 
     onStateRemove, 
     onSpatialClustersChange,
     showSpatialClusters,
-    currentDataset
+    currentDataset,
+    onClearAllStates
 }) => {
     const [input, setInput] = useState('');
     const [responses, setResponses] = useState([]);
@@ -30,15 +59,7 @@ const Chatbot = ({
             
             setIsLoading(true);
 
-            const spatialPatternKeywords = [
-                "spatial pattern",
-                "spatial distribution",
-                "clustering pattern",
-                "density pattern",
-                "density distribution"
-            ];
-
-            const isSpatialPatternQuestion = spatialPatternKeywords.some(
+            const isSpatialPatternQuestion = SPATIAL_PATTERN_KEYWORDS.some(
                 keyword => input.toLowerCase().includes(keyword)
             );
 
@@ -64,7 +85,7 @@ const Chatbot = ({
             console.log('Backend response:', data);
 
             if (data.result) {
-                // If we got a valid analysis from backend, use it
+                // When having a result from back end
                 setResponses(prev => [...prev, { role: 'assistant', content: data.result }]);
             } else {
                 console.log('No result from backend, falling back to OpenAI');
@@ -98,62 +119,58 @@ const Chatbot = ({
         }
     };
 
-    // Function to handle input changes with auto-completion
+    // Modify handleInputChange
     const handleInputChange = (e) => {
-        const newValue = e.target.value;
-        setInput(newValue);
+        const newValue = e.target.value.toLowerCase();
+        setInput(e.target.value);
 
-        // Check for auto-completion triggers
-        const densityTriggers = [
-            "what is the population density of",
-            "what's the population density of",
-            "population density of",
-            "how dense is",
-            "density of",
-            "compare the population density of",
-            "compare density of",
-            "which state has higher population density:",
-            "which state has the higher population density:",
-            "which state has the highest population density:",
-            "which has higher population density:",
-            "which has the highest population density:",
-            "which is more densely populated:",
-            "which state is more densely populated:",
-            "which states are more densely populated:",
-        ];
-
-        // Check if the input ends with any of the triggers
-        const shouldAutoComplete = densityTriggers.some(trigger => 
-            newValue.toLowerCase().endsWith(trigger.toLowerCase())
-        ) || (
-            // Also check for partial "which" questions that end with a colon
-            newValue.toLowerCase().includes('population density') && 
-            newValue.toLowerCase().includes('which') && 
-            newValue.endsWith(':')
+        // Check for dataset-specific triggers
+        const currentDatasetTriggers = DATASET_CONFIG[currentDataset];
+        const shouldAutoComplete = currentDatasetTriggers.phrases.some(phrase => 
+            newValue.trim().endsWith(phrase.toLowerCase().trim())
         );
 
-        if (shouldAutoComplete && selectedStates.length > 0) {
-            // Create suggestion based on number of states
-            const stateNames = selectedStates.map(state => state.name);
-            let suggestionText = newValue;
+        if (shouldAutoComplete) {
+            // Remove extra spaces before adding the completion
+            const baseText = e.target.value.replace(/\s+$/, '') + ' ';
+            const suggestionText = `${baseText}${currentDatasetTriggers.completion}`;
             
-            if (stateNames.length === 1) {
-                suggestionText = `${newValue} ${stateNames[0]}`;
-            } else {
-                // For multiple states, use proper grammar
-                const lastState = stateNames.pop();
-                // Don't add "and" if the question already ends with a colon
-                if (newValue.endsWith(':')) {
-                    suggestionText = `${newValue} ${stateNames.join(', ')} or ${lastState}`;
+            if (selectedStates.length > 0) {
+                const stateNames = selectedStates.map(state => state.name);
+                if (stateNames.length === 1) {
+                    setSuggestion(`${suggestionText} in ${stateNames[0]}`);
                 } else {
-                    suggestionText = `${newValue} ${stateNames.join(', ')} and ${lastState}`;
+                    const lastState = stateNames.pop();
+                    setSuggestion(`${suggestionText} in ${stateNames.join(', ')} and ${lastState}`);
                 }
+            } else {
+                setSuggestion(suggestionText);
             }
-            
-            setSuggestion(suggestionText);
             setShowSuggestion(true);
         } else {
-            setShowSuggestion(false);
+            // Check if the input matches any of the question templates
+            const matchingTemplate = currentDatasetTriggers.questionTemplates.find(template =>
+                newValue.trim().endsWith(template.toLowerCase().trim())
+            );
+
+            if (matchingTemplate && selectedStates.length > 0) {
+                const stateNames = selectedStates.map(state => state.name);
+                let suggestionText = newValue;
+                
+                if (stateNames.length === 1) {
+                    suggestionText = `${newValue} ${stateNames[0]}`;
+                } else {
+                    const lastState = stateNames.pop();
+                    suggestionText = newValue.endsWith(':') 
+                        ? `${newValue} ${stateNames.join(', ')} or ${lastState}`
+                        : `${newValue} ${stateNames.join(', ')} and ${lastState}`;
+                }
+                
+                setSuggestion(suggestionText);
+                setShowSuggestion(true);
+            } else {
+                setShowSuggestion(false);
+            }
         }
     };
 
@@ -177,17 +194,30 @@ const Chatbot = ({
     };
 
     return (
-        <Card className="w-full h-full">
-            <CardBody className="flex flex-col h-full">
+        // <Card className="w-full h-full p-0">
+            <CardBody className="flex flex-col h-full p-2">
                 <Typography variant="h6" color="blue-gray" className="mb-2">
                     MappieTalkie
                 </Typography>
 
                 {/* Selected Geographies Section */}
                 <div className="mb-4 p-3 rounded-md outline outline-2 outline-blue-gray-50">
-                    <Typography variant="small" color="blue-gray" className="font-medium mb-2 text-left">
-                        Selected Geographies
-                    </Typography>
+                    <div className="flex justify-between items-center mb-2">
+                        <Typography variant="small" color="blue-gray" className="font-medium text-left">
+                            Selected Geographies
+                        </Typography>
+                        {selectedStates.length > 0 && (
+                            <Button
+                                size="sm"
+                                variant="text"
+                                color="pink"
+                                className="h-6 flex items-center justify-center px-2 text-xs"
+                                onClick={onClearAllStates}
+                            >
+                                Clear All
+                            </Button>
+                        )}
+                    </div>
                     {selectedStates.length === 0 && !showSpatialClusters ? (
                         <Typography variant="small" className="text-gray-600 italic text-left text-xs">
                             Click on areas of interest
@@ -268,24 +298,22 @@ const Chatbot = ({
                 {/* Updated Suggestion UI */}
                 {showSuggestion && (
                     <div 
-                        className="mb-2 bg-white rounded-md shadow-sm p-2 cursor-pointer hover:bg-gray-50"
+                        className="mb-2 bg-white rounded-md shadow-lg p-3 cursor-pointer hover:bg-gray-50 border border-gray-200"
                         onClick={handleSuggestionClick}
                     >
-                        <div className="flex items-center flex-wrap gap-2">
-                            <div className="bg-light-green-50 text-light-green-800 px-2 py-1 rounded-md text-xs">
-                                {selectedStates.length === 1 
-                                    ? selectedStates[0].name
-                                    : selectedStates.map(state => state.name).join(', ').replace(/,([^,]*)$/, ' and$1')
-                                }
-                            </div>
-                            <span className="text-xs text-gray-600">
+                        <div className="flex items-center justify-between gap-4">
+                            <SuggestionText 
+                                text={suggestion} 
+                                datasetPhrase={DATASET_CONFIG[currentDataset].completion}
+                            />
+                            <span className="text-xs text-gray-500 italic whitespace-nowrap">
                                 Press Tab or click to complete
                             </span>
                         </div>
                     </div>
                 )}
 
-                {/* Input and Button in one row */}
+                {/* Input and Button */}
                 <div className="flex gap-2 items-center">
                     <div className="flex-grow">
                         <Input
@@ -310,7 +338,7 @@ const Chatbot = ({
                     </Button>
                 </div>
             </CardBody>
-        </Card>
+        // </Card>
     );
 };
 

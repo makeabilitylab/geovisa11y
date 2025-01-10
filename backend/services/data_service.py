@@ -281,9 +281,28 @@ def analyze_population_density(question, selected_states=None, dataset='ppl_dens
         
         question = question.lower()
         
-        # Set unit based on dataset
-        unit = 'people per square mile' if dataset == 'ppl_densit' else 'percent'
-        is_percentage = dataset in ['walk_to_wo', 'transit_to']
+        # Set unit and context based on dataset
+        dataset_info = {
+            'ppl_densit': {
+                'unit': 'people per square mile',
+                'context': '',
+                'is_percentage': False
+            },
+            'walk_to_wo': {
+                'unit': 'percent',
+                'context': 'of people who walk to work',
+                'is_percentage': True
+            },
+            'transit_to': {
+                'unit': 'percent',
+                'context': 'of people who commute by public transit',
+                'is_percentage': True
+            }
+        }
+        
+        unit = dataset_info[dataset]['unit']
+        context = dataset_info[dataset]['context']
+        is_percentage = dataset_info[dataset]['is_percentage']
         
         # Override dataset only if explicitly mentioned in question
         if ('walk' in question or 'walking' in question) and 'pattern' not in question:
@@ -363,7 +382,7 @@ def analyze_population_density(question, selected_states=None, dataset='ppl_dens
             # If multiple states are selected
             if selected_states and len(selected_states) > 1:
                 descriptions = [
-                    f"{r['state_name']} has {float(r['value']):.2f} {unit}"
+                    f"{r['state_name']} has {float(r['value']):.2f} {unit} {context}"
                     for r in results
                 ]
                 return f"{', '.join(descriptions)}."
@@ -373,13 +392,13 @@ def analyze_population_density(question, selected_states=None, dataset='ppl_dens
                 state_name = state_data['state_name'].lower()
                 if state_name in question.lower():
                     value = float(state_data['value'])
-                    return f"{state_data['state_name']} has {value:.2f} {unit}."
+                    return f"{state_data['state_name']} has {value:.2f} {unit} {context}."
             
             # If we have a single selected state but state wasn't found in question
             if selected_states and len(selected_states) == 1:
                 state_data = results[0]
                 value = float(state_data['value'])
-                return f"{state_data['state_name']} has {value:.2f} {unit}."
+                return f"{state_data['state_name']} has {value:.2f} {unit} {context}."
         
         # Handle highest questions
         if any(word in question for word in ["highest", "most", "largest", "greatest", "biggest"]):
@@ -393,13 +412,26 @@ def analyze_population_density(question, selected_states=None, dataset='ppl_dens
             return f"{highest['state_name']} has the highest {metric_name} with {value:.2f} {unit}."
             
         # Handle comparison questions
-        if "compare" in question and len(results) > 1:
-            descriptions = [
-                f"{r['state_name']} has {r['value'] * 100 if is_percentage else r['value']:.2f} {unit}" 
-                for r in results
-            ]
-            sorted_results = sorted(results, key=lambda x: x['value'], reverse=True)
-            return f"{', '.join(descriptions)}. {sorted_results[0]['state_name']} has the highest density and {sorted_results[-1]['state_name']} has the lowest density among the selected states."
+        if any(word in question.lower() for word in ["compare", "which", "higher", "lower", "vs", "versus"]):
+            if len(results) > 1:
+                # Sort results by value in descending order
+                sorted_results = sorted(results, key=lambda x: x['value'], reverse=True)
+                descriptions = [
+                    f"{r['state_name']} has {float(r['value']):.2f} {unit} {context}"
+                    for r in sorted_results
+                ]
+                
+                # Define metric name based on dataset
+                metric_name = {
+                    'ppl_densit': 'population density',
+                    'walk_to_wo': 'percentage of people who walk to work',
+                    'transit_to': 'percentage of people who use public transit'
+                }.get(dataset, 'value')
+                
+                # Add comparison conclusion
+                conclusion = f"{sorted_results[0]['state_name']} has a higher {metric_name} than {sorted_results[-1]['state_name']}"
+                
+                return f"{', '.join(descriptions)}. {conclusion}."
         
         print("No matching question pattern found")
         return None
