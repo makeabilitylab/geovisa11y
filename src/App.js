@@ -36,6 +36,10 @@ function App() {
     setSelectedDataset(dataset);
   };
 
+  const handleClearAllStates = () => {
+    setSelectedStates([]);
+  };
+
   return (
     <div className="flex h-screen">
       <div className="w-2/3 h-full">
@@ -54,6 +58,7 @@ function App() {
           onSpatialClustersChange={handleSpatialClustersChange}
           showSpatialClusters={showSpatialClusters}
           currentDataset={selectedDataset}
+          onClearAllStates={handleClearAllStates}
         />
       </div>
     </div>

@@ -346,7 +346,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
             <div className="absolute top-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90">
                 {/* Dataset Selector */}
                 <div className="mb-4">
-                    <h3 className="text-sm font-bold mb-2">Select Dataset</h3>
+                    <h3 className="text-sm font-bold mb-2">Dataset</h3>
                     <select
                         value={selectedDataset}
                         onChange={(e) => {
