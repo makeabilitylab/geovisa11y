@@ -35,8 +35,6 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
             setIsLoading(true);
             try {
                 const apiUrl = `${process.env.REACT_APP_API_URL}/geojson/${selectedDataset}`;
-                console.log('Fetching GeoJSON from:', apiUrl);
-
                 const response = await fetch(apiUrl, {
                     method: 'GET',
                     mode: 'cors',
@@ -53,25 +51,26 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                 }
 
                 const data = await response.json();
-                console.log('GeoJSON Response Stats:', {
-                    featureCount: data.features.length,
-                    valueRange: {
-                        min: Math.min(...data.features.map(f => f.properties.value)),
-                        max: Math.max(...data.features.map(f => f.properties.value))
-                    }
-                });
                 setGeoData(data);
 
                 // Update the map source if it exists
                 if (map.current && map.current.getSource('population')) {
                     map.current.getSource('population').setData(data);
                     
-                    // Set the fill-opacity back to 0.75 after data is loaded
-                    setTimeout(() => {
-                        if (map.current) {
-                            map.current.setPaintProperty('population-density', 'fill-opacity', 0.75);
+                    // Update layer visibility based on showSpatialClusters
+                    if (showSpatialClusters) {
+                        if (map.current.getLayer('lisa-clusters')) {
+                            map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
+                            map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
                         }
-                    }, 100); // Small delay to ensure data is rendered
+                    } else {
+                        if (map.current.getLayer('lisa-clusters')) {
+                            map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+                            map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
+                        }
+                    }
+                    
+                    map.current.triggerRepaint();
                 }
             } catch (error) {
                 console.error('Error fetching GeoJSON data:', error);
@@ -80,30 +79,16 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
             }
         };
 
-        fetchGeoJSON();
-    }, [selectedDataset]);
+        if (map.current) {
+            fetchGeoJSON();
+        }
+    }, [selectedDataset, showSpatialClusters]);
 
     // Update map when dataset changes
     useEffect(() => {
         if (map.current && map.current.isStyleLoaded() && geoData) {
             const dataset = datasets[selectedDataset];
-            console.log('Selected Dataset:', selectedDataset);
-            console.log('Dataset Configuration:', dataset);
             
-            // Set fill-opacity to 0 before updating colors
-            map.current.setPaintProperty('population-density', 'fill-opacity', 0);
-            
-            // Log some sample values from the data
-            const sampleValues = geoData.features
-                .slice(0, 5)
-                .map(feature => ({
-                    state: feature.properties.state_name,
-                    value: feature.properties.value,
-                    raw_value: feature.properties[selectedDataset]
-                }));
-            console.log('Sample Values:', sampleValues);
-            
-            // Log the expression being used for coloring
             const expression = [
                 'interpolate',
                 ['linear'],
@@ -116,9 +101,9 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                     dataset.colors[i]
                 ])
             ];
-
-            console.log('Color Expression:', expression);
+            
             map.current.setPaintProperty('population-density', 'fill-color', expression);
+            map.current.setPaintProperty('population-density', 'fill-opacity', 0.75);
         }
     }, [selectedDataset, geoData]);
 
@@ -156,71 +141,61 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
     }, [showSpatialClusters]);
 
     useEffect(() => {
-        if (!geoData) {
-            console.log('GeoJSON not yet loaded. Waiting...');
-            return;
-        }
+        if (mapContainer.current && !map.current) {
+            mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
 
-        if (map.current) {
-            console.log('Map already initialized.');
-            return;
-        }
-
-        console.log('Initializing Mapbox map...');
-        mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
-
-        map.current = new mapboxgl.Map({
-            container: mapContainer.current,
-            style: 'mapbox://styles/mapbox/light-v10',
-            center: [-96, 37.8],
-            zoom: 4
-        });
-
-        // Add navigation controls
-        console.log('Adding navigation controls...');
-        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-        map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-        map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
-        map.current.addControl(
-            new mapboxgl.GeolocateControl({
-                positionOptions: { enableHighAccuracy: true },
-                trackUserLocation: true
-            }),
-            'top-right'
-        );
-
-        map.current.on('load', () => {
-            console.log('Map loaded. Adding layers...');
-
-            // Add GeoJSON source
-            map.current.addSource('population', {
-                type: 'geojson',
-                data: geoData
+            map.current = new mapboxgl.Map({
+                container: mapContainer.current,
+                style: 'mapbox://styles/mapbox/light-v10',
+                center: [-96, 37.8],
+                zoom: 4
             });
 
-            // Add choropleth layer with initial transparent fill
-            map.current.addLayer({
-                id: 'population-density',
-                type: 'fill',
-                source: 'population',
-                paint: {
-                    'fill-color': [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce',
+            // Add navigation controls
+            map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+            map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+            map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
+            map.current.addControl(
+                new mapboxgl.GeolocateControl({
+                    positionOptions: { enableHighAccuracy: true },
+                    trackUserLocation: true
+                }),
+                'top-right'
+            );
+
+            map.current.on('load', () => {
+                console.log('Map loaded. Adding layers...');
+
+                // Add the main data source
+                map.current.addSource('population', {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: []
+                    }
+                });
+
+                // Add the main choropleth layer
+                map.current.addLayer({
+                    id: 'population-density',
+                    type: 'fill',
+                    source: 'population',
+                    paint: {
+                        'fill-color': [
+                            'interpolate',
+                            ['linear'],
                             ['get', 'value'],
-                            0
+                            ...datasets[selectedDataset].breaks.flatMap((break_, i) => [
+                                break_,
+                                datasets[selectedDataset].colors[i]
+                            ])
                         ],
-                        ...datasets[selectedDataset].breaks.flatMap((break_, i) => [
-                            break_,
-                            datasets[selectedDataset].colors[i]
-                        ])
-                    ],
-                    'fill-opacity': 0
-                }
-            });
-                   // Add LISA cluster fills
-                   map.current.addLayer({
+                        'fill-opacity': 0.75
+                    }
+                });
+
+                // Add LISA cluster fills
+                map.current.addLayer({
                     id: 'lisa-clusters-fill',
                     type: 'fill',
                     source: 'population',
@@ -246,92 +221,105 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                     }
                 });
 
-            // Add LISA cluster outlines
-            map.current.addLayer({
-                id: 'lisa-clusters',
-                type: 'line',
-                source: 'population',
-                layout: {
-                    'visibility': 'none'  // Initially hidden
-                },
-                paint: {
-                    'line-color': [
-                        'match',
-                        ['get', 'lisa_class'],
-                        'LL', '#01579b',  // Blue for Low-Low
-                        'HL', '#f06292',  // Pink for High-Low
-                        'LH', '#00bcd4',  // Light Blue for Low-High
-                        'HH', '#d81b60',  // Red for High-High
-                        'transparent'
-                    ],
-                    'line-width': 2,
-                    'line-opacity': [
-                        'case',
-                        ['has', 'lisa_class'],
-                        0.8,
-                        0
-                    ],
-                    'line-offset': 1,
-                    'line-join': 'round',
-                }
-            });
-
-            // Add state borders layer
-            map.current.addLayer({
-                id: 'state-borders',
-                type: 'line',
-                source: 'population',
-                paint: {
-                    'line-color': '#627BC1',
-                    'line-width': 2,
-                    'line-opacity': 0
-                }
-            });
-
-            console.log('Layers added. Setting up interactions...');
-
-            // Click geometry interaction
-            map.current.on('click', 'population-density', (e) => {
-                if (e.features && e.features.length > 0) {
-                    const feature = e.features[0];
-                    const stateId = feature.properties.GEOID;
-                    const stateName = feature.properties.state_name;
-                    const value = feature.properties.value;
-                    
-                    // Get the current dataset configuration
-                    const dataset = datasets[selectedDataset];
-                    
-                    // Calculate the color based on the value
-                    let color = dataset.colors[0];
-                    for (let i = 0; i < dataset.breaks.length; i++) {
-                        if (value >= dataset.breaks[i]) {
-                            color = dataset.colors[i];
-                        }
+                // Add LISA cluster outlines
+                map.current.addLayer({
+                    id: 'lisa-clusters',
+                    type: 'line',
+                    source: 'population',
+                    layout: {
+                        'visibility': 'none'  // Initially hidden
+                    },
+                    paint: {
+                        'line-color': [
+                            'match',
+                            ['get', 'lisa_class'],
+                            'LL', '#01579b',  // Blue for Low-Low
+                            'HL', '#f06292',  // Pink for High-Low
+                            'LH', '#00bcd4',  // Light Blue for Low-High
+                            'HH', '#d81b60',  // Red for High-High
+                            'transparent'
+                        ],
+                        'line-width': 2,
+                        'line-opacity': [
+                            'case',
+                            ['has', 'lisa_class'],
+                            0.8,
+                            0
+                        ],
+                        'line-offset': 1,
+                        'line-join': 'round',
                     }
+                });
 
-                    console.log('Clicked State Details:', {
-                        state: stateName,
-                        dataset: dataset.name,
-                        value: `${value}${dataset.unit === 'percent' ? '%' : ''}`,
-                        unit: dataset.unit,
-                        color: color
-                    });
+                // Add state borders layer
+                map.current.addLayer({
+                    id: 'state-borders',
+                    type: 'line',
+                    source: 'population',
+                    paint: {
+                        'line-color': '#627BC1',
+                        'line-width': 2,
+                        'line-opacity': 0
+                    }
+                });
 
-                    // Call the callback with state info
-                    onStateClick(stateId, stateName);
-                }
+                // Add state outlines layer
+                map.current.addLayer({
+                    id: 'state-outlines',
+                    type: 'line',
+                    source: 'population',
+                    paint: {
+                        'line-color': '#000',
+                        'line-width': 1,
+                        'line-opacity': 0
+                    }
+                });
+
+                console.log('Layers added. Setting up interactions...');
+
+                // Click geometry interaction
+                map.current.on('click', 'population-density', (e) => {
+                    if (e.features && e.features.length > 0) {
+                        const feature = e.features[0];
+                        const stateId = feature.properties.GEOID;
+                        const stateName = feature.properties.state_name;
+                        const value = feature.properties.value;
+                        
+                        // Get the current dataset configuration
+                        const dataset = datasets[selectedDataset];
+                        
+                        // Calculate the color based on the value
+                        let color = dataset.colors[0];
+                        for (let i = 0; i < dataset.breaks.length; i++) {
+                            if (value >= dataset.breaks[i]) {
+                                color = dataset.colors[i];
+                            }
+                        }
+
+                        console.log('Clicked State Details:', {
+                            state: stateName,
+                            dataset: dataset.name,
+                            value: `${value}${dataset.unit === 'percent' ? '%' : ''}`,
+                            unit: dataset.unit,
+                            color: color
+                        });
+
+                        // Call the callback with state info
+                        onStateClick(stateId, stateName);
+                    }
+                });
+
+                // Change cursor on hover
+                map.current.on('mouseenter', 'population-density', () => {
+                    map.current.getCanvas().style.cursor = 'pointer';
+                });
+
+                map.current.on('mouseleave', 'population-density', () => {
+                    map.current.getCanvas().style.cursor = '';
+                });
             });
-
-            // Change cursor on hover
-            map.current.on('mouseenter', 'population-density', () => {
-                map.current.getCanvas().style.cursor = 'pointer';
-            });
-
-            map.current.on('mouseleave', 'population-density', () => {
-                map.current.getCanvas().style.cursor = '';
-            });
-        });
-    }, [geoData, onStateClick]);
+        }
+    }, []);
 
     return (
         <div className="relative h-full">
@@ -389,13 +377,13 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                 </div>
             </div>
 
-            {/* LISA Clusters Legend - Only show when clusters are visible */}
+            {/* LISA Clusters Legend */}
             {showSpatialClusters && (
                 <div className="absolute bottom-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90">
                     <h3 className="text-sm font-bold mb-2">Hot and Cold Spots</h3>
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2 border-2 border-[#d81b60] bg-[#d81b60] bg-opacity-20"></div>
+                              <div className="w-4 h-4 mr-2 border-2 border-[#d81b60] bg-[#d81b60] bg-opacity-20"></div>
                             <span className="text-xs">High-High Cluster</span>
                         </div>
                         <div className="flex items-center">
@@ -407,7 +395,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                             <span className="text-xs">High-Low Outlier</span>
                         </div>
                         <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2 border-2 border-[#00bcd4] bg-[#00bcd4] bg-opacity-20"></div>
+                            <div className="w-4 h-4 mr-2 border-2 border-[#00bcd4] bg-[#00bcd4] bg-opacity-20"></div> 
                             <span className="text-xs">Low-High Outlier</span>
                         </div>
                     </div>
