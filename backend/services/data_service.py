@@ -281,35 +281,104 @@ def analyze_population_density(question, selected_states=None, dataset=None):
     try:
         print(f"Analyzing question: {question}")
         print(f"Selected states: {selected_states}")
+        print(f"Current dataset: {dataset}")
         
-        # Use semantic service to identify dataset if not provided
+        # Handle non-pattern questions here
         if not dataset:
             dataset = semantic_service.identify_dataset(question)
             if not dataset:
                 dataset = 'ppl_densit'  # fallback to default
+                
+        # Get data from database
+        query = f"""
+            SELECT state_name, 
+                   CASE 
+                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
+                       THEN {dataset} * 100  -- Multiply percentages by 100
+                       ELSE {dataset}
+                   END as value
+            FROM state
+        """
         
-        print(f"Identified dataset: {dataset}")
+        # If specific states are selected, filter for those
+        if selected_states:
+            state_list = ', '.join([f"'{state}'" for state in selected_states])
+            query += f" WHERE state_name IN ({state_list})"
+            
+        # Execute query and get results
+        results = execute_query(query)
         
-        # Check for pattern-related questions using semantic service
+        if not results:
+            return None
+            
+        # Handle highest questions
+        if any(word in question for word in ["highest", "most", "largest", "greatest", "biggest"]):
+            highest = max(results, key=lambda x: x['value'])
+            metric_name = {
+                'ppl_densit': 'population density',
+                'walk_to_wo': 'percentage of people walking to work',
+                'transit_to': 'percentage of people using public transit'
+            }[dataset]
+            value = highest['value']
+            return f"{highest['state_name']} has the highest {metric_name} with {value:.2f} {unit}."
+            
+        # Handle comparison questions
+        if any(word in question.lower() for word in ["compare", "which", "higher", "lower", "vs", "versus"]):
+            if len(results) > 1:
+                sorted_results = sorted(results, key=lambda x: x['value'], reverse=True)
+                descriptions = [
+                    f"{r['state_name']} has {float(r['value']):.2f} {unit}"
+                    for r in sorted_results
+                ]
+                conclusion = f"{sorted_results[0]['state_name']} has a higher value than {sorted_results[-1]['state_name']}"
+                return f"{', '.join(descriptions)}. {conclusion}."
+        
+        # Handle simple value questions
+        for state_data in results:
+            state_name = state_data['state_name'].lower()
+            if state_name in question.lower():
+                value = float(state_data['value'])
+                return f"{state_data['state_name']} has {value:.2f} {unit}."
+        
+        return None
+
+    except Exception as e:
+        print(f"Error analyzing population density: {str(e)}")
+        return None
+
+def analyze_spatial_question(question, selected_states=None, current_dataset='ppl_densit'):
+    """Analyze spatial questions for any dataset"""
+    try:
+        print(f"Analyzing question: {question}")
+        print(f"Selected states: {selected_states}")
+        print(f"Current dataset: {current_dataset}")
+
+        # First check if it's a pattern-related question
         pattern_type = semantic_service.identify_pattern_question_type(question)
         if pattern_type:
             if pattern_type == 'yes_no':
                 # Handle yes/no pattern questions
-                global_pattern = analyze_global_pattern(dataset)
+                global_pattern = analyze_global_pattern(current_dataset)
                 if global_pattern:
-                    return global_pattern['description']
-                return "No significant spatial patterns were detected in the data."
+                    return {
+                        'result': global_pattern['description'],
+                        'dataset': current_dataset  # Keep current dataset
+                    }
+                return {
+                    'result': "No significant spatial patterns were detected in the data.",
+                    'dataset': current_dataset
+                }
                 
             elif pattern_type == 'description':
                 # Handle pattern description questions
-                lisa_results = analyze_spatial_patterns(dataset)
+                lisa_results = analyze_spatial_patterns(current_dataset)
                 
                 if lisa_results:
                     metric_name = {
                         'ppl_densit': 'population density',
                         'walk_to_wo': 'walking to work percentage',
                         'transit_to': 'public transit usage'
-                    }[dataset]
+                    }[current_dataset]
                     
                     response = ""
                     if lisa_results['HH']:
@@ -321,12 +390,28 @@ def analyze_population_density(question, selected_states=None, dataset=None):
                     if lisa_results['LH']:
                         response += f"Interesting outliers with low {metric_name} surrounded by high values are found in {', '.join(lisa_results['LH'])}."
                     
-                    return response
+                    return {
+                        'result': response,
+                        'dataset': current_dataset  # Keep current dataset
+                    }
                 
-                return "No significant spatial patterns were detected in the data."
+                return {
+                    'result': "No significant spatial patterns were detected in the data.",
+                    'dataset': current_dataset
+                }
 
-        # Rest of the existing function for handling other types of questions...
+        # If not a pattern question, identify dataset and use analyze_population_density
+        dataset = semantic_service.identify_dataset(question)
+        if not dataset:
+            dataset = current_dataset
+
+        # Handle non-pattern questions
+        result = analyze_population_density(question, selected_states, dataset)
+        return {
+            'result': result,
+            'dataset': dataset
+        }
 
     except Exception as e:
-        print(f"Error analyzing population density: {str(e)}")
+        print(f"Error analyzing spatial question: {str(e)}")
         return None
