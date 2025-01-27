@@ -80,11 +80,11 @@ const Chatbot = ({
                 })
             });
 
-            console.log('Response status:', response.status); // Debug log
+            console.log('Response status:', response.status);
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Error response:', errorText); // Debug log
+                console.error('Error response:', errorText);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
@@ -93,6 +93,17 @@ const Chatbot = ({
 
             if (data.result) {
                 setResponses(prev => [...prev, { role: 'assistant', content: data.result }]);
+                
+                // Show spatial clusters for pattern description questions
+                console.log('Question type:', data.question_type);
+                if (data.question_type === 'description') {
+                    console.log('Showing LISA clusters for pattern description');
+                    onSpatialClustersChange(true);
+                } else if (data.question_type === 'yes_no') {
+                    console.log('Hiding LISA clusters for yes/no pattern question');
+                    onSpatialClustersChange(false);
+                }
+                
                 if (data.dataset && data.dataset !== currentDataset) {
                     onDatasetChange(data.dataset);
                 }

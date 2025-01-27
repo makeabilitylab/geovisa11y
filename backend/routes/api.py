@@ -1,19 +1,52 @@
 # routes/api.py
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, make_response
 from services.data_service import fetch_density_data, analyze_population_density, analyze_spatial_question
 from services.semantic_service import SemanticService
+import openai
+from config import DevelopmentConfig
 
 api = Blueprint('api', __name__)
 
 # Initialize semantic service
 semantic_service = SemanticService()
 
+def get_openai_response(question):
+    """Get a response from OpenAI for questions we can't handle"""
+    try:
+        openai.api_key = DevelopmentConfig.OPENAI_API_KEY
+        
+        response = openai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant specializing in US geography and demographics. When users ask about invalid locations or data you don't have, explain that you can only provide information about US states and territories."
+                },
+                {
+                    "role": "user",
+                    "content": question
+                }
+            ],
+            temperature=0.7,
+            max_tokens=150
+        )
+        
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"Error getting OpenAI response: {str(e)}")
+        return "I can only provide information about US states and territories. Please ask about a valid US state."
+
 @api.route('/geojson/<dataset>', methods=['GET', 'OPTIONS'])
 def get_geojson(dataset):
     """Get GeoJSON data for the specified dataset"""
     if request.method == 'OPTIONS':
-        return '', 200
+        # Explicitly return response for OPTIONS request
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,OPTIONS')
+        return response
         
     try:
         accuracy = request.args.get("accuracy", default=0.01, type=float)
@@ -55,24 +88,32 @@ def analyze_question():
         data = request.json
         question = data.get('question')
         selected_states = data.get('selected_states', [])
-        current_dataset = data.get('current_dataset', 'ppl_densit')  # Get current dataset from frontend
+        current_dataset = data.get('current_dataset', 'ppl_densit')
         
         if not question:
             return jsonify({'error': 'No question provided'}), 400
             
-        # Use the new analyze_spatial_question function
+        # Try spatial analysis first
         analysis = analyze_spatial_question(question, selected_states, current_dataset)
         
         if analysis:
-            return jsonify({
-                'result': analysis['result'],
-                'dataset': analysis['dataset']
-            }), 200
+            return jsonify(analysis), 200
         else:
-            return jsonify({'error': 'Could not analyze question'}), 500
-        
+            # Fall back to OpenAI for unrecognized queries
+            openai_response = get_openai_response(question)
+            return jsonify({
+                'result': openai_response,
+                'dataset': current_dataset,
+                'question_type': 'other'
+            }), 200
+            
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Error in analyze_question: {str(e)}")
+        return jsonify({
+            'result': "I encountered an error processing your question. Please try rephrasing it.",
+            'dataset': current_dataset,
+            'question_type': 'other'
+        }), 200
 
 @api.route('/test', methods=['GET'])
 def test():

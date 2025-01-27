@@ -279,16 +279,6 @@ def analyze_global_pattern(dataset='ppl_densit'):
 def analyze_population_density(question, selected_states=None, dataset=None):
     """Analyze data based on user question"""
     try:
-        print(f"Analyzing question: {question}")
-        print(f"Selected states: {selected_states}")
-        print(f"Current dataset: {dataset}")
-        
-        # Handle non-pattern questions here
-        if not dataset:
-            dataset = semantic_service.identify_dataset(question)
-            if not dataset:
-                dataset = 'ppl_densit'  # fallback to default
-                
         # Get data from database
         query = f"""
             SELECT state_name, 
@@ -306,112 +296,231 @@ def analyze_population_density(question, selected_states=None, dataset=None):
             query += f" WHERE state_name IN ({state_list})"
             
         # Execute query and get results
-        results = execute_query(query)
-        
+        results = con.execute(query).fetchall()
         if not results:
             return None
             
-        # Handle highest questions
-        if any(word in question for word in ["highest", "most", "largest", "greatest", "biggest"]):
+        # Convert results to list of dictionaries
+        results = [{'state_name': r[0], 'value': float(r[1])} for r in results]
+        
+        # Get metric name and unit
+        metric_name = {
+            'ppl_densit': 'population density',
+            'walk_to_wo': 'percentage of people walking to work',
+            'transit_to': 'percentage of people using public transit'
+        }[dataset]
+        unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
+
+        # Handle average questions
+        if any(word in question.lower() for word in ["average", "mean", "median", "typical"]):
+            avg_value = sum(r['value'] for r in results) / len(results)
+            return f"The average {metric_name} across all states is {avg_value:.2f} {unit}."
+            
+        # Handle highest/lowest questions
+        if any(word in question.lower() for word in ["highest", "most", "largest", "greatest", "biggest"]):
             highest = max(results, key=lambda x: x['value'])
-            metric_name = {
-                'ppl_densit': 'population density',
-                'walk_to_wo': 'percentage of people walking to work',
-                'transit_to': 'percentage of people using public transit'
-            }[dataset]
             value = highest['value']
             return f"{highest['state_name']} has the highest {metric_name} with {value:.2f} {unit}."
+        elif any(word in question.lower() for word in ["lowest", "least", "smallest", "minimum", "minimal"]):
+            lowest = min(results, key=lambda x: x['value'])
+            value = lowest['value']
+            return f"{lowest['state_name']} has the lowest {metric_name} with {value:.2f} {unit}."
             
-        # Handle comparison questions
-        if any(word in question.lower() for word in ["compare", "which", "higher", "lower", "vs", "versus"]):
-            if len(results) > 1:
-                sorted_results = sorted(results, key=lambda x: x['value'], reverse=True)
-                descriptions = [
-                    f"{r['state_name']} has {float(r['value']):.2f} {unit}"
-                    for r in sorted_results
-                ]
-                conclusion = f"{sorted_results[0]['state_name']} has a higher value than {sorted_results[-1]['state_name']}"
-                return f"{', '.join(descriptions)}. {conclusion}."
-        
-        # Handle simple value questions
+        # Handle simple value questions for specific states
+        question_lower = question.lower()
         for state_data in results:
             state_name = state_data['state_name'].lower()
-            if state_name in question.lower():
+            if state_name in question_lower:
                 value = float(state_data['value'])
                 return f"{state_data['state_name']} has {value:.2f} {unit}."
         
+        # If we get here, we couldn't handle the question
         return None
 
     except Exception as e:
         print(f"Error analyzing population density: {str(e)}")
         return None
 
+def check_location_exists(location):
+    """Check if a location exists in our database"""
+    try:
+        query = """
+            SELECT state_name 
+            FROM state 
+            WHERE LOWER(state_name) LIKE LOWER(?)
+        """
+        result = con.execute(query, [f"%{location}%"]).fetchone()
+        return bool(result)
+    except Exception as e:
+        print(f"Error checking location: {str(e)}")
+        return False
+
 def analyze_spatial_question(question, selected_states=None, current_dataset='ppl_densit'):
     """Analyze spatial questions for any dataset"""
     try:
-        print(f"Analyzing question: {question}")
-        print(f"Selected states: {selected_states}")
-        print(f"Current dataset: {current_dataset}")
-
-        # First check if it's a pattern-related question
-        pattern_type = semantic_service.identify_pattern_question_type(question)
-        if pattern_type:
-            if pattern_type == 'yes_no':
-                # Handle yes/no pattern questions
-                global_pattern = analyze_global_pattern(current_dataset)
-                if global_pattern:
-                    return {
-                        'result': global_pattern['description'],
-                        'dataset': current_dataset  # Keep current dataset
-                    }
-                return {
-                    'result': "No significant spatial patterns were detected in the data.",
-                    'dataset': current_dataset
-                }
-                
-            elif pattern_type == 'description':
-                # Handle pattern description questions
-                lisa_results = analyze_spatial_patterns(current_dataset)
-                
-                if lisa_results:
-                    metric_name = {
-                        'ppl_densit': 'population density',
-                        'walk_to_wo': 'walking to work percentage',
-                        'transit_to': 'public transit usage'
-                    }[current_dataset]
-                    
-                    response = ""
-                    if lisa_results['HH']:
-                        response += f"High-{metric_name} clusters are found in {', '.join(lisa_results['HH'])}. "
-                    if lisa_results['LL']:
-                        response += f"Low-{metric_name} clusters are found in {', '.join(lisa_results['LL'])}. "
-                    if lisa_results['HL']:
-                        response += f"Interesting outliers with high {metric_name} surrounded by low values are found in {', '.join(lisa_results['HL'])}. "
-                    if lisa_results['LH']:
-                        response += f"Interesting outliers with low {metric_name} surrounded by high values are found in {', '.join(lisa_results['LH'])}."
-                    
-                    return {
-                        'result': response,
-                        'dataset': current_dataset  # Keep current dataset
-                    }
-                
-                return {
-                    'result': "No significant spatial patterns were detected in the data.",
-                    'dataset': current_dataset
-                }
-
-        # If not a pattern question, identify dataset and use analyze_population_density
-        dataset = semantic_service.identify_dataset(question)
-        if not dataset:
-            dataset = current_dataset
-
-        # Handle non-pattern questions
-        result = analyze_population_density(question, selected_states, dataset)
-        return {
-            'result': result,
-            'dataset': dataset
-        }
+        # Identify question type
+        question_type = semantic_service.identify_question_type(question)
+        
+        if not question_type:
+            return None  # Unknown question type, fall back to GPT
+            
+        if question_type == 'state_value':
+            states = semantic_service.extract_states(question)
+            if not states:
+                return None
+            result = analyze_population_density(question, states, current_dataset)
+            return {'result': result, 'dataset': current_dataset, 'question_type': 'state_value'}
+            
+        elif question_type == 'state_comparison':
+            states = semantic_service.extract_states(question)
+            if len(states) != 2:
+                return None
+            result = compare_states(states[0], states[1], current_dataset)
+            return {'result': result, 'dataset': current_dataset, 'question_type': 'comparison'}
+            
+        elif question_type == 'extrema':
+            result = get_extrema(question, current_dataset)
+            return {'result': result, 'dataset': current_dataset, 'question_type': 'extrema'}
+            
+        elif question_type == 'average':
+            result = get_average(current_dataset)
+            return {'result': result, 'dataset': current_dataset, 'question_type': 'average'}
+            
+        elif question_type == 'pattern_existence':
+            result = analyze_global_pattern(current_dataset)
+            return {'result': result['description'], 'dataset': current_dataset, 'question_type': 'yes_no'}
+            
+        elif question_type == 'pattern_description':
+            result = analyze_spatial_patterns(current_dataset)
+            return {'result': format_lisa_results(result, current_dataset), 'dataset': current_dataset, 'question_type': 'description'}
+            
+        return None
 
     except Exception as e:
         print(f"Error analyzing spatial question: {str(e)}")
+        return None
+
+def format_lisa_results(results, dataset):
+    """Format LISA cluster results into a readable string"""
+    try:
+        metric_name = {
+            'ppl_densit': 'population density',
+            'walk_to_wo': 'walking to work',
+            'transit_to': 'public transit usage'
+        }.get(dataset, dataset)
+        
+        parts = []
+        if results['HH']:
+            parts.append(f"High-{metric_name} clusters are found in {', '.join(results['HH'])}.")
+        if results['LL']:
+            parts.append(f"Low-{metric_name} clusters are found in {', '.join(results['LL'])}.")
+        if results['HL']:
+            parts.append(f"Interesting outliers with high {metric_name} surrounded by low values are found in {', '.join(results['HL'])}.")
+        if results['LH']:
+            parts.append(f"Interesting outliers with low {metric_name} surrounded by high values are found in {', '.join(results['LH'])}.")
+        
+        return ' '.join(parts)
+    except Exception as e:
+        print(f"Error formatting LISA results: {str(e)}")
+        return "Unable to format cluster results."
+
+def compare_states(state1, state2, dataset):
+    """Compare values between two states"""
+    try:
+        query = f"""
+            SELECT state_name, 
+                   CASE 
+                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
+                       THEN {dataset} * 100
+                       ELSE {dataset}
+                   END as value
+            FROM state
+            WHERE state_name IN (?, ?)
+        """
+        results = con.execute(query, [state1, state2]).fetchall()
+        if len(results) != 2:
+            return None
+            
+        state1_data = next(r for r in results if r[0] == state1)
+        state2_data = next(r for r in results if r[0] == state2)
+        
+        metric_name = {
+            'ppl_densit': 'population density',
+            'walk_to_wo': 'percentage of people walking to work',
+            'transit_to': 'percentage of people using public transit'
+        }[dataset]
+        
+        unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
+        
+        # Add comparison conclusion
+        conclusion = f", so {state1} has {'higher' if state1_data[1] > state2_data[1] else 'lower'} {metric_name}"
+        
+        return f"{state1} has {state1_data[1]:.2f} {unit} {metric_name} while {state2} has {state2_data[1]:.2f} {unit}{conclusion}."
+    except Exception as e:
+        print(f"Error comparing states: {str(e)}")
+        return None
+
+def get_extrema(question, dataset):
+    """Get highest or lowest value based on question"""
+    try:
+        is_highest = any(word in question.lower() for word in ["highest", "most", "largest", "greatest"])
+        
+        query = f"""
+            SELECT state_name, 
+                   CASE 
+                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
+                       THEN {dataset} * 100
+                       ELSE {dataset}
+                   END as value
+            FROM state
+            ORDER BY value {'DESC' if is_highest else 'ASC'}
+            LIMIT 1
+        """
+        
+        result = con.execute(query).fetchone()
+        if not result:
+            return None
+            
+        metric_name = {
+            'ppl_densit': 'population density',
+            'walk_to_wo': 'percentage of people walking to work',
+            'transit_to': 'percentage of people using public transit'
+        }[dataset]
+        
+        unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
+        
+        return f"{result[0]} has the {'highest' if is_highest else 'lowest'} {metric_name} with {result[1]:.2f} {unit}."
+    except Exception as e:
+        print(f"Error getting extrema: {str(e)}")
+        return None
+
+def get_average(dataset):
+    """Calculate average value across all states"""
+    try:
+        query = f"""
+            SELECT AVG(
+                CASE 
+                    WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
+                    THEN {dataset} * 100
+                    ELSE {dataset}
+                END
+            ) as avg_value
+            FROM state
+        """
+        
+        result = con.execute(query).fetchone()
+        if not result or result[0] is None:
+            return None
+            
+        metric_name = {
+            'ppl_densit': 'population density',
+            'walk_to_wo': 'percentage of people walking to work',
+            'transit_to': 'percentage of people using public transit'
+        }[dataset]
+        
+        unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
+        
+        return f"The average {metric_name} across all states is {result[0]:.2f} {unit}."
+    except Exception as e:
+        print(f"Error calculating average: {str(e)}")
         return None
