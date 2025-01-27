@@ -1,7 +1,7 @@
 # routes/api.py
 
 from flask import Blueprint, jsonify, request
-from services.data_service import fetch_density_data, analyze_population_density
+from services.data_service import fetch_density_data, analyze_population_density, analyze_spatial_question
 from services.semantic_service import SemanticService
 
 api = Blueprint('api', __name__)
@@ -55,20 +55,21 @@ def analyze_question():
         data = request.json
         question = data.get('question')
         selected_states = data.get('selected_states', [])
+        current_dataset = data.get('current_dataset', 'ppl_densit')  # Get current dataset from frontend
         
         if not question:
             return jsonify({'error': 'No question provided'}), 400
             
-        # Identify dataset using semantic search
-        dataset = semantic_service.identify_dataset(question)
+        # Use the new analyze_spatial_question function
+        analysis = analyze_spatial_question(question, selected_states, current_dataset)
         
-        # Get analysis
-        analysis = analyze_population_density(question, selected_states, dataset)
-        
-        return jsonify({
-            'result': analysis,
-            'dataset': dataset
-        }), 200
+        if analysis:
+            return jsonify({
+                'result': analysis['result'],
+                'dataset': analysis['dataset']
+            }), 200
+        else:
+            return jsonify({'error': 'Could not analyze question'}), 500
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500

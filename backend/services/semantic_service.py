@@ -5,7 +5,7 @@ import numpy as np
 class SemanticService:
     def __init__(self):
         # Initialize the sentence transformer model
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.model = SentenceTransformer('multi-qa-MiniLM-L6-dot-v1')
         
         # Define dataset configurations
         self.dataset_configs = {
@@ -47,35 +47,34 @@ class SemanticService:
             embeddings = self.model.encode(config['phrases'])
             self.dataset_embeddings[dataset] = embeddings
 
-        # Update pattern-related configurations with more variations
+        # Update pattern-related configurations with more distinct categories
         self.pattern_questions = {
             'yes_no': {
                 'phrases': [
-                    "is there a pattern in this map",
-                    "is there a pattern in the map",
-                    "does this map show a pattern",
-                    "can you find a pattern in this map",
-                    "do you see a pattern in this map",
-                    "is there any pattern in this map",
-                    "does the map have a pattern",
-                    "are there patterns in this map",
-                    "is there clustering in this map",
+                    "is there a pattern",
+                    "is there a spatial pattern",
+                    "do you see a pattern",
+                    "can you see a pattern",
+                    "does a pattern exist",
+                    "is there clustering",
                     "is the data clustered",
-                    "is there spatial autocorrelation"
+                    "is there spatial autocorrelation",
+                    "are values clustered",
+                    "is there a geographic pattern"
                 ]
             },
             'description': {
                 'phrases': [
-                    "describe the pattern in this map",
-                    "describe the spatial pattern you see",
-                    "what's the pattern in this map",
-                    "what is the pattern in the map",
-                    "tell me about the pattern you see",
-                    "explain the pattern in this map",
-                    "show me the pattern in the map",
-                    "what pattern do you see in this map",
-                    "how is it spatially distributed",
-                    "what's the spatial distribution like"
+                    "describe the clusters",
+                    "describe the spatial pattern",
+                    "what are the clusters",
+                    "what does the pattern look like",
+                    "tell me about the clusters",
+                    "explain the spatial pattern",
+                    "show me the clusters",
+                    "what are the hot spots",
+                    "where are the clusters",
+                    "describe the distribution"
                 ]
             }
         }
@@ -135,6 +134,9 @@ class SemanticService:
         """Identify if and what type of pattern question is being asked"""
         question_embedding = self.model.encode([question])[0]
         
+        # Debug prints
+        print(f"\nAnalyzing question: {question}")
+        
         max_similarity = -1
         question_type = None
         
@@ -142,14 +144,19 @@ class SemanticService:
         for qtype, embeddings in self.pattern_embeddings.items():
             similarities = cosine_similarity([question_embedding], embeddings)[0]
             max_type_similarity = np.max(similarities)
-            print(f"Max similarity for {qtype}: {max_type_similarity}")  # Debug print
+            print(f"Max similarity for {qtype}: {max_type_similarity}")
             
             if max_type_similarity > max_similarity:
                 max_similarity = max_type_similarity
                 question_type = qtype
         
-        # Lower the threshold slightly and add debug print
-        print(f"Final max similarity: {max_similarity}")  # Debug print
-        if max_similarity > 0.5:  # Lowered threshold
-            return question_type
+        print(f"Final max similarity: {max_similarity}")
+        print(f"Selected type: {question_type}")
+        
+        # Use a lower threshold for yes/no questions to catch more variations
+        if question_type == 'yes_no' and max_similarity > 0.4:
+            return 'yes_no'
+        # Use a higher threshold for description questions to be more precise
+        elif question_type == 'description' and max_similarity > 0.5:
+            return 'description'
         return None 

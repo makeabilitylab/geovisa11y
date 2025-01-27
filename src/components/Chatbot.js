@@ -75,7 +75,8 @@ const Chatbot = ({
                 },
                 body: JSON.stringify({
                     question: input,
-                    selected_states: selectedStates.map(state => state.name)
+                    selected_states: selectedStates.map(state => state.name),
+                    current_dataset: currentDataset
                 })
             });
 
