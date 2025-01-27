@@ -1,7 +1,7 @@
 # routes/api.py
 
 from flask import Blueprint, jsonify, request, make_response
-from services.data_service import fetch_density_data, analyze_population_density, analyze_spatial_question
+from services.data_service import fetch_density_data, analyze_state_data, analyze_spatial_question
 from services.semantic_service import SemanticService
 import openai
 from config import DevelopmentConfig
@@ -68,7 +68,7 @@ def analyze_density():
         if not question:
             return jsonify({'error': 'No question provided'}), 400
             
-        analysis = analyze_population_density(question, selected_states, dataset)
+        analysis = analyze_state_data(question, selected_states, dataset)
         
         if analysis is None:
             return jsonify({'result': None}), 200

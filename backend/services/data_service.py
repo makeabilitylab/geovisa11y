@@ -276,8 +276,8 @@ def analyze_global_pattern(dataset='ppl_densit'):
         print(f"Error analyzing global pattern: {str(e)}")
         return None
 
-def analyze_population_density(question, selected_states=None, dataset=None):
-    """Analyze data based on user question"""
+def analyze_state_data(question, selected_states=None, dataset=None):
+    """Analyze state-level data based on user question"""
     try:
         # Get data from database
         query = f"""
@@ -311,6 +311,23 @@ def analyze_population_density(question, selected_states=None, dataset=None):
         }[dataset]
         unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
 
+        # Handle simple value questions for specific states
+        question_lower = question.lower()
+        for state_data in results:
+            state_name = state_data['state_name'].lower()
+            if state_name in question_lower:
+                value = float(state_data['value'])
+                if dataset == 'ppl_densit':
+                    return f"{state_data['state_name']} has {value:.2f} {unit}."
+                else:
+                    # More natural verbs for each transit type
+                    verb_mapping = {
+                        'walk_to_wo': 'walk',
+                        'transit_to': 'take public transit'
+                    }
+                    verb = verb_mapping[dataset]
+                    return f"{state_data['state_name']} has {value:.2f}{unit} of people who {verb} to work."
+        
         # Handle average questions
         if any(word in question.lower() for word in ["average", "mean", "median", "typical"]):
             avg_value = sum(r['value'] for r in results) / len(results)
@@ -320,25 +337,17 @@ def analyze_population_density(question, selected_states=None, dataset=None):
         if any(word in question.lower() for word in ["highest", "most", "largest", "greatest", "biggest"]):
             highest = max(results, key=lambda x: x['value'])
             value = highest['value']
-            return f"{highest['state_name']} has the highest {metric_name} with {value:.2f} {unit}."
+            return f"{highest['state_name']} has the highest {metric_name} of {value:.2f} {unit}."
         elif any(word in question.lower() for word in ["lowest", "least", "smallest", "minimum", "minimal"]):
             lowest = min(results, key=lambda x: x['value'])
             value = lowest['value']
-            return f"{lowest['state_name']} has the lowest {metric_name} with {value:.2f} {unit}."
-            
-        # Handle simple value questions for specific states
-        question_lower = question.lower()
-        for state_data in results:
-            state_name = state_data['state_name'].lower()
-            if state_name in question_lower:
-                value = float(state_data['value'])
-                return f"{state_data['state_name']} has {value:.2f} {unit}."
+            return f"{lowest['state_name']} has the lowest {metric_name} of {value:.2f} {unit}."
         
         # If we get here, we couldn't handle the question
         return None
 
     except Exception as e:
-        print(f"Error analyzing population density: {str(e)}")
+        print(f"Error analyzing state data: {str(e)}")
         return None
 
 def check_location_exists(location):
@@ -358,17 +367,19 @@ def check_location_exists(location):
 def analyze_spatial_question(question, selected_states=None, current_dataset='ppl_densit'):
     """Analyze spatial questions for any dataset"""
     try:
-        # Identify question type
-        question_type = semantic_service.identify_question_type(question)
+        # Identify question type with current dataset context
+        question_type = semantic_service.identify_question_type(question, current_dataset)
+        print(f"\nDebug - Identified question type: {question_type}")
         
         if not question_type:
-            return None  # Unknown question type, fall back to GPT
+            print("Debug - Unknown question type, falling back to GPT")
+            return None
             
         if question_type == 'state_value':
             states = semantic_service.extract_states(question)
             if not states:
                 return None
-            result = analyze_population_density(question, states, current_dataset)
+            result = analyze_state_data(question, states, current_dataset)
             return {'result': result, 'dataset': current_dataset, 'question_type': 'state_value'}
             
         elif question_type == 'state_comparison':
@@ -452,10 +463,15 @@ def compare_states(state1, state2, dataset):
         
         unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
         
-        # Add comparison conclusion
-        conclusion = f", so {state1} has {'higher' if state1_data[1] > state2_data[1] else 'lower'} {metric_name}"
+        # Determine which state has higher value
+        higher_state = state1 if state1_data[1] > state2_data[1] else state2
+        lower_state = state2 if state1_data[1] > state2_data[1] else state1
         
-        return f"{state1} has {state1_data[1]:.2f} {unit} {metric_name} while {state2} has {state2_data[1]:.2f} {unit}{conclusion}."
+        return (
+            f"{state1} has {state1_data[1]:.2f} {unit} {metric_name} while "
+            f"{state2} has {state2_data[1]:.2f} {unit}. "
+            f"{higher_state} has higher {metric_name} than {lower_state}."
+        )
     except Exception as e:
         print(f"Error comparing states: {str(e)}")
         return None
@@ -489,7 +505,10 @@ def get_extrema(question, dataset):
         
         unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
         
-        return f"{result[0]} has the {'highest' if is_highest else 'lowest'} {metric_name} with {result[1]:.2f} {unit}."
+        # Remove space before % symbol
+        value_str = f"{result[1]:.2f}{unit}" if unit == '%' else f"{result[1]:.2f} {unit}"
+        
+        return f"{result[0]} has the {'highest' if is_highest else 'lowest'} {metric_name} of {value_str}."
     except Exception as e:
         print(f"Error getting extrema: {str(e)}")
         return None
