@@ -34,11 +34,21 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
         const fetchGeoJSON = async () => {
             setIsLoading(true);
             try {
-                const apiUrl = `${process.env.REACT_APP_API_URL}/api/geojson/${selectedDataset}`;
+                const apiUrl = `${process.env.REACT_APP_API_URL}/geojson/${selectedDataset}`;
                 console.log('Fetching GeoJSON from:', apiUrl);
 
-                const response = await fetch(apiUrl);
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
