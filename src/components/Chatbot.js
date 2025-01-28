@@ -105,6 +105,9 @@ const Chatbot = ({ dataset, onPatternQuestion }) => {
 
         const userMessage = input;
         setInput('');
+        // Add user message to chat history first
+        setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
+        // Then submit the question
         handleQuestionSubmit(userMessage);
     };
 
@@ -131,7 +134,7 @@ const Chatbot = ({ dataset, onPatternQuestion }) => {
                         <button
                             key={index}
                             onClick={() => handleExampleClick(question)}
-                            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
+                            className="px-3 py-1 bg-light-green-50 hover:bg-light-green-100 rounded-full text-xs text-green-900 transition-colors"
                         >
                             {question}
                         </button>
