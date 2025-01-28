@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
 import { ArrowRight } from "@phosphor-icons/react";
 import {
@@ -40,6 +40,13 @@ const Chatbot = ({ dataset, onPatternQuestion }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const chatContainerRef = useRef(null);
+
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [messages, isLoading]);
 
     const exampleQuestions = [
         "What's the population density of New York?",
@@ -142,7 +149,10 @@ const Chatbot = ({ dataset, onPatternQuestion }) => {
                 </div>
             </div>
 
-            <div className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md">
+            <div 
+                ref={chatContainerRef}
+                className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md"
+            >
                 {messages.map((msg, index) => (
                     <div
                         key={index}
