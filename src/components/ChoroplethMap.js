@@ -7,6 +7,8 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
     const [selectedDataset, setSelectedDataset] = useState('ppl_densit');
     const [geoData, setGeoData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [lisaLayer, setLisaLayer] = useState(null);
+    const [lisaLegend, setLisaLegend] = useState(null);
 
     const datasets = {
         ppl_densit: {
@@ -127,16 +129,24 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
     // Update clusters visibility whenever showSpatialClusters changes
     useEffect(() => {
         if (map.current && map.current.isStyleLoaded()) {
-            map.current.setLayoutProperty(
-                'lisa-clusters-fill',
-                'visibility',
-                showSpatialClusters ? 'visible' : 'none'
-            );
-            map.current.setLayoutProperty(
-                'lisa-clusters',
-                'visibility',
-                showSpatialClusters ? 'visible' : 'none'
-            );
+            if (showSpatialClusters) {
+                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
+                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
+                // Also show the legend
+                if (!lisaLegend) {
+                    const legend = createLisaLegend();
+                    map.current.getContainer().appendChild(legend);
+                    setLisaLegend(legend);
+                }
+            } else {
+                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
+                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+                // Remove the legend
+                if (lisaLegend) {
+                    lisaLegend.remove();
+                    setLisaLegend(null);
+                }
+            }
         }
     }, [showSpatialClusters]);
 
@@ -321,6 +331,42 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
         }
     }, []);
 
+    const removeLisaLayer = () => {
+        if (lisaLayer) {
+            map.current.removeLayer(lisaLayer);
+            setLisaLayer(null);
+            setLisaLegend(null);  // Also remove the legend when layer is removed
+        }
+    };
+
+    const createLisaLegend = () => {
+        const div = document.createElement('div');
+        div.className = 'legend';
+        div.style.backgroundColor = 'white';
+        div.style.padding = '10px';
+        div.style.borderRadius = '5px';
+
+        const title = document.createElement('div');
+        title.innerHTML = '<strong>LISA Clusters</strong> <span class="legend-close">×</span>';
+        title.style.marginBottom = '5px';
+        div.appendChild(title);
+
+        // Add click handler to the close button
+        const closeButton = title.querySelector('.legend-close');
+        closeButton.style.cursor = 'pointer';
+        closeButton.style.float = 'right';
+        closeButton.onclick = removeLisaLayer;
+
+        // ... rest of legend creation code ...
+
+        return div;
+    };
+
+    // Add handler for closing LISA clusters
+    const handleCloseLisaClusters = () => {
+        onSpatialClustersToggle(false);  // This will trigger the useEffect to hide layers
+    };
+
     return (
         <div className="relative h-full">
             <div ref={mapContainer} className="h-full" />
@@ -377,13 +423,21 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                 </div>
             </div>
 
-            {/* LISA Clusters Legend */}
+            {/* LISA Clusters Legend with close button */}
             {showSpatialClusters && (
                 <div className="absolute bottom-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90">
-                    <h3 className="text-sm font-bold mb-2">Hot and Cold Spots</h3>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-bold">Hot and Cold Spots</h3>
+                        <button
+                            onClick={handleCloseLisaClusters}
+                            className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+                        >
+                            ×
+                        </button>
+                    </div>
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center">
-                              <div className="w-4 h-4 mr-2 border-2 border-[#d81b60] bg-[#d81b60] bg-opacity-20"></div>
+                            <div className="w-4 h-4 mr-2 border-2 border-[#d81b60] bg-[#d81b60] bg-opacity-20"></div>
                             <span className="text-xs">High-High Cluster</span>
                         </div>
                         <div className="flex items-center">
@@ -395,7 +449,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                             <span className="text-xs">High-Low Outlier</span>
                         </div>
                         <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2 border-2 border-[#00bcd4] bg-[#00bcd4] bg-opacity-20"></div> 
+                            <div className="w-4 h-4 mr-2 border-2 border-[#00bcd4] bg-[#00bcd4] bg-opacity-20"></div>
                             <span className="text-xs">Low-High Outlier</span>
                         </div>
                     </div>
