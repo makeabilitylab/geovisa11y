@@ -22,7 +22,13 @@ def get_openai_response(question):
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful assistant specializing in US geography and demographics. When users ask about invalid locations or data you don't have, explain that you can only provide information about US states and territories."
+                    "content": """You are a helpful assistant specializing in US geography, demographics, and spatial concepts. 
+                    When explaining concepts like population density, walking to work percentage, or public transit usage:
+                    - Provide clear, concise definitions
+                    - Use simple examples when helpful
+                    - Explain why the metric is important
+                    - Keep responses focused and under 100 words
+                    """
                 },
                 {
                     "role": "user",
@@ -97,27 +103,29 @@ def analyze_question():
             return jsonify({'error': 'No question provided'}), 400
             
         current_dataset = data.get('current_dataset', 'ppl_densit')
-        print(f"Processing question: {question} for dataset: {current_dataset}")  # Debug log
+        print(f"Processing question: {question} for dataset: {current_dataset}")
         
         # Try spatial analysis first
         analysis = analyze_spatial_question(question, current_dataset)
-        print(f"Analysis result: {analysis}")  # Debug log
+        print(f"Analysis result: {analysis}")
         
         if analysis:
             return jsonify(analysis), 200
         else:
             # Fall back to OpenAI for unrecognized queries
             openai_response = get_openai_response(question)
-            print(f"OpenAI response: {openai_response}")  # Debug log
+            print(f"OpenAI response: {openai_response}")
+            # Add disclaimer to GPT response with HTML styling
+            gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'>(Answer provided by GPT-4, may not be entirely accurate.)</span>"
             return jsonify({
-                'result': openai_response,
+                'result': gpt_response,
                 'dataset': current_dataset,
                 'question_type': 'other'
             }), 200
             
     except Exception as e:
         print(f"Error in analyze_question: {str(e)}")
-        traceback.print_exc()  # Print full traceback
+        traceback.print_exc()
         return jsonify({
             'result': f"I encountered an error processing your question: {str(e)}",
             'dataset': current_dataset,
