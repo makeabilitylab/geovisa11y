@@ -168,9 +168,8 @@ const Chatbot = ({ dataset, onPatternQuestion }) => {
                             <Typography 
                                 variant="small" 
                                 className="font-['Roboto'] font-normal leading-[1.2]"
-                            >
-                                {msg.text}
-                            </Typography>
+                                dangerouslySetInnerHTML={{ __html: msg.text }}
+                            />
                         </div>
                     </div>
                 ))}

@@ -2,6 +2,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import duckdb
+import re
 
 class SemanticService:
     def __init__(self):
@@ -147,9 +148,27 @@ class SemanticService:
 
     def identify_question_type(self, question, current_dataset='ppl_densit'):
         """Identify the type of question being asked"""
+        # First check for conceptual questions
+        conceptual_patterns = [
+            r'^what is .+\?*$',
+            r'^what\'s .+\?*$',
+            r'^what does .+ mean\?*$',
+            r'^what do you mean by .+\?*$',
+            r'^explain .+\?*$',
+            r'^tell me about .+\?*$',
+            r'^define .+\?*$'
+        ]
+        
+        question_lower = question.lower().strip()
+        # Check if it's a conceptual question without specific state or value
+        if any(re.match(pattern.lower(), question_lower) for pattern in conceptual_patterns):
+            # Make sure it doesn't contain state names or specific values
+            if not any(state.lower() in question_lower for state in self.get_valid_states()):
+                if not any(word in question_lower for word in ['highest', 'lowest', 'average', 'pattern']):
+                    return None  # Return None to fall back to GPT for conceptual questions
+        
         # First check for explicit comparison patterns
         if " or " in question.lower() and any(word in question.lower() for word in ["higher", "greater", "more", "compare"]):
-            print("Debug - Forced comparison type due to 'or' pattern and comparison words")
             return 'state_comparison'
             
         question_embedding = self.model.encode([question])[0]
