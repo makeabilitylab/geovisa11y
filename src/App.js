@@ -5,66 +5,38 @@ import ChoroplethMap from './components/ChoroplethMap';
 import Chatbot from './components/Chatbot';
 
 function App() {
-  const [selectedStates, setSelectedStates] = useState([]);
-  const [showSpatialClusters, setShowSpatialClusters] = useState(false);
   const [currentDataset, setCurrentDataset] = useState('ppl_densit');
-
-  const handleStateClick = (stateId, stateName) => {
-    setSelectedStates(prev => {
-      // Check if state is already in the array
-      const stateIndex = prev.findIndex(state => state.id === stateId);
-      
-      if (stateIndex >= 0) {
-        // If state exists, remove it by filtering
-        return prev.filter(state => state.id !== stateId);
-      } else {
-        // If state doesn't exist, add it
-        return [...prev, { id: stateId, name: stateName }];
-      }
-    });
-  };
-
-  const handleStateRemove = (stateId) => {
-    setSelectedStates(prev => prev.filter(state => state.id !== stateId));
-  };
-
-  const handleSpatialClustersChange = (show) => {
-    setShowSpatialClusters(show);
-  };
+  const [showSpatialClusters, setShowSpatialClusters] = useState(false);
+  const [focusedState, setFocusedState] = useState(null);
 
   const handleDatasetChange = (dataset) => {
     setCurrentDataset(dataset);
-  };
-
-  const handleClearAllStates = () => {
-    setSelectedStates([]);
   };
 
   const handlePatternQuestion = (show) => {
     setShowSpatialClusters(show);
   };
 
+  const handleStateQuestion = (stateName) => {
+    setFocusedState(stateName);
+  };
+
   return (
     <div className="flex h-screen">
       <div className="w-2/3 h-full">
         <ChoroplethMap
-          onStateClick={handleStateClick}
-          selectedStates={selectedStates}
+          dataset={currentDataset}
           showSpatialClusters={showSpatialClusters}
           onSpatialClustersToggle={setShowSpatialClusters}
           onDatasetChange={handleDatasetChange}
-          dataset={currentDataset}
+          focusedState={focusedState}
         />
       </div>
-      <div className="w-1/3 h-full p-4">
+      <div className="w-1/3 h-full">
         <Chatbot
-          selectedStates={selectedStates}
-          onStateRemove={handleStateRemove}
-          onSpatialClustersChange={handleSpatialClustersChange}
-          showSpatialClusters={showSpatialClusters}
-          currentDataset={currentDataset}
-          onClearAllStates={handleClearAllStates}
+          dataset={currentDataset}
           onPatternQuestion={handlePatternQuestion}
+          onStateQuestion={handleStateQuestion}
         />
       </div>
     </div>
