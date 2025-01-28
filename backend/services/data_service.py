@@ -313,7 +313,10 @@ def analyze_state_data(question, dataset=None):
             if state_name in question_lower:
                 value = float(state_data['value'])
                 if dataset == 'ppl_densit':
-                    return f"{state_data['state_name']} has {value:.2f} {unit}."
+                    return {
+                        'result': f"{state_data['state_name']} has {value:.2f} {unit}.",
+                        'state': state_data['state_name']  # Include state name in response
+                    }
                 else:
                     # More natural verbs for each transit type
                     verb_mapping = {
@@ -321,7 +324,10 @@ def analyze_state_data(question, dataset=None):
                         'transit_to': 'take public transit'
                     }
                     verb = verb_mapping[dataset]
-                    return f"{state_data['state_name']} has {value:.2f}{unit} of people who {verb} to work."
+                    return {
+                        'result': f"{state_data['state_name']} has {value:.2f}{unit} of people who {verb} to work.",
+                        'state': state_data['state_name']  # Include state name in response
+                    }
         
         # Handle average questions
         if any(word in question.lower() for word in ["average", "mean", "median", "typical"]):
@@ -359,15 +365,13 @@ def check_location_exists(location):
         print(f"Error checking location: {str(e)}")
         return False
 
-def analyze_spatial_question(question, selected_states=None, current_dataset='ppl_densit'):
+def analyze_spatial_question(question, current_dataset='ppl_densit'):
     """Analyze spatial questions for any dataset"""
     try:
-        # Identify question type with current dataset context
         question_type = semantic_service.identify_question_type(question, current_dataset)
         print(f"\nDebug - Identified question type: {question_type}")
         
         if not question_type:
-            print("Debug - Unknown question type, falling back to GPT")
             return None
             
         if question_type == 'state_value':
@@ -375,18 +379,35 @@ def analyze_spatial_question(question, selected_states=None, current_dataset='pp
             if not states:
                 return None
             result = analyze_state_data(question, current_dataset)
-            return {'result': result, 'dataset': current_dataset, 'question_type': 'state_value'}
+            # Pass through both result and state information
+            return {
+                'result': result['result'],
+                'state': result['state'],
+                'dataset': current_dataset,
+                'question_type': 'state_value'
+            }
             
         elif question_type == 'state_comparison':
             states = semantic_service.extract_states(question)
             if len(states) != 2:
                 return None
             result = compare_states(states[0], states[1], current_dataset)
-            return {'result': result, 'dataset': current_dataset, 'question_type': 'comparison'}
+            # Include both states in the response
+            return {
+                'result': result,
+                'states': states,  # Array of state names
+                'dataset': current_dataset,
+                'question_type': 'state_comparison'
+            }
             
         elif question_type == 'extrema':
             result = get_extrema(question, current_dataset)
-            return {'result': result, 'dataset': current_dataset, 'question_type': 'extrema'}
+            return {
+                'result': result['result'],
+                'state': result['state'],  # Pass through the state
+                'dataset': current_dataset,
+                'question_type': 'extrema'
+            }
             
         elif question_type == 'average':
             result = get_average(current_dataset)
@@ -503,7 +524,10 @@ def get_extrema(question, dataset):
         # Remove space before % symbol
         value_str = f"{result[1]:.2f}{unit}" if unit == '%' else f"{result[1]:.2f} {unit}"
         
-        return f"{result[0]} has the {'highest' if is_highest else 'lowest'} {metric_name} of {value_str}."
+        return {
+            'result': f"{result[0]} has the {'highest' if is_highest else 'lowest'} {metric_name} of {value_str}.",
+            'state': result[0]  # Include the state name in response
+        }
     except Exception as e:
         print(f"Error getting extrema: {str(e)}")
         return None

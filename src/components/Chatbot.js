@@ -36,7 +36,7 @@ const SuggestionText = ({ text, datasetPhrase }) => {
     );
 };
 
-const Chatbot = ({ dataset, onPatternQuestion }) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -90,8 +90,22 @@ const Chatbot = ({ dataset, onPatternQuestion }) => {
 
             if (data.result) {
                 setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
-                if (data.question_type === 'description') {
-                    onPatternQuestion(true);
+                
+                // Reset map for average, pattern existence, and pattern description questions
+                if (['average', 'yes_no', 'description'].includes(data.question_type)) {
+                    onStateQuestion(null);  // Reset the map view
+                    if (data.question_type === 'description') {
+                        onPatternQuestion(true);
+                    }
+                } else {
+                    // Handle state focusing for other question types
+                    if (data.question_type === 'state_value' && data.state) {
+                        onStateQuestion([data.state]);
+                    } else if (data.question_type === 'state_comparison' && data.states) {
+                        onStateQuestion(data.states);
+                    } else if (data.question_type === 'extrema' && data.state) {
+                        onStateQuestion([data.state]);
+                    }
                 }
             } else {
                 throw new Error('No result in response');

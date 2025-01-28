@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSpatialClustersToggle, onDatasetChange }) => {
+const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const [selectedDataset, setSelectedDataset] = useState('ppl_densit');
@@ -109,23 +109,6 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
         }
     }, [selectedDataset, geoData]);
 
-    // Update borders whenever selectedStates changes
-    useEffect(() => {
-        if (map.current && map.current.isStyleLoaded() && geoData) {
-            console.log('Selected states:', selectedStates);
-
-            const selectedStateIds = selectedStates.map((state) => state.id);
-            console.log('Selected state GEOIDs:', selectedStateIds);
-
-            map.current.setPaintProperty('state-borders', 'line-opacity', [
-                'case',
-                ['in', ['get', 'GEOID'], ['literal', selectedStateIds]],
-                1,
-                0
-            ]);
-        }
-    }, [selectedStates, geoData]);
-
     // Update clusters visibility whenever showSpatialClusters changes
     useEffect(() => {
         if (map.current && map.current.isStyleLoaded()) {
@@ -149,6 +132,67 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
             }
         }
     }, [showSpatialClusters]);
+
+    // Update effect to handle focused state(s)
+    useEffect(() => {
+        if (map.current && map.current.isStyleLoaded() && geoData) {
+            if (focusedState === null) {
+                // Reset to default view
+                map.current.flyTo({
+                    center: [-96, 37.8],
+                    zoom: 4,
+                    duration: 2000
+                });
+                
+                // Clear state highlights
+                map.current.setPaintProperty('state-borders', 'line-opacity', 0);
+            } else {
+                console.log('Focusing on states:', focusedState);
+                
+                // Handle both single state and array of states
+                const statesToFocus = Array.isArray(focusedState) ? focusedState : [focusedState];
+                
+                // Find features for all focused states
+                const features = statesToFocus.map(state => 
+                    geoData.features.find(f => 
+                        f.properties.state_name.toLowerCase() === state.toLowerCase()
+                    )
+                ).filter(f => f);
+                
+                if (features.length > 0) {
+                    // Calculate bounds that include all states
+                    const bounds = new mapboxgl.LngLatBounds();
+                    
+                    features.forEach(feature => {
+                        const coordinates = feature.geometry.type === 'Polygon' 
+                            ? [feature.geometry.coordinates[0]]
+                            : feature.geometry.coordinates[0];
+                        
+                        coordinates.forEach(coord => {
+                            bounds.extend(coord);
+                        });
+                    });
+                    
+                    // Zoom to include all states
+                    map.current.fitBounds(bounds, {
+                        padding: 200,
+                        duration: 2000,
+                        maxZoom: 5
+                    });
+
+                    // Highlight all focused states
+                    map.current.setPaintProperty('state-borders', 'line-opacity', [
+                        'case',
+                        ['in', ['get', 'state_name'], ['literal', statesToFocus]],
+                        1,
+                        0
+                    ]);
+                    map.current.setPaintProperty('state-borders', 'line-color', '#000');
+                    map.current.setPaintProperty('state-borders', 'line-width', 2);
+                }
+            }
+        }
+    }, [focusedState, geoData]);
 
     useEffect(() => {
         if (mapContainer.current && !map.current) {
@@ -267,7 +311,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                     type: 'line',
                     source: 'population',
                     paint: {
-                        'line-color': '#627BC1',
+                        'line-color': '#000',
                         'line-width': 2,
                         'line-opacity': 0
                     }
@@ -286,47 +330,6 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                 });
 
                 console.log('Layers added. Setting up interactions...');
-
-                // Click geometry interaction
-                map.current.on('click', 'population-density', (e) => {
-                    if (e.features && e.features.length > 0) {
-                        const feature = e.features[0];
-                        const stateId = feature.properties.GEOID;
-                        const stateName = feature.properties.state_name;
-                        const value = feature.properties.value;
-                        
-                        // Get the current dataset configuration
-                        const dataset = datasets[selectedDataset];
-                        
-                        // Calculate the color based on the value
-                        let color = dataset.colors[0];
-                        for (let i = 0; i < dataset.breaks.length; i++) {
-                            if (value >= dataset.breaks[i]) {
-                                color = dataset.colors[i];
-                            }
-                        }
-
-                        console.log('Clicked State Details:', {
-                            state: stateName,
-                            dataset: dataset.name,
-                            value: `${value}${dataset.unit === 'percent' ? '%' : ''}`,
-                            unit: dataset.unit,
-                            color: color
-                        });
-
-                        // Call the callback with state info
-                        onStateClick(stateId, stateName);
-                    }
-                });
-
-                // Change cursor on hover
-                map.current.on('mouseenter', 'population-density', () => {
-                    map.current.getCanvas().style.cursor = 'pointer';
-                });
-
-                map.current.on('mouseleave', 'population-density', () => {
-                    map.current.getCanvas().style.cursor = '';
-                });
             });
         }
     }, []);
