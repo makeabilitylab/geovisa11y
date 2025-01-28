@@ -276,7 +276,7 @@ def analyze_global_pattern(dataset='ppl_densit'):
         print(f"Error analyzing global pattern: {str(e)}")
         return None
 
-def analyze_state_data(question, selected_states=None, dataset=None):
+def analyze_state_data(question, dataset=None):
     """Analyze state-level data based on user question"""
     try:
         # Get data from database
@@ -284,16 +284,11 @@ def analyze_state_data(question, selected_states=None, dataset=None):
             SELECT state_name, 
                    CASE 
                        WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                       THEN {dataset} * 100  -- Multiply percentages by 100
+                       THEN {dataset} * 100
                        ELSE {dataset}
                    END as value
             FROM state
         """
-        
-        # If specific states are selected, filter for those
-        if selected_states:
-            state_list = ', '.join([f"'{state}'" for state in selected_states])
-            query += f" WHERE state_name IN ({state_list})"
             
         # Execute query and get results
         results = con.execute(query).fetchall()
@@ -379,7 +374,7 @@ def analyze_spatial_question(question, selected_states=None, current_dataset='pp
             states = semantic_service.extract_states(question)
             if not states:
                 return None
-            result = analyze_state_data(question, states, current_dataset)
+            result = analyze_state_data(question, current_dataset)
             return {'result': result, 'dataset': current_dataset, 'question_type': 'state_value'}
             
         elif question_type == 'state_comparison':

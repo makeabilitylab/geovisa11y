@@ -5,6 +5,7 @@ from services.data_service import fetch_density_data, analyze_state_data, analyz
 from services.semantic_service import SemanticService
 import openai
 from config import DevelopmentConfig
+import traceback
 
 api = Blueprint('api', __name__)
 
@@ -86,21 +87,28 @@ def analyze_question():
         
     try:
         data = request.json
+        if not data:
+            print("No JSON data received")
+            return jsonify({'error': 'No data provided'}), 400
+            
         question = data.get('question')
-        selected_states = data.get('selected_states', [])
-        current_dataset = data.get('current_dataset', 'ppl_densit')
-        
         if not question:
+            print("No question in request")
             return jsonify({'error': 'No question provided'}), 400
             
+        current_dataset = data.get('current_dataset', 'ppl_densit')
+        print(f"Processing question: {question} for dataset: {current_dataset}")  # Debug log
+        
         # Try spatial analysis first
-        analysis = analyze_spatial_question(question, selected_states, current_dataset)
+        analysis = analyze_spatial_question(question, current_dataset)
+        print(f"Analysis result: {analysis}")  # Debug log
         
         if analysis:
             return jsonify(analysis), 200
         else:
             # Fall back to OpenAI for unrecognized queries
             openai_response = get_openai_response(question)
+            print(f"OpenAI response: {openai_response}")  # Debug log
             return jsonify({
                 'result': openai_response,
                 'dataset': current_dataset,
@@ -109,8 +117,9 @@ def analyze_question():
             
     except Exception as e:
         print(f"Error in analyze_question: {str(e)}")
+        traceback.print_exc()  # Print full traceback
         return jsonify({
-            'result': "I encountered an error processing your question. Please try rephrasing it.",
+            'result': f"I encountered an error processing your question: {str(e)}",
             'dataset': current_dataset,
             'question_type': 'other'
         }), 200

@@ -7,7 +7,7 @@ import Chatbot from './components/Chatbot';
 function App() {
   const [selectedStates, setSelectedStates] = useState([]);
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
-  const [selectedDataset, setSelectedDataset] = useState('ppl_densit');
+  const [currentDataset, setCurrentDataset] = useState('ppl_densit');
 
   const handleStateClick = (stateId, stateName) => {
     setSelectedStates(prev => {
@@ -33,11 +33,15 @@ function App() {
   };
 
   const handleDatasetChange = (dataset) => {
-    setSelectedDataset(dataset);
+    setCurrentDataset(dataset);
   };
 
   const handleClearAllStates = () => {
     setSelectedStates([]);
+  };
+
+  const handlePatternQuestion = (show) => {
+    setShowSpatialClusters(show);
   };
 
   return (
@@ -49,6 +53,7 @@ function App() {
           showSpatialClusters={showSpatialClusters}
           onSpatialClustersToggle={setShowSpatialClusters}
           onDatasetChange={handleDatasetChange}
+          dataset={currentDataset}
         />
       </div>
       <div className="w-1/3 h-full p-4">
@@ -57,8 +62,9 @@ function App() {
           onStateRemove={handleStateRemove}
           onSpatialClustersChange={handleSpatialClustersChange}
           showSpatialClusters={showSpatialClusters}
-          currentDataset={selectedDataset}
+          currentDataset={currentDataset}
           onClearAllStates={handleClearAllStates}
+          onPatternQuestion={handlePatternQuestion}
         />
       </div>
     </div>

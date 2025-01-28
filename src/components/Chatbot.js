@@ -36,112 +36,82 @@ const SuggestionText = ({ text, datasetPhrase }) => {
     );
 };
 
-const Chatbot = ({ 
-    selectedStates, 
-    onStateRemove, 
-    onSpatialClustersChange,
-    showSpatialClusters,
-    currentDataset,
-    onClearAllStates,
-    onDatasetChange
-}) => {
+const Chatbot = ({ dataset, onPatternQuestion }) => {
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
-    const [responses, setResponses] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSendMessage = async () => {
-        if (!input.trim()) return;
+    const exampleQuestions = [
+        "What's the population density of New York?",
+        "Which state has higher population density, New York or Washington?",
+        "Which state has the highest population density?",
+        "What's the average population density in this map?",
+        "Is there a pattern in this map?",
+        "Can you describe the pattern in this map?"
+    ];
 
+    // Function to handle example question click
+    const handleExampleClick = (question) => {
+        // Simulate user message
+        setMessages(prev => [...prev, { text: question, sender: 'user' }]);
+        
+        // Send question to API
+        handleQuestionSubmit(question);
+    };
+
+    // Separated API call logic for reuse
+    const handleQuestionSubmit = async (question) => {
+        setIsLoading(true);
         try {
-            setResponses(prev => [...prev, { role: 'user', content: input }]);
-            setIsLoading(true);
-
-            const apiUrl = process.env.REACT_APP_API_URL;
-            console.log('API URL from env:', apiUrl);
-
-            if (!apiUrl) {
-                throw new Error('API URL is not configured');
-            }
-
-            const url = `${apiUrl}/analyze-question`;
-            console.log('Full request URL:', url);
-
-            const response = await fetch(url, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/analyze-question`, {
                 method: 'POST',
-                mode: 'cors',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    question: input,
-                    selected_states: selectedStates.map(state => state.name),
-                    current_dataset: currentDataset
-                })
+                    question: question,
+                    current_dataset: dataset
+                }),
             });
 
-            console.log('Response status:', response.status);
-
             if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('Backend response:', data);
+            console.log('API Response:', data);
 
             if (data.result) {
-                setResponses(prev => [...prev, { role: 'assistant', content: data.result }]);
-                
-                // Show spatial clusters for pattern description questions
-                console.log('Question type:', data.question_type);
+                setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
                 if (data.question_type === 'description') {
-                    console.log('Showing LISA clusters for pattern description');
-                    onSpatialClustersChange(true);
-                } else if (data.question_type === 'yes_no') {
-                    console.log('Hiding LISA clusters for yes/no pattern question');
-                    onSpatialClustersChange(false);
-                }
-                
-                if (data.dataset && data.dataset !== currentDataset) {
-                    onDatasetChange(data.dataset);
+                    onPatternQuestion(true);
                 }
             } else {
-                console.log('No result from backend, falling back to OpenAI');
-                // Fall back to OpenAI for non-density questions
-                const openai = new OpenAI({
-                    apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-                    dangerouslyAllowBrowser: true,
-                });
-
-                const completion = await openai.chat.completions.create({
-                    model: 'gpt-4o-mini',
-                    messages: [
-                        { 
-                            role: 'system', 
-                            content: `You are a helpful assistant specializing in spatial data analysis. 
-                                     For questions about US states' population density, refer to the data.` 
-                        },
-                        { role: 'user', content: input },
-                    ],
-                });
-
-                setResponses(prev => [...prev, completion.choices[0].message]);
+                throw new Error('No result in response');
             }
-
-            setInput('');
         } catch (error) {
             console.error('Error details:', error);
-            alert(`Error: ${error.message}`);
-        } finally {
-            setIsLoading(false);
+            setMessages(prev => [...prev, { 
+                text: 'Sorry, I encountered an error. Please try again.',
+                sender: 'bot'
+            }]);
         }
+        setIsLoading(false);
     };
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!input.trim()) return;
+
+        const userMessage = input;
+        setInput('');
+        handleQuestionSubmit(userMessage);
+    };
+
+    // Add keydown handler for Enter key
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
-            handleSendMessage();
+            handleSubmit(e);
         }
     };
 
@@ -151,74 +121,33 @@ const Chatbot = ({
                 MappieTalkie
             </Typography>
 
-            {/* Selected Geographies Section */}
-            <div className="mb-4 p-3 rounded-md outline outline-2 outline-blue-gray-50">
-                <div className="flex justify-between items-center mb-2">
-                    <Typography variant="small" color="blue-gray" className="font-medium text-left">
-                        Selected Geographies
-                    </Typography>
-                    {selectedStates.length > 0 && (
-                        <Button
-                            size="sm"
-                            variant="text"
-                            color="pink"
-                            className="h-6 flex items-center justify-center px-2 text-xs"
-                            onClick={onClearAllStates}
+            {/* Example Questions Section */}
+            <div className="mb-4">
+                <Typography variant="small" color="gray" className="mb-2">
+                    You can ask me...
+                </Typography>
+                <div className="flex flex-wrap gap-2">
+                    {exampleQuestions.map((question, index) => (
+                        <button
+                            key={index}
+                            onClick={() => handleExampleClick(question)}
+                            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs text-gray-700 transition-colors"
                         >
-                            Clear All
-                        </Button>
-                    )}
+                            {question}
+                        </button>
+                    ))}
                 </div>
-                {selectedStates.length === 0 && !showSpatialClusters ? (
-                    <Typography variant="small" className="text-gray-600 italic text-left text-xs">
-                        Click on areas of interest
-                    </Typography>
-                ) : (
-                    <div className="flex flex-wrap gap-2">
-                        {selectedStates.map((state) => (
-                            <div
-                                key={state.id}
-                                className="bg-light-green-50 text-light-green-800 px-2 py-1 rounded-md text-xs flex items-center gap-1"
-                            >
-                                <button
-                                    onClick={() => onStateRemove(state.id)}
-                                    className="hover:text-light-green-800 focus:outline-none"
-                                    aria-label={`Remove ${state.name}`}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                    </svg>
-                                </button>
-                                {state.name}
-                            </div>
-                        ))}
-                        {showSpatialClusters && (
-                            <div className="bg-blue-gray-50 text-blue-gray-800 px-2 py-1 rounded-md text-xs flex items-center gap-1">
-                                <button
-                                    onClick={() => onSpatialClustersChange(false)}
-                                    className="hover:text-blue-gray-800 focus:outline-none"
-                                    aria-label="Remove hot and cold spots"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                    </svg>
-                                </button>
-                                Hot and Cold Spots
-                            </div>
-                        )}
-                    </div>
-                )}
             </div>
 
             <div className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md">
-                {responses.map((msg, index) => (
+                {messages.map((msg, index) => (
                     <div
                         key={index}
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
+                        className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
                     >
                         <div
                             className={`py-2 px-4 rounded-md max-w-[80%] font-['Roboto'] ${
-                                msg.role === 'user'
+                                msg.sender === 'user'
                                     ? 'bg-teal-100 text-teal-900 text-left text-xs'
                                     : 'bg-gray-200 text-gray-900 text-left text-xs'
                             }`}
@@ -227,7 +156,7 @@ const Chatbot = ({
                                 variant="small" 
                                 className="font-['Roboto'] font-normal leading-[1.2]"
                             >
-                                {msg.content}
+                                {msg.text}
                             </Typography>
                         </div>
                     </div>
@@ -263,7 +192,7 @@ const Chatbot = ({
                     />
                 </div>
                 <Button 
-                    onClick={handleSendMessage}
+                    onClick={handleSubmit}
                     className='bg-teal-500 text-white p-2.5 aspect-square'
                     size="sm"
                 >
