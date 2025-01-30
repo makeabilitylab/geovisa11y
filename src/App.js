@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
 import Layout from './components/Layout';
 import './App.css';
 import ChoroplethMap from './components/ChoroplethMap';
@@ -13,7 +14,7 @@ function App() {
     setSelectedStates(prev => {
       // Check if state is already in the array
       const stateIndex = prev.findIndex(state => state.id === stateId);
-      
+
       if (stateIndex >= 0) {
         // If state exists, remove it by filtering
         return prev.filter(state => state.id !== stateId);

@@ -55,7 +55,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                 // Update the map source if it exists
                 if (map.current && map.current.getSource('population')) {
                     map.current.getSource('population').setData(data);
-                    
+
                     // Set the fill-opacity back to 0.75 after data is loaded
                     setTimeout(() => {
                         if (map.current) {
@@ -79,10 +79,10 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
             const dataset = datasets[selectedDataset];
             console.log('Selected Dataset:', selectedDataset);
             console.log('Dataset Configuration:', dataset);
-            
+
             // Set fill-opacity to 0 before updating colors
             map.current.setPaintProperty('population-density', 'fill-opacity', 0);
-            
+
             // Log some sample values from the data
             const sampleValues = geoData.features
                 .slice(0, 5)
@@ -92,7 +92,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                     raw_value: feature.properties[selectedDataset]
                 }));
             console.log('Sample Values:', sampleValues);
-            
+
             // Log the expression being used for coloring
             const expression = [
                 'interpolate',
@@ -110,6 +110,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
             console.log('Color Expression:', expression);
             map.current.setPaintProperty('population-density', 'fill-color', expression);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedDataset, geoData]);
 
     // Update borders whenever selectedStates changes
@@ -287,10 +288,10 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                     const stateId = feature.properties.GEOID;
                     const stateName = feature.properties.state_name;
                     const value = feature.properties.value;
-                    
+
                     // Get the current dataset configuration
                     const dataset = datasets[selectedDataset];
-                    
+
                     // Calculate the color based on the value
                     let color = dataset.colors[0];
                     for (let i = 0; i < dataset.breaks.length; i++) {
@@ -321,6 +322,7 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                 map.current.getCanvas().style.cursor = '';
             });
         });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [geoData, onStateClick]);
 
     return (
@@ -366,8 +368,8 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                 <div className="flex flex-col gap-1">
                     {datasets[selectedDataset].breaks.map((value, i) => (
                         <div key={i} className="flex items-center">
-                            <div 
-                                className="w-4 h-4 mr-2" 
+                            <div
+                                className="w-4 h-4 mr-2"
                                 style={{ backgroundColor: datasets[selectedDataset].colors[i] }}
                             />
                             <span className="text-xs">

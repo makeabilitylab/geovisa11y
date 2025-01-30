@@ -1,7 +1,9 @@
+// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from 'react';
 import OpenAI from 'openai';
 import { ArrowRight } from "@phosphor-icons/react";
 import {
+    // eslint-disable-next-line no-unused-vars
     Card,
     CardBody,
     Typography,
@@ -17,6 +19,7 @@ const SuggestionText = ({ text, datasetPhrase }) => {
 
     // Split the text before 'in' into pre-dataset and dataset parts
     const [preDataset, ...rest] = beforeIn.split(new RegExp(`(${datasetPhrase})`, 'i'));
+    // eslint-disable-next-line no-unused-vars
     const dataset = rest.join(''); // Join in case the regex split created multiple parts
 
     return (
@@ -37,9 +40,9 @@ const SuggestionText = ({ text, datasetPhrase }) => {
     );
 };
 
-const Chatbot = ({ 
-    selectedStates, 
-    onStateRemove, 
+const Chatbot = ({
+    selectedStates,
+    onStateRemove,
     onSpatialClustersChange,
     showSpatialClusters,
     currentDataset,
@@ -56,7 +59,7 @@ const Chatbot = ({
 
         try {
             setResponses(prev => [...prev, { role: 'user', content: input }]);
-            
+
             setIsLoading(true);
 
             const isSpatialPatternQuestion = SPATIAL_PATTERN_KEYWORDS.some(
@@ -98,10 +101,10 @@ const Chatbot = ({
                 const completion = await openai.chat.completions.create({
                     model: 'gpt-4o-mini',
                     messages: [
-                        { 
-                            role: 'system', 
-                            content: `You are a helpful assistant specializing in spatial data analysis. 
-                                     For questions about US states' population density, refer to the data.` 
+                        {
+                            role: 'system',
+                            content: `You are a helpful assistant specializing in spatial data analysis.
+                                     For questions about US states' population density, refer to the data.`
                         },
                         { role: 'user', content: input },
                     ],
@@ -126,7 +129,7 @@ const Chatbot = ({
 
         // Check for dataset-specific triggers
         const currentDatasetTriggers = DATASET_CONFIG[currentDataset];
-        const shouldAutoComplete = currentDatasetTriggers.phrases.some(phrase => 
+        const shouldAutoComplete = currentDatasetTriggers.phrases.some(phrase =>
             newValue.trim().endsWith(phrase.toLowerCase().trim())
         );
 
@@ -134,7 +137,7 @@ const Chatbot = ({
             // Remove extra spaces before adding the completion
             const baseText = e.target.value.replace(/\s+$/, '') + ' ';
             const suggestionText = `${baseText}${currentDatasetTriggers.completion}`;
-            
+
             if (selectedStates.length > 0) {
                 const stateNames = selectedStates.map(state => state.name);
                 if (stateNames.length === 1) {
@@ -156,16 +159,16 @@ const Chatbot = ({
             if (matchingTemplate && selectedStates.length > 0) {
                 const stateNames = selectedStates.map(state => state.name);
                 let suggestionText = newValue;
-                
+
                 if (stateNames.length === 1) {
                     suggestionText = `${newValue} ${stateNames[0]}`;
                 } else {
                     const lastState = stateNames.pop();
-                    suggestionText = newValue.endsWith(':') 
+                    suggestionText = newValue.endsWith(':')
                         ? `${newValue} ${stateNames.join(', ')} or ${lastState}`
                         : `${newValue} ${stateNames.join(', ')} and ${lastState}`;
                 }
-                
+
                 setSuggestion(suggestionText);
                 setShowSuggestion(true);
             } else {
@@ -272,8 +275,8 @@ const Chatbot = ({
                                         : 'bg-gray-200 text-gray-900 text-left text-xs'
                                 }`}
                             >
-                                <Typography 
-                                    variant="small" 
+                                <Typography
+                                    variant="small"
                                     className="font-['Roboto'] font-normal leading-[1.2]"
                                 >
                                     {msg.content}
@@ -284,8 +287,8 @@ const Chatbot = ({
                     {isLoading && (
                         <div className="flex justify-start mb-2">
                             <div className="py-2 px-4 rounded-md bg-gray-200 text-gray-900 text-left text-xs">
-                                <Typography 
-                                    variant="small" 
+                                <Typography
+                                    variant="small"
                                     className="font-['Roboto'] font-normal leading-[1.2] italic"
                                 >
                                     Looking for answers...
@@ -297,13 +300,13 @@ const Chatbot = ({
 
                 {/* Updated Suggestion UI */}
                 {showSuggestion && (
-                    <div 
+                    <div
                         className="mb-2 bg-white rounded-md shadow-lg p-3 cursor-pointer hover:bg-gray-50 border border-gray-200"
                         onClick={handleSuggestionClick}
                     >
                         <div className="flex items-center justify-between gap-4">
-                            <SuggestionText 
-                                text={suggestion} 
+                            <SuggestionText
+                                text={suggestion}
                                 datasetPhrase={DATASET_CONFIG[currentDataset].completion}
                             />
                             <span className="text-xs text-gray-500 italic whitespace-nowrap">
@@ -329,7 +332,7 @@ const Chatbot = ({
                             color="teal"
                         />
                     </div>
-                    <Button 
+                    <Button
                         onClick={handleSendMessage}
                         className='bg-teal-500 text-white p-2.5 aspect-square'
                         size="sm"
