@@ -11,6 +11,7 @@ import {
     Button,
 } from '@material-tailwind/react';
 import { DATASET_CONFIG, SPATIAL_PATTERN_KEYWORDS } from '../constants';
+import RecordButton from './RecordButton';
 
 const SuggestionText = ({ text, datasetPhrase }) => {
     const parts = text.split(' in ');
@@ -339,6 +340,15 @@ const Chatbot = ({
                     >
                         <ArrowRight size={20} weight="bold" />
                     </Button>
+                    {/* New button to request audio for query */}
+                    {/** Using TailWind CSS
+                    <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Click Me
+                    </button>
+                    */}
+
+                    {/* Custom button to request audio for query */}
+                    <RecordButton text="Record"></RecordButton>
                 </div>
             </CardBody>
         // </Card>

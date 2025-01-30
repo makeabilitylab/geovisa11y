@@ -1,0 +1,11 @@
+.custom-button {
+  background-color: #d43737; /* Equivalent to Tailwind bg-blue-500 */
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.custom-button:hover {
+  background-color: #d43737c9; /* Equivalent to Tailwind hover:bg-blue-600 */
+}
