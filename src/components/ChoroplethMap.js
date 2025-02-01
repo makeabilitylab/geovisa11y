@@ -4,6 +4,7 @@ import mapboxgl from 'mapbox-gl';
 const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
+    const popup = useRef(null);
     const [selectedDataset, setSelectedDataset] = useState('ppl_densit');
     const [geoData, setGeoData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -205,6 +206,12 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 zoom: 4
             });
 
+            // Initialize popup
+            popup.current = new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+
             // Add navigation controls
             map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
             map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
@@ -330,9 +337,82 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 });
 
                 console.log('Layers added. Setting up interactions...');
+
+                // Add hover interactions
+                map.current.on('mousemove', 'population-density', (e) => {
+                    if (e.features.length > 0) {
+                        map.current.getCanvas().style.cursor = 'pointer';
+                        
+                        const feature = e.features[0];
+                        const value = feature.properties.value;
+                        const stateName = feature.properties.state_name;
+                        
+                        // Format value based on dataset
+                        let formattedValue;
+                        if (dataset === 'ppl_densit') {
+                            formattedValue = `${value.toFixed(2)} people per square mile`;
+                        } else {
+                            formattedValue = `${value.toFixed(2)}%`;
+                        }
+
+                        // Position the popup at the mouse pointer
+                        const coordinates = e.lngLat;
+
+                        popup.current
+                            .setLngLat(coordinates)
+                            .setHTML(`
+                                <div class="text-xs font-semibold">${stateName}</div>
+                                <div class="text-xs">${formattedValue}</div>
+                            `)
+                            .addTo(map.current);
+                    }
+                });
+
+                // Remove popup on mouseleave
+                map.current.on('mouseleave', 'population-density', () => {
+                    map.current.getCanvas().style.cursor = '';
+                    popup.current.remove();
+                });
             });
         }
     }, []);
+
+    // Update tooltip content when dataset changes
+    useEffect(() => {
+        if (map.current && map.current.isStyleLoaded()) {
+            // Remove existing mousemove handler
+            map.current.off('mousemove', 'population-density');
+            
+            // Add new mousemove handler with updated dataset
+            map.current.on('mousemove', 'population-density', (e) => {
+                if (e.features.length > 0) {
+                    map.current.getCanvas().style.cursor = 'pointer';
+                    
+                    const feature = e.features[0];
+                    const value = feature.properties.value;
+                    const stateName = feature.properties.state_name;
+                    
+                    // Format value based on current dataset
+                    let formattedValue;
+                    if (dataset === 'ppl_densit') {
+                        formattedValue = `${value.toFixed(2)} people per square mile`;
+                    } else {
+                        formattedValue = `${value.toFixed(2)}%`;
+                    }
+
+                    const coordinates = e.lngLat;
+
+                    popup.current
+                        .setLngLat(coordinates)
+                        .setHTML(`
+                            <div class="text-xs font-semibold">${stateName}</div>
+                            <div class="text-xs">${formattedValue}</div>
+                        `)
+                        .addTo(map.current);
+                }
+            });
+        }
+    }, [dataset]);
 
     const removeLisaLayer = () => {
         if (lisaLayer) {
