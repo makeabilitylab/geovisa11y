@@ -11,7 +11,10 @@ import {
     Button,
 } from '@material-tailwind/react';
 import { DATASET_CONFIG, SPATIAL_PATTERN_KEYWORDS } from '../constants';
+
+// Imports related to the voice to text feature
 import RecordButton from './RecordButton';
+import SpeechRecognition from '../services/SpeechRecognition';
 
 const SuggestionText = ({ text, datasetPhrase }) => {
     const parts = text.split(' in ');
@@ -54,6 +57,18 @@ const Chatbot = ({
     const [showSuggestion, setShowSuggestion] = useState(false);
     const [suggestion, setSuggestion] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+
+    // State to track if speech recognition is being used currently
+    const [isSpeechRecActive, setIsSpeechRecActive] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const [transcript, setTranscript] = useState("");
+
+    // Initialize the SpeechRecognition instance directly
+    const speechRecInstance = SpeechRecognition({
+      // Giving the speech recognition object access to set trancript
+      // Via the prop to this component
+      resetTranscriptText: setTranscript,
+    });
 
     const handleSendMessage = async () => {
         if (!input.trim()) return;
@@ -196,6 +211,47 @@ const Chatbot = ({
     const handleSpatialClustersRemove = () => {
         onSpatialClustersChange(false);
     };
+
+    // Handle functions for speech recognition feature
+
+    /**
+     * Switches the recording status when called. Record button will be using
+     * this handler function
+     */
+    const handleToggleRecording = () => {
+      if (isRecording) {
+        // Stop recording
+        setIsRecording(false);
+        console.log("Stopped recording");
+        setTranscript(""); // Clear transcript or save it later if needed
+      } else {
+        // Start recording (Since browser enables speech input from device)
+        setIsRecording(true);
+        console.log("Started recording");
+      }
+    };
+
+    // Use state setter function to state speech recognition to true
+    // (Might factor out later TODO)
+    const handleActivateSpeechRec = () => {
+      setIsSpeechRecActive(true);
+      console.log("Speech Recognizion is created")
+      // More stuff need to occur with the speeach instance I believe here
+    }
+
+    // Effect to ensure recognition logic is only triggered when `isRecording`
+    // is true. This occurs from the second click and beyond of the record
+    // button
+    useEffect(() => {
+      // The recording instance only starts recording when recording state
+      // has been changed to active and also if the instance has been set in
+      // the first place
+      if (isRecording && isSpeechRecActive) {
+        console.log("Right before speech rec API call");
+        speechRecInstance.handleToggleAPIRecording(); // Start speech recognition
+        console.log("Right after speech rec API call");
+      }
+    }, [isRecording, isSpeechRecActive, speechRecInstance]);
 
     return (
         // <Card className="w-full h-full p-0">
@@ -348,7 +404,18 @@ const Chatbot = ({
                     */}
 
                     {/* Custom button to request audio for query */}
-                    <RecordButton text="Record"></RecordButton>
+                    <RecordButton
+                      text={isSpeechRecActive ?
+                        (isRecording ? "Stop":"Record") : "Enable Record"
+                      }
+                      handleToggleRecording={isSpeechRecActive ?
+                        // Perhaps just passing the setter function should work
+                        // {TODO}
+                        handleToggleRecording : handleActivateSpeechRec
+                      }
+                    />
+
+
                 </div>
             </CardBody>
         // </Card>
