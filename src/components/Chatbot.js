@@ -14,7 +14,7 @@ import { DATASET_CONFIG, SPATIAL_PATTERN_KEYWORDS } from '../constants';
 
 // Imports related to the voice to text feature
 import RecordButton from './RecordButton';
-import SpeechRecognition from '../services/SpeechRecognition';
+import SpeechRecognition from '../services/useSpeechRecognition';
 
 const SuggestionText = ({ text, datasetPhrase }) => {
     const parts = text.split(' in ');
@@ -62,12 +62,14 @@ const Chatbot = ({
     const [isSpeechRecActive, setIsSpeechRecActive] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [transcript, setTranscript] = useState("");
+    const [micPermission, setMicPermission] = useState("Checking...");
 
-    // Initialize the SpeechRecognition instance directly
+    // Initialize the SpeechRecognition instance directly (Self-Made React Hook)
     const speechRecInstance = SpeechRecognition({
-      // Giving the speech recognition object access to set trancript
-      // Via the prop to this component
+      // Giving the speech recognition object access to set trancript and
+      // the set recording handlers via the prop to this component
       resetTranscriptText: setTranscript,
+      stopRecordingHandler: setIsRecording
     });
 
     const handleSendMessage = async () => {
@@ -212,7 +214,7 @@ const Chatbot = ({
         onSpatialClustersChange(false);
     };
 
-    // Handle functions for speech recognition feature
+    // Handler functions for speech recognition feature
 
     /**
      * Switches the recording status when called. Record button will be using
@@ -223,35 +225,149 @@ const Chatbot = ({
         // Stop recording
         setIsRecording(false);
         console.log("Stopped recording");
-        setTranscript(""); // Clear transcript or save it later if needed
+
+        // Update the transcript bar to reflect this
+        setInput(transcript);
+        console.log("After the transcript sets the input to empty");
       } else {
         // Start recording (Since browser enables speech input from device)
+        // and this trigger the speech recognition API via useEffect
+        setTranscript("");
         setIsRecording(true);
         console.log("Started recording");
       }
     };
 
-    // Use state setter function to state speech recognition to true
-    // (Might factor out later TODO)
+    /**
+     * Handler function to set the isSpeechRecActive state variable to true
+     * once the RecordButton component is clicked.
+     */
     const handleActivateSpeechRec = () => {
-      setIsSpeechRecActive(true);
-      console.log("Speech Recognizion is created")
-      // More stuff need to occur with the speeach instance I believe here
+      // Enable speaker access to use speech recognition API
+      requestMicAccess();
     }
 
-    // Effect to ensure recognition logic is only triggered when `isRecording`
-    // is true. This occurs from the second click and beyond of the record
-    // button
+
+
+    // Microphone related functions and useEffects
+
+    // Perhaps moving forward the isSpeechRecActive state variable isn't needed
+    // since the micPermission state variable essitially covers all the same
+    // logic. (TODO) (Look into this later)
+
+    /**
+     * Checks the status of the microphone access. Updates the state variable
+     * accordingly.
+     */
+    const checkMicPermission = async () => {
+      try {
+        // Check if the browser supports the Permissions API:
+        // https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API
+        if (!(navigator.permissions)) {
+          setMicPermission("Permission API not supported");
+          return;
+        }
+
+        // Get information pertaining the microphone enable status
+        const permissionStatus = await navigator.permissions.query({ name: "microphone" });
+        setMicPermission(permissionStatus.state);
+
+        // Listen for permission changes, and change the micPermission state
+        // string variable if any changes occur
+        permissionStatus.onchange = () => {
+          setMicPermission(permissionStatus.state);
+        };
+      } catch (error) {
+        console.error("Error checking microphone permission:", error);
+        setMicPermission("Error checking permission");
+      }
+    };
+
+    /**
+     * Asks the client to allow access for their devices microphone. This should
+     * be used when the "enable record" button text is showing and clicked.
+     */
+    const requestMicAccess = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log("Microphone access granted", stream);
+        setMicPermission("granted");
+        setIsSpeechRecActive(true);
+      } catch (error) {
+        console.error("Microphone access denied:", error);
+        setMicPermission("denied");
+      }
+    };
+
+
+
+    // UseEffects for speech recognition feature
+
+    // Checks the status of the mic access for the webpage on load. If not, the
+    // record button has an "Enable Record" text.
+    useEffect(() => {
+      // Set the mic permissions variable
+      console.log("Here on load");
+      checkMicPermission();
+
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+      console.log("Setting the speech recognition variable");
+      // Automatically display the record button if the website  has microphone
+      // access already.
+      if (micPermission === "granted") {
+        setIsSpeechRecActive(true);
+      }
+    }, [micPermission]);
+
+    // Side effect for testing whether or not speech recognizion is active
+    useEffect(() => {
+      if (isSpeechRecActive) {
+        console.log("Speech Recognizion is created: " + isSpeechRecActive);
+      }
+    }, [isSpeechRecActive]);
+
+    /**
+     * Side effect to be run when the is recording state is changed. This
+     * typically occurs only when the record. Toggles the Speech Recognition
+     * object to be recording or not recording depending on the "just"
+     * switched to state of the isRecording state variable.
+     */
     useEffect(() => {
       // The recording instance only starts recording when recording state
       // has been changed to active and also if the instance has been set in
       // the first place
       if (isRecording && isSpeechRecActive) {
-        console.log("Right before speech rec API call");
-        speechRecInstance.handleToggleAPIRecording(); // Start speech recognition
-        console.log("Right after speech rec API call");
+        // Start speech recognition
+        speechRecInstance.startRecording();
+      } else if (!(isRecording) && isSpeechRecActive) {
+        // Stop the recording
+        speechRecInstance.stopRecording();
+
+        // Reset the text of the Record button.
+        console.log("Stopped recording from the isRecording react hook");
       }
-    }, [isRecording, isSpeechRecActive, speechRecInstance]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isRecording]);  // Dependency array
+
+    /**
+     * Whenever the transcript value is updated and filled, it must've been
+     * set by the passed down handler function into the SpeechRecongition hook.
+     * Therefore this marks the end of a successful recording and the "new"
+     * transcript needs to be extracted from it and placed into the input bar.
+     * Otherwise we are just starting a recording and the transcript needs to be
+     * reset.
+     */
+    useEffect(() => {
+      // Load the transcript into the input bar. If it empty then its record
+      // just start. If it is non-empty then a record just took place.
+      setInput(transcript);
+
+    }, [transcript]);
 
     return (
         // <Card className="w-full h-full p-0">
@@ -405,7 +521,7 @@ const Chatbot = ({
 
                     {/* Custom button to request audio for query */}
                     <RecordButton
-                      text={isSpeechRecActive ?
+                      text={micPermission === "granted" && isSpeechRecActive ?
                         (isRecording ? "Stop":"Record") : "Enable Record"
                       }
                       handleToggleRecording={isSpeechRecActive ?
