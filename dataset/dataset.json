@@ -1,0 +1,2609 @@
+[
+    {
+        "action": "retrieve",
+        "query": "What is the median household income in Travis County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many people live in Census Tract 4.02 in King County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of the population in Florida has a bachelor's degree?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the unemployment rate in Cook County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the median age in New York state?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of households in Los Angeles County own their homes?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the poverty rate in Census Tract 201.03 in Miami-Dade County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many housing units are there in Harris County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of the population in Washington state identifies as Asian?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the median rent in San Francisco County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of households in Census Tract 105 in Boston have internet access?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many veterans live in Arizona?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the average commute time in Philadelphia County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of children in Michigan live below the poverty line?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many people in Census Tract 304.01 in Seattle speak a language other than English at home?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the median value of owner-occupied homes in Orange County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of adults in Illinois have completed high school?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many households in Clark County receive food stamps/SNAP benefits?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the female-to-male ratio in Census Tract 401 in Portland?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of workers in Denver County use public transportation?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many single-parent households are there in Nevada?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the median age of housing units in Maricopa County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of the population in Census Tract 502 in Atlanta was born outside the US?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many people in Wisconsin have health insurance coverage?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the percentage of vacant housing units in Baltimore County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the median household size in Census Tract 601.04 in San Diego?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many people in Minnesota have a graduate or professional degree?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of workers in Fulton County work from home?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the child dependency ratio in Census Tract 701 in Chicago?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many multigenerational households are there in Hawaii?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of housing units in Sacramento County were built after 2000?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the median household income for Hispanic households in Texas?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many people in Census Tract 801.02 in Austin have a disability?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of workers in Rhode Island are self-employed?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the average household size in Riverside County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many households in Census Tract 901 in Houston have children under 18?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of adults in Oregon have an associate's degree?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the median age of first-time mothers in Wake County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many people in Census Tract 1001.03 in Phoenix live in group quarters?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of households in Connecticut have broadband internet?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the average family size in San Bernardino County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many people in Census Tract 1101 in Dallas are employed in manufacturing?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of housing units in Utah are mobile homes?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the median property tax paid in Nassau County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many households in Census Tract 1201.05 in Minneapolis have no vehicle available?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of workers in Idaho carpool to work?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the median monthly housing costs in Alameda County?"
+    },
+    {
+        "action": "retrieve",
+        "query": "How many people in Census Tract 1301 in New Orleans receive retirement income?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What percentage of households in Alaska have solar energy systems?"
+    },
+    {
+        "action": "retrieve",
+        "query": "What is the median age of married couples in Montgomery County?"
+    },
+    {
+        "action": "compare",
+        "query": "Which county has a higher median household income, King County or San Francisco County?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the poverty rate higher in New York state or California?"
+      },
+      {
+        "action": "compare",
+        "query": "Do more people have bachelor's degrees in Census Tract 201.03 or Census Tract 201.04 in Miami-Dade County?"
+      },
+      {
+        "action": "compare",
+        "query": "Which has more rental units, Cook County or Los Angeles County?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the median age higher in Florida or Arizona?"
+      },
+      {
+        "action": "compare",
+        "query": "Which state has a larger Asian population, Washington or Hawaii?"
+      },
+      {
+        "action": "compare",
+        "query": "Does Census Tract 105 or Census Tract 106 in Boston have more households with children?"
+      },
+      {
+        "action": "compare",
+        "query": "Which county has a higher homeownership rate, Orange County or San Diego County?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the unemployment rate higher in Michigan or Illinois?"
+      },
+      {
+        "action": "compare",
+        "query": "Which has more veterans, Travis County or Clark County?"
+      },
+      {
+        "action": "compare",
+        "query": "Does Census Tract 304.01 or Census Tract 304.02 in Seattle have more public transportation users?"
+      },
+      {
+        "action": "compare",
+        "query": "Which state has a higher percentage of people with health insurance, Massachusetts or Vermont?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the average commute time longer in Philadelphia County or Harris County?"
+      },
+      {
+        "action": "compare",
+        "query": "Which census tract has more foreign-born residents, Tract 401 in Portland or Tract 502 in Atlanta?"
+      },
+      {
+        "action": "compare",
+        "query": "Does Nevada or Arizona have more single-parent households per capita?"
+      },
+      {
+        "action": "compare",
+        "query": "Which county has older housing stock on average, Baltimore County or Milwaukee County?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the high school graduation rate higher in Minnesota or Wisconsin?"
+      },
+      {
+        "action": "compare",
+        "query": "Which has more vacant housing units, Maricopa County or Riverside County?"
+      },
+      {
+        "action": "compare",
+        "query": "Does Census Tract 601.04 or Census Tract 601.05 in San Diego have a higher median income?"
+      },
+      {
+        "action": "compare",
+        "query": "Which state has more people working from home, Colorado or Oregon?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the child poverty rate higher in Texas or California?"
+      },
+      {
+        "action": "compare",
+        "query": "Which county has more households receiving SNAP benefits, Bronx County or Kings County?"
+      },
+      {
+        "action": "compare",
+        "query": "Does Census Tract 701 or Census Tract 702 in Chicago have more elderly residents?"
+      },
+      {
+        "action": "compare",
+        "query": "Which state has a higher percentage of multigenerational households, Hawaii or Alaska?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the median home value higher in Santa Clara County or San Mateo County?"
+      },
+      {
+        "action": "compare",
+        "query": "Which census tract has more college students, Tract 801.02 in Austin or Tract 901 in Houston?"
+      },
+      {
+        "action": "compare",
+        "query": "Does Rhode Island or Delaware have a higher percentage of self-employed workers?"
+      },
+      {
+        "action": "compare",
+        "query": "Which county has a larger Hispanic population, Miami-Dade County or Harris County?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the disability rate higher in West Virginia or Kentucky?"
+      },
+      {
+        "action": "compare",
+        "query": "Which census tract has more households with broadband internet, Tract 1001.03 in Phoenix or Tract 1101 in Dallas?"
+      },
+      {
+        "action": "compare",
+        "query": "Does Connecticut or New Jersey have a higher median household income?"
+      },
+      {
+        "action": "compare",
+        "query": "Which county has more manufacturing jobs, Wayne County or Oakland County?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the percentage of mobile homes higher in Montana or Wyoming?"
+      },
+      {
+        "action": "compare",
+        "query": "Which census tract has a higher median age, Tract 1201.05 in Minneapolis or Tract 1301 in New Orleans?"
+      },
+      {
+        "action": "compare",
+        "query": "Does Idaho or Utah have more households with solar energy systems?"
+      },
+      {
+        "action": "compare",
+        "query": "Which county has a higher percentage of renters, San Francisco County or New York County?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the average family size larger in Census Tract 1401 or Census Tract 1402 in Sacramento?"
+      },
+      {
+        "action": "compare",
+        "query": "Which state has more people working in healthcare, Pennsylvania or Ohio?"
+      },
+      {
+        "action": "compare",
+        "query": "Does Wake County or Durham County have more graduate degree holders?"
+      },
+      {
+        "action": "compare",
+        "query": "Which census tract has more households without vehicles, Tract 1501 in Detroit or Tract 1601 in Cleveland?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the median property tax higher in Nassau County or Westchester County?"
+      },
+      {
+        "action": "compare",
+        "query": "Which state has a higher percentage of people who speak a language other than English at home, New Mexico or California?"
+      },
+      {
+        "action": "compare",
+        "query": "Does Hennepin County or Ramsey County have more people using public transportation?"
+      },
+      {
+        "action": "compare",
+        "query": "Which census tract has a higher poverty rate, Tract 1701 in St. Louis or Tract 1801 in Kansas City?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the percentage of people with retirement income higher in Florida or Arizona?"
+      },
+      {
+        "action": "compare",
+        "query": "Which county has more recent housing construction, Clark County or Pierce County?"
+      },
+      {
+        "action": "compare",
+        "query": "Does Maine or New Hampshire have a higher percentage of seasonal housing units?"
+      },
+      {
+        "action": "compare",
+        "query": "Which census tract has more immigrants who arrived in the last 5 years, Tract 1901 in San Jose or Tract 2001 in Oakland?"
+      },
+      {
+        "action": "compare",
+        "query": "Is the median monthly housing cost higher in Montgomery County, MD or Fairfax County, VA?"
+      },
+      {
+        "action": "compare",
+        "query": "Which state has a higher percentage of people working in technology jobs, Washington or Massachusetts?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest median household income?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in King County has the lowest poverty rate?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in California has the highest percentage of college graduates?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the youngest median age?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in New York City has the highest population density?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Texas has the lowest unemployment rate?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest percentage of homeowners?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Chicago has the highest percentage of renters?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Florida has the highest median home value?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the lowest percentage of people without health insurance?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Los Angeles County has the highest median rent?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Washington has the highest percentage of public transportation users?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest percentage of veterans?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Miami-Dade County has the highest percentage of foreign-born residents?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Arizona has the lowest median age?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest percentage of people who speak a language other than English at home?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in San Francisco has the highest median household income?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Massachusetts has the highest percentage of people with graduate degrees?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the lowest average commute time?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Houston has the highest percentage of households with children?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Michigan has the highest poverty rate?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest percentage of multigenerational households?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Seattle has the highest percentage of single-person households?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Colorado has the highest median property tax?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the lowest percentage of vacant housing units?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Philadelphia has the highest percentage of people living in poverty?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Oregon has the highest percentage of remote workers?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest percentage of people with broadband internet access?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Atlanta has the lowest median age?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Illinois has the highest percentage of manufacturing jobs?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest percentage of people with disabilities?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Boston has the highest percentage of college students?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Virginia has the highest median household size?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the lowest percentage of people below the poverty line?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Denver has the highest percentage of households with no vehicles?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in New Jersey has the highest percentage of immigrants?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest percentage of households receiving SNAP benefits?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Portland has the highest percentage of homeowners under 35?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Minnesota has the highest percentage of senior citizens?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest percentage of new housing construction?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in San Diego has the highest percentage of military veterans?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Wisconsin has the highest percentage of agricultural workers?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest percentage of people with retirement income?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Phoenix has the lowest unemployment rate?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in North Carolina has the highest percentage of healthcare workers?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest percentage of seasonal housing units?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Detroit has the highest vacancy rate?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which county in Georgia has the highest percentage of tech industry jobs?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which state has the highest percentage of people using solar energy?"
+      },
+      {
+        "action": "find extremum",
+        "query": "Which census tract in Austin has the highest percentage of recent college graduates?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the average median household income across all counties in California?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the mean population density of census tracts in New York City?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the median age across all states in the Northeast region?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of veterans living in all counties of Texas."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average homeownership rate across all census tracts in Chicago?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median poverty rate of all counties in Florida?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total population of all census tracts in Los Angeles County."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of college graduates across Western states?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median home value across all census tracts in San Francisco?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of households receiving SNAP benefits in all Michigan counties."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average commute time across all census tracts in Seattle?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median unemployment rate across all states?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of foreign-born residents in all counties of Arizona."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average household size across all census tracts in Miami?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median rent across all counties in Massachusetts?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of housing units in all census tracts of Portland."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of people with disabilities across Southern states?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median income for Hispanic households across all counties in New Mexico?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of public transportation users in all census tracts of Washington DC."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of vacant housing units across all counties in Nevada?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median age of housing stock across all census tracts in Philadelphia?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of people living below poverty in all counties of Georgia."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of remote workers across Mountain states?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median property tax across all counties in New Jersey?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of broadband internet subscribers in all census tracts of Houston."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of single-parent households across all states?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median household size across all census tracts in Denver?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of senior citizens in all counties of Minnesota."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of people with graduate degrees across New England states?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median home value across all counties in Washington state?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of manufacturing jobs in all census tracts of Detroit."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of people who speak Spanish across all counties in Texas?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median commute time across all census tracts in Boston?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of households with children in all counties of Wisconsin."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of people with health insurance across Midwestern states?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median rent burden across all census tracts in San Diego?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of recent immigrants in all counties of Illinois."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average household income across all census tracts in Atlanta?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median age across all counties in Oregon?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of tech workers in all census tracts of Austin."
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of homeowners under 35 across all states?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median property value across all census tracts in Phoenix?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of healthcare workers in all counties of North Carolina?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of multigenerational households across Pacific states?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median income for Black households across all counties in Maryland?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of solar energy users in all census tracts of Las Vegas?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of people with retirement income across all counties in Florida?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What is the median household size across all census tracts in Minneapolis?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "Calculate the total number of college students in all counties of Virginia?"
+      },
+      {
+        "action": "aggregated functions",
+        "query": "What's the average percentage of housing units built after 2000 across all states?"
+      },
+      {
+        "action": "filter",
+        "query": "Which states have a median household income above $75,000?"
+      },
+      {
+        "action": "filter",
+        "query": "Show me all counties in California with a population density higher than 1,000 people per square mile."
+      },
+      {
+        "action": "filter",
+        "query": "Which census tracts in New York City have more than 40% of residents with a bachelor's degree?"
+      },
+      {
+        "action": "filter",
+        "query": "List all counties where the unemployment rate is below 3%."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have a median age lower than 35 years?"
+      },
+      {
+        "action": "filter",
+        "query": "Show census tracts in Chicago where over 75% of housing units are rentals."
+      },
+      {
+        "action": "filter",
+        "query": "Which counties have a poverty rate higher than 20%?"
+      },
+      {
+        "action": "filter",
+        "query": "List states where more than 30% of households have children under 18."
+      },
+      {
+        "action": "filter",
+        "query": "Show all census tracts in Los Angeles where median home values exceed $1 million."
+      },
+      {
+        "action": "filter",
+        "query": "Which counties have more than 15% of residents without health insurance?"
+      },
+      {
+        "action": "filter",
+        "query": "Find census tracts in Miami where over 50% of residents are foreign-born."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have an average commute time longer than 30 minutes?"
+      },
+      {
+        "action": "filter",
+        "query": "List counties where more than 25% of workers use public transportation."
+      },
+      {
+        "action": "filter",
+        "query": "Show census tracts in Seattle where over 80% of households have broadband internet."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have more than 10% of their population as veterans?"
+      },
+      {
+        "action": "filter",
+        "query": "Find counties where the median property tax exceeds $5,000 annually."
+      },
+      {
+        "action": "filter",
+        "query": "List census tracts in Boston where over 60% of adults have graduate degrees."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have less than 5% vacant housing units?"
+      },
+      {
+        "action": "filter",
+        "query": "Show counties where more than 20% of workers work from home."
+      },
+      {
+        "action": "filter",
+        "query": "Find census tracts in San Francisco where median rent is above $3,000."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have more than 15% of households receiving SNAP benefits?"
+      },
+      {
+        "action": "filter",
+        "query": "List counties where the Asian population exceeds 20%."
+      },
+      {
+        "action": "filter",
+        "query": "Show census tracts in Houston where over 30% of residents speak Spanish at home."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have less than 85% high school graduation rate?"
+      },
+      {
+        "action": "filter",
+        "query": "Find counties where more than 40% of housing units were built after 2000."
+      },
+      {
+        "action": "filter",
+        "query": "List census tracts in Philadelphia where over 35% of residents live in poverty."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have more than 20% of their population aged 65 and over?"
+      },
+      {
+        "action": "filter",
+        "query": "Show counties where the manufacturing sector employs more than 25% of workers."
+      },
+      {
+        "action": "filter",
+        "query": "Find census tracts in Denver where over 45% of households are single-person households."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have less than 60% homeownership rate?"
+      },
+      {
+        "action": "filter",
+        "query": "List counties where median household size is greater than 3 people."
+      },
+      {
+        "action": "filter",
+        "query": "Show census tracts in Atlanta where over 25% of residents have a disability."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have more than 12% of their workforce self-employed?"
+      },
+      {
+        "action": "filter",
+        "query": "Find counties where the Black population exceeds 40%."
+      },
+      {
+        "action": "filter",
+        "query": "List census tracts in Portland where over 70% of households are car-free."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have more than 8% of housing units as mobile homes?"
+      },
+      {
+        "action": "filter",
+        "query": "Show counties where healthcare employment exceeds 18% of total jobs."
+      },
+      {
+        "action": "filter",
+        "query": "Find census tracts in Phoenix where over 55% of residents are under age 35."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have less than 25% of adults with bachelor's degrees?"
+      },
+      {
+        "action": "filter",
+        "query": "List counties where more than 30% of children live in poverty."
+      },
+      {
+        "action": "filter",
+        "query": "Show census tracts in Detroit where over 40% of housing units are vacant."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have more than 5% of households using solar energy?"
+      },
+      {
+        "action": "filter",
+        "query": "Find counties where the Hispanic population exceeds 50%."
+      },
+      {
+        "action": "filter",
+        "query": "List census tracts in Austin where over 65% of residents are college graduates."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have less than 90% health insurance coverage?"
+      },
+      {
+        "action": "filter",
+        "query": "Show counties where more than 22% of residents are foreign-born."
+      },
+      {
+        "action": "filter",
+        "query": "Find census tracts in San Diego where over 45% of income goes to rent."
+      },
+      {
+        "action": "filter",
+        "query": "Which states have more than 25% of households with retirement income?"
+      },
+      {
+        "action": "filter",
+        "query": "List counties where tech industry employment exceeds 15% of total jobs."
+      },
+      {
+        "action": "filter",
+        "query": "Show census tracts in Minneapolis where over 50% of adults are millennials."
+      },
+      {
+        "action": "sort",
+        "query": "Rank all states by median household income from highest to lowest."
+      },
+      {
+        "action": "sort",
+        "query": "What are the top 5 counties in Texas by population density?"
+      },
+      {
+        "action": "sort",
+        "query": "List the 10 census tracts in New York City with the highest poverty rates."
+      },
+      {
+        "action": "sort",
+        "query": "Rank all counties in California by percentage of college graduates, from highest to lowest."
+      },
+      {
+        "action": "sort",
+        "query": "What are the bottom 3 states by unemployment rate?"
+      },
+      {
+        "action": "sort",
+        "query": "List the census tracts in Chicago by median home value in descending order."
+      },
+      {
+        "action": "sort",
+        "query": "What are the top 10 counties by percentage of residents using public transportation?"
+      },
+      {
+        "action": "sort",
+        "query": "Rank all states by median age from youngest to oldest."
+      },
+      {
+        "action": "sort",
+        "query": "Show the 5 census tracts in Los Angeles with the highest percentage of renters."
+      },
+      {
+        "action": "sort",
+        "query": "List all counties in Florida by homeownership rate in descending order."
+      },
+      {
+        "action": "sort",
+        "query": "What are the top 15 states by percentage of foreign-born residents?"
+      },
+      {
+        "action": "sort",
+        "query": "Rank the census tracts in Seattle by median rent from highest to lowest."
+      },
+      {
+        "action": "sort",
+        "query": "What are the bottom 5 counties in Massachusetts by average commute time?"
+      },
+      {
+        "action": "sort",
+        "query": "List all states by percentage of veterans in the population, from highest to lowest."
+      },
+      {
+        "action": "sort",
+        "query": "Show the top 10 census tracts in Miami with the highest percentage of Spanish speakers."
+      },
+      {
+        "action": "sort",
+        "query": "Rank all counties in Arizona by median property tax in descending order."
+      },
+      {
+        "action": "sort",
+        "query": "What are the top 20 states by percentage of households with broadband internet?"
+      },
+      {
+        "action": "sort",
+        "query": "List the census tracts in San Francisco by poverty rate from highest to lowest."
+      },
+      {
+        "action": "sort",
+        "query": "What are the bottom 10 counties by percentage of people with health insurance?"
+      },
+      {
+        "action": "sort",
+        "query": "Rank all states by percentage of households receiving SNAP benefits."
+      },
+      {
+        "action": "sort",
+        "query": "Show the top 5 census tracts in Boston by percentage of graduate degree holders."
+      },
+      {
+        "action": "sort",
+        "query": "List all counties in Washington by percentage of remote workers, from highest to lowest."
+      },
+      {
+        "action": "sort",
+        "query": "What are the top 10 states by percentage of vacant housing units?"
+      },
+      {
+        "action": "sort",
+        "query": "Rank the census tracts in Philadelphia by median household size."
+      },
+      {
+        "action": "sort",
+        "query": "What are the bottom 15 counties in Michigan by median home value?"
+      },
+      {
+        "action": "sort",
+        "query": "List all states by percentage of people with disabilities, from highest to lowest."
+      },
+      {
+        "action": "sort",
+        "query": "Show the top 20 census tracts in Houston with the highest percentage of children under 18."
+      },
+      {
+        "action": "sort",
+        "query": "Rank all counties in Georgia by percentage of manufacturing jobs."
+      },
+      {
+        "action": "sort",
+        "query": "What are the top 5 states by percentage of multigenerational households?"
+      },
+      {
+        "action": "sort",
+        "query": "List the census tracts in Denver by percentage of single-person households."
+      },
+      {
+        "action": "sort",
+        "query": "What are the bottom 10 counties by percentage of people below poverty level?"
+      },
+      {
+        "action": "sort",
+        "query": "Rank all states by percentage of new housing construction since 2010."
+      },
+      {
+        "action": "sort",
+        "query": "Show the top 15 census tracts in Atlanta with the highest median income."
+      },
+      {
+        "action": "sort",
+        "query": "List all counties in Oregon by percentage of workers in tech jobs."
+      },
+      {
+        "action": "sort",
+        "query": "What are the top 10 states by percentage of solar energy users?"
+      },
+      {
+        "action": "sort",
+        "query": "Rank the census tracts in Portland by percentage of households without vehicles."
+      },
+      {
+        "action": "sort",
+        "query": "What are the bottom 5 counties in Minnesota by unemployment rate?"
+      },
+      {
+        "action": "sort",
+        "query": "List all states by percentage of people speaking a language other than English at home."
+      },
+      {
+        "action": "sort",
+        "query": "Show the top 10 census tracts in San Diego with the highest percentage of military veterans."
+      },
+      {
+        "action": "sort",
+        "query": "Rank all counties in Wisconsin by median age from youngest to oldest."
+      },
+      {
+        "action": "sort",
+        "query": "What are the top 20 states by percentage of adults with a bachelor's degree?"
+      },
+      {
+        "action": "sort",
+        "query": "List the census tracts in Phoenix by average household size in descending order."
+      },
+      {
+        "action": "sort",
+        "query": "What are the bottom 15 counties by percentage of public transportation users?"
+      },
+      {
+        "action": "sort",
+        "query": "Rank all states by percentage of households with retirement income."
+      },
+      {
+        "action": "sort",
+        "query": "Show the top 5 census tracts in Austin with the highest percentage of recent immigrants."
+      },
+      {
+        "action": "sort",
+        "query": "List all counties in Virginia by healthcare employment percentage."
+      },
+      {
+        "action": "sort",
+        "query": "What are the top 10 states by percentage of seasonal housing units?"
+      },
+      {
+        "action": "sort",
+        "query": "Rank the census tracts in Minneapolis by percentage of college students."
+      },
+      {
+        "action": "sort",
+        "query": "What are the bottom 20 counties by median property value?"
+      },
+      {
+        "action": "sort",
+        "query": "List all states by percentage of households with children, from highest to lowest."
+      },
+      {
+        "action": "data ranges",
+        "query": "What is the range of median household incomes across all states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the spread of population density across counties in California?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What is the range of poverty rates among census tracts in New York City?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How much does the percentage of college graduates vary across states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the range of unemployment rates among counties in Texas?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How does median age vary across census tracts in Chicago?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the spread of homeownership rates across all states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What is the range of median home values among counties in Florida?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How much do public transportation usage rates vary across census tracts in Boston?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the range of veteran population percentages across states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How does median rent vary across census tracts in San Francisco?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the spread of average commute times among counties in Washington?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What is the range of foreign-born population percentages across states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How much do poverty rates vary among census tracts in Los Angeles?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the range of broadband internet access rates across counties?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How does the percentage of Spanish speakers vary across census tracts in Miami?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the spread of property tax rates across all counties in New Jersey?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What is the range of health insurance coverage rates among states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How much do household sizes vary across census tracts in Philadelphia?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the range of manufacturing employment rates across counties in Michigan?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How does the percentage of people with disabilities vary across states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the spread of vacancy rates among census tracts in Detroit?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What is the range of remote work rates across counties in Colorado?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How much do SNAP benefit rates vary among states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the range of median ages across census tracts in Seattle?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How does the percentage of multigenerational households vary across counties?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the spread of graduate degree holders across states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What is the range of single-person household rates among census tracts in Denver?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How much do tech employment rates vary across counties in California?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the range of solar energy adoption rates among states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How does the percentage of car-free households vary across census tracts in Portland?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the spread of healthcare worker percentages across counties?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What is the range of child poverty rates among states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How much do rental costs vary across census tracts in San Diego?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the range of Asian population percentages across counties in Hawaii?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How does the percentage of recent immigrants vary across census tracts in Houston?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the spread of high school graduation rates across states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What is the range of median home ages among counties in Arizona?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How much do Hispanic population percentages vary across census tracts in Phoenix?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the range of retirement income rates across states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How does the percentage of young adults vary across census tracts in Austin?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the spread of agricultural employment across counties in Iowa?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What is the range of Black population percentages among states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How much do income-to-rent ratios vary across census tracts in Atlanta?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the range of seasonal housing unit percentages across counties in Maine?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How does the percentage of people without vehicles vary across census tracts in Minneapolis?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the spread of self-employment rates across states?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What is the range of female-headed household percentages among counties?"
+      },
+      {
+        "action": "data ranges",
+        "query": "How much do mobile home percentages vary across census tracts in rural areas?"
+      },
+      {
+        "action": "data ranges",
+        "query": "What's the range of median housing costs across states?"
+      },
+          {
+            "action": "cluster",
+            "query": "Which states have similar median household incomes to California?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find counties with population density patterns similar to King County, Washington."
+          },
+          {
+            "action": "cluster",
+            "query": "Which census tracts in New York City have poverty rates similar to Bronx Census Tract 397?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states share similar college education rates with Massachusetts?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find counties in Texas that have unemployment rates similar to Travis County."
+          },
+          {
+            "action": "cluster",
+            "query": "Which census tracts in Chicago have age distributions similar to Loop District tracts?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have homeownership patterns similar to Florida?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find counties with median home values similar to San Francisco County."
+          },
+          {
+            "action": "cluster",
+            "query": "Which census tracts in Boston share similar public transit usage with Downtown Boston tracts?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have veteran population percentages similar to Virginia?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Los Angeles with rental prices similar to Beverly Hills tracts."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties in Washington have commute patterns similar to Pierce County?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have foreign-born population rates similar to New Jersey?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Miami with Hispanic population percentages similar to Little Havana."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties have broadband access rates similar to Santa Clara County?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states share similar health insurance coverage rates with Minnesota?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Philadelphia with household sizes similar to Center City tracts."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties in Michigan have manufacturing employment similar to Wayne County?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have disability rates similar to West Virginia?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Detroit with vacancy rates similar to Midtown tracts."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties in Colorado have remote work patterns similar to Boulder County?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have SNAP benefit rates similar to Mississippi?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Seattle with median ages similar to Capitol Hill tracts."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties have multigenerational household patterns similar to Honolulu County?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have graduate education rates similar to Maryland?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Denver with single-person household rates similar to Downtown tracts."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties in California have tech employment similar to San Mateo County?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have solar energy adoption patterns similar to Arizona?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Portland with car-free household rates similar to Pearl District."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties have healthcare worker percentages similar to Suffolk County, MA?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have child poverty rates similar to New Mexico?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in San Diego with rental costs similar to La Jolla tracts."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties in Hawaii have Asian population percentages similar to Maui County?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have immigration patterns similar to Nevada?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Houston with education levels similar to Medical Center tracts."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties have high school graduation rates similar to Fairfax County, VA?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have housing age patterns similar to Rhode Island?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Phoenix with Hispanic population rates similar to South Phoenix tracts."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties have retirement income patterns similar to Sarasota County, FL?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have young adult population rates similar to Utah?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Austin with tech worker concentrations similar to Downtown tracts."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties in Iowa have agricultural employment similar to Story County?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have Black population percentages similar to Georgia?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Atlanta with income levels similar to Buckhead tracts."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties in Maine have seasonal housing patterns similar to York County?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have public transportation usage similar to Illinois?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in Minneapolis with poverty rates similar to University area tracts."
+          },
+          {
+            "action": "cluster",
+            "query": "Which counties have self-employment rates similar to Summit County, CO?"
+          },
+          {
+            "action": "cluster",
+            "query": "What states have mobile home percentages similar to South Carolina?"
+          },
+          {
+            "action": "cluster",
+            "query": "Find census tracts in New Orleans with flood risk patterns similar to French Quarter tracts."
+          },
+              {
+                "action": "is pattern",
+                "query": "Is there a spatial pattern in median household income across census tracts in Chicago?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for spatial autocorrelation in poverty rates among counties in California."
+              },
+              {
+                "action": "is pattern",
+                "query": "Are educational attainment levels spatially clustered across census tracts in New York City?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there geographic clustering in unemployment rates across counties in Texas?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test if home values show spatial patterns across census tracts in Seattle."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there spatial autocorrelation in the distribution of elderly population across Florida counties?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are Hispanic population concentrations spatially clustered in Los Angeles census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for geographic patterns in public transit usage across Boston census tracts."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there spatial clustering in rental prices across San Francisco neighborhoods?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are there geographic patterns in broadband access across rural counties?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for spatial autocorrelation in child poverty rates across Atlanta census tracts."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there geographic clustering of tech industry jobs across Bay Area counties?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are immigrant populations spatially clustered in Miami census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for spatial patterns in housing vacancy rates across Detroit neighborhoods."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there geographic clustering in healthcare access across rural census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are property tax rates spatially autocorrelated across New Jersey counties?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test if language diversity shows spatial patterns across Houston census tracts."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there clustering in remote work rates across metropolitan counties?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are veteran populations spatially clustered?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for geographic patterns"
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there spatial autocorrelation?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are manufacturing jobs geographically clustered across Midwest counties?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for spatial patterns in Asian population distribution across San Diego census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there geographic clustering in median age across Portland neighborhoods?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are high-income households spatially clustered in Washington DC census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for spatial autocorrelation in car-free households across Minneapolis neighborhoods."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there geographic clustering in recent housing construction across suburban counties?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are disability rates spatially clustered across rural census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for geographic patterns in single-parent households across Philadelphia neighborhoods."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there spatial autocorrelation in professional service jobs across Denver census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are Black populations geographically clustered in Baltimore census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for spatial patterns in household size across Las Vegas neighborhoods."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there geographic clustering in retirement communities across Florida counties?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are agricultural jobs spatially clustered across California's Central Valley?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for spatial autocorrelation in home values across Austin neighborhoods."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there geographic clustering in multilingual households across Queens census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are entertainment industry jobs spatially clustered across Los Angeles counties?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for geographic patterns in electric vehicle adoption across Portland census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there spatial autocorrelation in healthcare jobs across Pittsburgh neighborhoods?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are new immigrant populations geographically clustered in suburban census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for spatial patterns in walkability scores across Seattle neighborhoods."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there geographic clustering in startup density across Bay Area census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are mobile home communities spatially clustered across rural counties?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for spatial autocorrelation in historic preservation areas across Boston neighborhoods."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there geographic clustering in urban garden presence across Detroit census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are creative industry jobs spatially clustered across Nashville neighborhoods?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for geographic patterns in bike commuting across Portland census tracts."
+              },
+              {
+                "action": "is pattern",
+                "query": "Is there spatial autocorrelation in waterfront property values across coastal counties?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Are university-educated workers geographically clustered in Research Triangle census tracts?"
+              },
+              {
+                "action": "is pattern",
+                "query": "Test for spatial patterns in green space access across Chicago neighborhoods."
+              },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe how median household income is spatially distributed across Chicago's neighborhoods."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Explain the geographic pattern of poverty rates among California counties."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How are college education rates spatially distributed across New York City census tracts?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Characterize the geographic distribution of unemployment across Texas counties."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "What is the spatial pattern of property values across Seattle neighborhoods?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe how the elderly population is geographically distributed in Florida."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How is the Hispanic population spatially arranged across Los Angeles census tracts?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Explain the geographic pattern of public transit usage in Boston neighborhoods."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe the spatial distribution of rental prices across San Francisco."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How does broadband access vary geographically across rural counties?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "What is the spatial pattern of child poverty across Atlanta neighborhoods?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe how tech industry jobs are distributed across Bay Area counties."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Explain the geographic arrangement of immigrant communities in Miami."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How are vacant properties spatially distributed across Detroit?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe the geographic pattern of healthcare access in rural areas."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "What is the spatial distribution of property tax rates across New Jersey?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How are different language communities arranged across Houston?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe the geographic pattern of remote work across metropolitan areas."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Explain how veteran populations are distributed near military installations."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "What is the spatial pattern of solar panel adoption in Phoenix?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe how college student populations are distributed across Boston."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How are manufacturing jobs spatially arranged across the Midwest?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Explain the geographic distribution of Asian communities in San Diego."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "What is the spatial pattern of age demographics across Portland?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe how high-income households are distributed in Washington DC."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How are car-free households spatially arranged in Minneapolis?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Explain the geographic pattern of new housing construction in suburban areas."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "What is the spatial distribution of disability rates in rural regions?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe how single-parent households are arranged across Philadelphia."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How are professional service jobs distributed across Denver?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Explain the geographic pattern of Black communities in Baltimore."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "What is the spatial arrangement of household sizes in Las Vegas?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe how retirement communities are distributed across Florida."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How are agricultural jobs spatially arranged in California's Central Valley?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Explain the geographic pattern of home values across Austin."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "What is the spatial distribution of multilingual households in Queens?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe how entertainment industry jobs are arranged in Los Angeles."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How are electric vehicle adoptions spatially distributed in Portland?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Explain the geographic pattern of healthcare facilities in Pittsburgh."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "What is the spatial arrangement of new immigrant communities in suburbs?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe how walkability scores vary across Seattle neighborhoods."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How are startup companies spatially distributed in the Bay Area?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Explain the geographic pattern of mobile home communities in rural areas."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "What is the spatial distribution of historic districts in Boston?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe how urban gardens are arranged across Detroit."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How are creative industry jobs spatially distributed in Nashville?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Explain the geographic pattern of bike commuting in Portland."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "What is the spatial arrangement of waterfront properties in coastal areas?"
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "Describe how educated workers are distributed in the Research Triangle."
+                  },
+                  {
+                    "action": "describe pattern",
+                    "query": "How are green spaces spatially arranged across Chicago neighborhoods?"
+                  },
+                      {
+                        "action": "find outliers",
+                        "query": "Which census tracts in Chicago have unusually high income levels compared to their surrounding neighborhoods?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify counties in California with poverty rates that are significantly different from neighboring counties."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which neighborhoods in New York City have unexpectedly low population density relative to adjacent areas?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find census tracts in Los Angeles with education levels that deviate significantly from surrounding tracts."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which counties in Texas have unemployment rates that are unusually different from their neighbors?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify census tracts in Seattle with home values that are markedly higher than surrounding areas."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which neighborhoods in Boston have unexpectedly high public transit usage compared to adjacent neighborhoods?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find counties in Florida with aging populations that differ significantly from neighboring counties."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which census tracts in San Francisco have rental prices that are notably lower than surrounding areas?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify areas in Detroit with vacancy rates that deviate significantly from neighboring tracts."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which census tracts in Miami have unusually high concentrations of foreign-born residents compared to surrounding areas?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find counties in Washington state with broadband access rates that differ markedly from their neighbors."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which neighborhoods in Philadelphia have unexpectedly high poverty rates relative to surrounding areas?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify census tracts in Atlanta with household sizes that deviate significantly from adjacent tracts."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which counties in Michigan have manufacturing employment rates that are unusually different from neighboring counties?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find census tracts in Denver with car ownership rates that differ significantly from surrounding areas."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which neighborhoods in Portland have unexpectedly high proportions of young adults compared to adjacent neighborhoods?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify counties in Arizona with healthcare access rates that deviate markedly from their neighbors."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which census tracts in Minneapolis have property tax rates that are notably different from surrounding tracts?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find areas in Houston with language diversity patterns that differ significantly from neighboring areas."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which census tracts in San Diego have unusually high concentrations of veterans compared to surrounding tracts?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify neighborhoods in Austin with remote work rates that deviate significantly from adjacent areas."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which counties in Colorado have solar panel adoption rates that are markedly different from their neighbors?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find census tracts in Baltimore with college student populations that differ unusually from surrounding areas."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which neighborhoods in Nashville have unexpectedly high creative industry employment compared to adjacent areas?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify census tracts in Oakland with disability rates that deviate significantly from surrounding tracts."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which counties in New Jersey have commute times that are notably different from neighboring counties?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find neighborhoods in Pittsburgh with historic preservation rates that differ markedly from surrounding areas."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which census tracts in Las Vegas have unusually high proportions of retirees compared to adjacent tracts?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify counties in Oregon with agricultural employment that deviates significantly from neighboring counties."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which neighborhoods in Sacramento have home values that are unexpectedly low relative to surrounding areas?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find census tracts in Cleveland with racial diversity patterns that differ notably from adjacent tracts."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which counties in Georgia have tech industry employment that is markedly different from their neighbors?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify neighborhoods in St. Louis with green space access that deviates significantly from surrounding areas."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which census tracts in Kansas City have unusually high walkability scores compared to adjacent tracts?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find counties in Virginia with healthcare facility density that differs significantly from neighboring counties?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which neighborhoods in Cincinnati have unexpectedly high business density relative to surrounding areas?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify census tracts in Milwaukee with income inequality that deviates markedly from adjacent tracts."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which counties in North Carolina have educational attainment rates that are notably different from their neighbors?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find neighborhoods in Indianapolis with housing age patterns that differ significantly from surrounding areas."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which census tracts in Columbus have unusually high immigrant populations compared to adjacent tracts?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify counties in Utah with recreational facility access that deviates significantly from neighboring counties."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which neighborhoods in Memphis have property crime rates that are markedly different from surrounding areas?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find census tracts in Buffalo with internet access rates that differ notably from adjacent tracts."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which counties in Alabama have food access patterns that are unusually different from their neighbors?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify neighborhoods in Louisville with bike infrastructure that deviates significantly from surrounding areas."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which census tracts in Richmond have unexpectedly high electric vehicle adoption compared to adjacent tracts?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Find counties in Iowa with renewable energy usage that differs markedly from neighboring counties."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which neighborhoods in Providence have housing affordability that deviates significantly from surrounding areas?"
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Identify census tracts in Salt Lake City with air quality patterns that differ notably from adjacent tracts."
+                      },
+                      {
+                        "action": "find outliers",
+                        "query": "Which counties in Montana have winter tourism rates that are unusually different from their neighbors?"
+                  },
+                  {
+                        "action": "correlate",
+                        "query": "Is there a relationship between median household income and education levels across census tracts in Chicago?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How does population density correlate with public transit usage in New York City neighborhoods?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between poverty rates and unemployment across counties in California?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between home values and school quality in Boston census tracts?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How do rental prices relate to proximity to public transportation in San Francisco?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between age demographics and healthcare facility density in Florida counties?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between immigrant population and language diversity in Los Angeles neighborhoods?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How does broadband access relate to median income across rural counties?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between property values and crime rates in Philadelphia census tracts?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between walkability scores and retail business density in Seattle?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How do vacancy rates relate to neighborhood age in Detroit census tracts?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between tech industry jobs and housing costs in Bay Area counties?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between educational attainment and voting patterns across counties?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How does air quality relate to income levels in Los Angeles neighborhoods?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between car ownership and public transit access in Portland?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between solar panel adoption and household income in Phoenix?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How do property taxes relate to school performance across New Jersey counties?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between bike infrastructure and commute patterns in Minneapolis?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between tree cover and property values in Atlanta neighborhoods?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How does healthcare access relate to poverty rates in rural counties?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between internet speed and remote work rates across census tracts?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between restaurant density and pedestrian traffic in Manhattan?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How do park access and physical activity levels relate in Denver neighborhoods?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between historic preservation and tourism in Charleston?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between flood risk and insurance rates in coastal counties?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How does job density relate to housing construction in Austin census tracts?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between agricultural land use and water quality in rural areas?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between noise pollution and housing prices in urban areas?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How do electric vehicle adoption rates relate to charging station density?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between library access and literacy rates across neighborhoods?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between coffee shop density and creative industry jobs?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How does building age relate to energy consumption in urban census tracts?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between sidewalk coverage and retail business success?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between gardening programs and food security in neighborhoods?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How do recycling rates relate to education levels across communities?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between cultural venues and housing demand in cities?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between bike share usage and office worker density?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How does public art presence relate to pedestrian activity in neighborhoods?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between farmer's markets and income levels in communities?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between senior centers and aging population distribution?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How do daycare facilities relate to young family demographics in suburbs?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between music venues and youth population in Nashville?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between industrial zoning and asthma rates in cities?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How does airport noise relate to property values in surrounding areas?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between university proximity and rental markets?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between sports facilities and local business revenue?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How do waterfront properties relate to tourism income in coastal areas?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "What's the relationship between parking availability and retail success?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "Is there a correlation between street lighting and nighttime activity?"
+                      },
+                      {
+                        "action": "correlate",
+                        "query": "How do religious facilities relate to community engagement levels?"
+                      },
+                          {
+                            "action": "others",
+                            "query": "What is a choropleth map?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "Can you explain what population density means?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What's the difference between a census tract and a county?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How is median household income calculated?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What does ACS stand for in census data?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How often is census data updated?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What's the definition of a metropolitan statistical area?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are poverty thresholds determined?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What's the difference between mean and median income?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are census block groups defined?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What is spatial autocorrelation?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How do you read a heat map?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What's a geographic information system (GIS)?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How is housing affordability calculated?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What defines an urban area versus a rural area?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are school district boundaries determined?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What is a demographic profile?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are unemployment rates calculated?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What's the definition of a household in census data?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are racial and ethnic categories defined in the census?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What is spatial interpolation?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are congressional districts drawn?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What's a census designated place?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How is population growth rate calculated?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What is a zip code tabulation area?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are commute times measured in census data?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What's the difference between owner-occupied and renter-occupied housing?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How is educational attainment categorized?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What is a statistical outlier in geographic data?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are language proficiency levels defined?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What's a micropolitan statistical area?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How is housing vacancy rate calculated?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What defines a central business district?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are disability statistics collected?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What is demographic transition?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are property values assessed?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What's the definition of a family household?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How is population migration tracked?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What is spatial clustering?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are urban growth boundaries determined?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What's a census sampling error?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How is gentrification measured?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What defines a mixed-use development?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are walkability scores calculated?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What is environmental justice mapping?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are food deserts identified?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What's a transit-oriented development?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How is social vulnerability measured?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "What is spatial equity analysis?"
+                          },
+                          {
+                            "action": "others",
+                            "query": "How are neighborhood boundaries defined?"
+                          }
+                    
+            
+
+]
