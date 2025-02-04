@@ -59,9 +59,11 @@ const Chatbot = ({
     const [isLoading, setIsLoading] = useState(false);
 
     // State to track if speech recognition is being used currently
-    const [isSpeechRecActive, setIsSpeechRecActive] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
     const [transcript, setTranscript] = useState("");
+
+    // Perhaps merge isSpeech -> (into) micPermission
+    const [isSpeechRecActive, setIsSpeechRecActive] = useState(false);
     const [micPermission, setMicPermission] = useState("Checking...");
 
     // Initialize the SpeechRecognition instance directly (Self-Made React Hook)
@@ -222,16 +224,15 @@ const Chatbot = ({
      */
     const handleToggleRecording = () => {
       if (isRecording) {
-        // Stop recording
+        // Stop recording (Triggers UseEffect)
         setIsRecording(false);
         console.log("Stopped recording");
 
-        // Update the transcript bar to reflect this
+        // Update the transcript bar to reflect this (Triggers UseEffect)
         setInput(transcript);
         console.log("After the transcript sets the input to empty");
       } else {
-        // Start recording (Since browser enables speech input from device)
-        // and this trigger the speech recognition API via useEffect
+        // Start recording (Triggers transcript and isRecording UseEffect)
         setTranscript("");
         setIsRecording(true);
         console.log("Started recording");
@@ -257,18 +258,18 @@ const Chatbot = ({
 
     /**
      * Checks the status of the microphone access. Updates the state variable
-     * accordingly.
+     * accordingly. Triggers on the load of the page
      */
     const checkMicPermission = async () => {
       try {
-        // Check if the browser supports the Permissions API:
+        // Checks if the browser supports the Permissions API:
         // https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API
         if (!(navigator.permissions)) {
           setMicPermission("Permission API not supported");
           return;
         }
 
-        // Get information pertaining the microphone enable status
+        // Gets information pertaining the microphone enable status
         const permissionStatus = await navigator.permissions.query({ name: "microphone" });
         setMicPermission(permissionStatus.state);
 
@@ -304,16 +305,18 @@ const Chatbot = ({
     // UseEffects for speech recognition feature
 
     // Checks the status of the mic access for the webpage on load. If not, the
-    // record button has an "Enable Record" text.
+    // record button has an "Enable Record" text. (Runs only once)
     useEffect(() => {
       // Set the mic permissions variable
       console.log("Here on load");
       checkMicPermission();
 
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Sets the speechRec variable to true once the micPermission is triggered
+    // and first set to granted. This UseEffect runs as a byproduct of the
+    // UseEffect on load.
     useEffect(() => {
       console.log("Setting the speech recognition variable");
       // Automatically display the record button if the website  has microphone
