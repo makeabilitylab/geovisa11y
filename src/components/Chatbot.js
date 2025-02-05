@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
-import { ArrowRight } from "@phosphor-icons/react";
+import { ArrowRight, Microphone, MicrophoneSlash } from "@phosphor-icons/react";
 import {
     Card,
     CardBody,
@@ -40,7 +40,19 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isSpeechLoading, setIsSpeechLoading] = useState(false);
     const chatContainerRef = useRef(null);
+    const [isRecording, setIsRecording] = useState(false);
+    const [audioBlob, setAudioBlob] = useState(null);
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+    const audioRef = useRef(new Audio());
+    const [useSpeech, setUseSpeech] = useState(false);
+
+    const openai = new OpenAI({
+        apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+        dangerouslyAllowBrowser: true
+    });
 
     // List of US states
     const states = [
@@ -101,6 +113,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
     
     useEffect(() => {
         setExampleQuestions(getExampleQuestions());
+        setUseSpeech(false);  // Reset speech mode when dataset changes
     }, [dataset]);
 
     useEffect(() => {
@@ -111,15 +124,127 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
 
     // Function to handle example question click
     const handleExampleClick = (question) => {
-        // Simulate user message
+        setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: question, sender: 'user' }]);
-        
-        // Send question to API
-        handleQuestionSubmit(question);
+        handleQuestionSubmit(question, false);  // Explicitly pass false to disable speech
+        audioRef.current.pause();  // Stop any ongoing speech
+        audioRef.current.currentTime = 0;  // Reset audio
     };
 
-    // Separated API call logic for reuse
-    const handleQuestionSubmit = async (question) => {
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorderRef.current = new MediaRecorder(stream);
+            audioChunksRef.current = [];
+
+            mediaRecorderRef.current.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
+            };
+
+            mediaRecorderRef.current.onstop = async () => {
+                if (audioChunksRef.current.length > 0) {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                    setUseSpeech(true);
+                    await processAudioToText(audioBlob);
+                }
+            };
+
+            // Request data every 250ms
+            mediaRecorderRef.current.start(250);
+            setIsRecording(true);
+            
+            // Add visual feedback for recording
+            setMessages(prev => [...prev, { 
+                text: 'Listening...', 
+                sender: 'bot',
+                isTemp: true 
+            }]);
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+            setMessages(prev => [...prev, { 
+                text: 'Error accessing microphone. Please check your permissions.',
+                sender: 'bot'
+            }]);
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+            mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+            
+            // Remove the "Listening..." message
+            setMessages(prev => prev.filter(msg => !msg.isTemp));
+        }
+    };
+
+    const processAudioToText = async (audioBlob) => {
+        try {
+            // Show processing message
+            setMessages(prev => [...prev.filter(msg => !msg.isTemp), { 
+                text: 'Processing your speech...', 
+                sender: 'bot',
+                isTemp: true 
+            }]);
+
+            const formData = new FormData();
+            formData.append('file', new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
+
+            const transcriptionResponse = await openai.audio.transcriptions.create({
+                file: new File([audioBlob], 'audio.webm', { type: 'audio/webm' }),
+                model: 'whisper-1',
+            });
+
+            // Remove processing message
+            setMessages(prev => prev.filter(msg => !msg.isTemp));
+
+            const transcribedText = transcriptionResponse.text;
+            if (transcribedText.trim()) {
+                // Add the transcribed text to chat as a user message
+                setMessages(prev => [...prev, { text: transcribedText, sender: 'user' }]);
+                // Send to API for processing with speech preserved
+                handleQuestionSubmit(transcribedText, true);  // Pass true to preserve speech
+            } else {
+                setMessages(prev => [...prev, { 
+                    text: 'I couldn\'t detect any speech. Please try again.',
+                    sender: 'bot'
+                }]);
+            }
+        } catch (error) {
+            console.error('Error processing audio:', error);
+            setMessages(prev => [...prev, { 
+                text: 'Sorry, I had trouble understanding that. Please try again.',
+                sender: 'bot'
+            }]);
+        }
+    };
+
+    const speakResponse = async (text) => {
+        try {
+            setIsSpeechLoading(true);  // Set speech loading state
+            const speechResponse = await openai.audio.speech.create({
+                model: 'tts-1',
+                voice: 'alloy',
+                input: text,
+            });
+
+            const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            audioRef.current.src = audioUrl;
+            await audioRef.current.play();
+        } catch (error) {
+            console.error('Error generating speech:', error);
+        } finally {
+            setIsSpeechLoading(false);  // Reset speech loading state
+        }
+    };
+
+    // Modify handleQuestionSubmit to preserve speech mode
+    const handleQuestionSubmit = async (question, preserveSpeech = false) => {
         setIsLoading(true);
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/analyze-question`, {
@@ -142,6 +267,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
 
             if (data.result) {
                 setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
+                // Only speak if in voice mode
+                if (useSpeech || preserveSpeech) {
+                    await speakResponse(data.result.replace(/<[^>]*>/g, '')); // Remove HTML tags
+                }
                 
                 // Reset map for average, pattern existence, and pattern description questions
                 if (['average', 'yes_no', 'description'].includes(data.question_type)) {
@@ -178,10 +307,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
 
         const userMessage = input;
         setInput('');
-        // Add user message to chat history first
+        setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
-        // Then submit the question
-        handleQuestionSubmit(userMessage);
+        handleQuestionSubmit(userMessage, false);  // Explicitly pass false to disable speech
     };
 
     // Add keydown handler for Enter key
@@ -230,6 +358,45 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
     useEffect(() => {
         setExampleQuestions(getExampleQuestions());
         setGeneralQuestions(getGeneralQuestions());
+        setUseSpeech(false);  // Reset speech mode when dataset changes
+    }, [dataset]);
+
+    // Function to speak the welcome message
+    const speakWelcomeMessage = async () => {
+        const description = getMapDescription();
+        const exampleQuestions = getExampleQuestions();
+        const generalQuestions = getGeneralQuestions();
+
+        const welcomeMessage = `${description} You can ask me questions like: ${exampleQuestions.join('. ')}. Or ask me about: ${generalQuestions.join('. ')}`;
+        
+        try {
+            setIsSpeechLoading(true);
+            const speechResponse = await openai.audio.speech.create({
+                model: 'tts-1',
+                voice: 'alloy',
+                input: welcomeMessage,
+            });
+
+            const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            audioRef.current.src = audioUrl;
+            await audioRef.current.play();
+        } catch (error) {
+            console.error('Error generating welcome speech:', error);
+        } finally {
+            setIsSpeechLoading(false);
+        }
+    };
+
+    // Speak welcome message on initial load and dataset change
+    useEffect(() => {
+        speakWelcomeMessage();
+        // Cleanup function to stop audio when component unmounts or dataset changes
+        return () => {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        };
     }, [dataset]);
 
     return (
@@ -301,21 +468,21 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
                         </div>
                     </div>
                 ))}
-                {isLoading && (
+                {(isLoading || isSpeechLoading) && (
                     <div className="flex justify-start mb-2">
                         <div className="py-2 px-4 rounded-md bg-gray-200 text-gray-900 text-left text-xs">
                             <Typography 
                                 variant="small" 
                                 className="font-['Roboto'] font-normal leading-[1.2] italic"
                             >
-                                Looking for answers...
+                                {isSpeechLoading ? 'Generating speech...' : 'Looking for answers...'}
                             </Typography>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Input and Button */}
+            {/* Input, Microphone, and Send Button */}
             <div className="flex gap-2 items-center">
                 <div className="flex-grow">
                     <Input
@@ -331,6 +498,18 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
                         color="teal"
                     />
                 </div>
+                <Button 
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`${
+                        isRecording ? 'bg-red-500' : 'bg-teal-500'
+                    } text-white p-2.5 aspect-square`}
+                    size="sm"
+                >
+                    {isRecording ? 
+                        <MicrophoneSlash size={20} weight="bold" /> : 
+                        <Microphone size={20} weight="bold" />
+                    }
+                </Button>
                 <Button 
                     onClick={handleSubmit}
                     className='bg-teal-500 text-white p-2.5 aspect-square'
