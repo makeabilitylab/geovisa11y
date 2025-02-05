@@ -85,7 +85,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
                 `Which state has the ${extrema} percentage of people walking to work?`,
                 "What's the average percentage of people who walk to work?",
                 "Is there a pattern in this map?",
-                "Can you describe the pattern in this map?"
+                "Can you describe the pattern?"
             ];
         } else if (dataset === 'transit_to') {
             return [
@@ -94,7 +94,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
                 `Which state has the ${extrema} percentage of public transit usage?`,
                 "What's the average percentage of people who use public transit?",
                 "Is there a pattern in this map?",
-                "Can you describe the pattern in this map?"
+                "Can you describe the pattern?"
             ];
         } else {  // ppl_densit
             return [
@@ -103,7 +103,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
                 `Which state has the ${extrema} population density?`,
                 "What's the average population density in this map?",
                 "Is there a pattern in this map?",
-                "Can you describe the pattern in this map?"
+                "Can you describe the pattern?"
             ];
         }
     };
