@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@material-tailwind/react": "^2.1.8",
+    "@material-tailwind/react": "^2.1.10",
     "@phosphor-icons/react": "^2.1.7",
     "axios": "^1.7.9",
     "cra-template": "1.2.0",

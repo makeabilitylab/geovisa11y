@@ -525,13 +525,14 @@ const Chatbot = ({
                     {/* Custom button to request audio for query */}
                     <RecordButton
                       text={micPermission === "granted" && isSpeechRecActive ?
-                        (isRecording ? "Stop":"Record") : "Enable Record"
+                        (isRecording ? "Exit Voice Mode":"Use Voice Mode") : "Enable Voice Mode"
                       }
                       handleToggleRecording={isSpeechRecActive ?
                         // Perhaps just passing the setter function should work
                         // {TODO}
                         handleToggleRecording : handleActivateSpeechRec
                       }
+                      isRecording={isRecording} // Pass recording state
                     />
 
 
