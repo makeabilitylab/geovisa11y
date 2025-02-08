@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
 import { ArrowRight } from "@phosphor-icons/react";
 import {
@@ -61,6 +61,7 @@ const Chatbot = ({
     // State to track if speech recognition is being used currently
     const [isRecording, setIsRecording] = useState(false);
     const [transcript, setTranscript] = useState("");
+    const voiceModeQueryTimer = useRef(null);
 
     // Perhaps merge isSpeech -> (into) micPermission
     const [isSpeechRecActive, setIsSpeechRecActive] = useState(false);
@@ -144,6 +145,10 @@ const Chatbot = ({
 
     // Modify handleInputChange
     const handleInputChange = (e) => {
+        // Clear the timer to send a query if the user decides to self-modify
+        // before it is sent
+        stopTimer();
+
         const newValue = e.target.value.toLowerCase();
         setInput(e.target.value);
 
@@ -220,7 +225,8 @@ const Chatbot = ({
 
     /**
      * Switches the recording status when called. Record button will be using
-     * this handler function
+     * this handler function. This function gets executed either on click to
+     * start or on click to stop
      */
     const handleToggleRecording = () => {
       if (isRecording) {
@@ -300,6 +306,17 @@ const Chatbot = ({
       }
     };
 
+    // Clear the timer to send a query if the user decides to self-modify
+    // the query before it is sent. No more auto send input unless voice mode
+    // is reset
+    const stopTimer = () => {
+      if (voiceModeQueryTimer.current) {
+        console.log("Clearing up timer from stopTimer function");
+        clearTimeout(voiceModeQueryTimer.current);
+        voiceModeQueryTimer.current = null;
+      }
+    }
+
 
 
     // UseEffects for speech recognition feature
@@ -337,7 +354,9 @@ const Chatbot = ({
      * Side effect to be run when the is recording state is changed. This
      * typically occurs only when the record. Toggles the Speech Recognition
      * object to be recording or not recording depending on the "just"
-     * switched to state of the isRecording state variable.
+     * switched to state of the isRecording state variable. Given that this
+     * dependency is ran when the voice mode is used, this should also send off
+     * the query immediately
      */
     useEffect(() => {
       // The recording instance only starts recording when recording state
@@ -352,6 +371,22 @@ const Chatbot = ({
 
         // Reset the text of the Record button.
         console.log("Stopped recording from the isRecording react hook");
+
+        // When recording stops a timer is set till the query will be sent to
+        // the back end to recieve information
+        voiceModeQueryTimer.current = setTimeout(() => {
+          // Send input text
+          console.log("To be sent after query is in the text bar and a 2.5 second delay");
+
+          // Send the message off to promote a handles off interaction
+          handleSendMessage();
+        }, 2500);
+      }
+
+      // Cleanup function to clear timeout if component unmounts
+      return () => {
+        console.log("isRecording useEffect clearup");
+        stopTimer();
       }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -501,6 +536,7 @@ const Chatbot = ({
                             value={input}
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
+                            onFocus={stopTimer}
                             className="font-['Roboto']"
                             labelProps={{
                                 className: "!text-teal-500"
