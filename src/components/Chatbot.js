@@ -8,6 +8,7 @@ import {
     Input,
     Button,
 } from '@material-tailwind/react';
+import { data } from 'autoprefixer';
 
 const SuggestionText = ({ text, datasetPhrase }) => {
     const parts = text.split(' in ');
@@ -117,6 +118,203 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
         // Send question to API
         handleQuestionSubmit(question);
     };
+
+    const handleAPIRequest = async (input) => {
+        console.log("... callig api")
+        try {
+            const response = await openai.chat.completions.create({
+                model:"gpt-4o-mini",
+                messages: [
+                    { role: 'system', content: 'You are a helpful assistant to answer questions about geospatial visaulization.' },
+                    { role: 'user', content: input }
+                ],
+                store: true
+            });
+            
+            console.log(response);
+            if (response && response.choices) {
+                const botMessage = response.choices[0].message;
+                return botMessage;
+            } else {
+                throw new Error('No response from OpenAI');
+            }
+        } catch (error) {
+            throw new Error('Error details:', error);
+        }
+    }
+
+    const handlePronounceAmbiguity = async (question) => {
+        PROUNCE_PROMPT = `Your goal is to determine if the question has ambiguous prounce. 
+        format of the response: { 
+            "question": ${question}, 
+            "is_ambiguous": "True"/"False"
+        }
+        Question: ${question}`;
+
+        console.log(" ... prounce ambiguity question");
+
+        try {
+            const response = await handleAPIRequest(PROUNCE_PROMPT);
+            console.log(response);
+
+            if (response) {
+                if (response.is_ambiguous) {
+                    // lower is_ambiguous
+                    if(response.is_ambiguous.toLowerCase() == 'true') {
+                        return true; 
+                    } else if (response.is_ambiguous.toLowerCase() == 'false') {
+                        return false; 
+                    } else {
+                        throw new Error('Invalid response in is_ambiguous');
+                    }
+                } else {
+                    throw new Error('No is_ambiguous in response');
+                }
+            }
+        } catch (error) {
+            console.error('Error details:', error);
+            setMessages(prev => [...prev, { 
+                text: 'Sorry, I encountered an error when dealing with ambiguous pronounn. Please try again.',
+                sender: 'bot'
+            }]);
+            return false;
+        }
+    }
+
+    const handleClassifyQuestion = async (question) => {
+        // TODO: need to correct the action name
+        CLASSIFY_PROMPT = `Your goal is to classify the question into one of the following categories:
+
+The question should be classified into one of the following categories:
+Rule 1: There are 13 action categories. Examples questions for each category are provided below.
+{
+    "action": "retrieve", #directly retrieve value from the data
+    "query": "What’s the population density of {state1}?"
+},
+{
+    "action": "compare", #compare values of multiple data
+    "query": "Which state has higher population density, {state2} or {state3}?"
+},
+{
+    "action": "find extremum", # Finding min/max values
+    "query": "Which state has the {highest/lowest} population density?"
+},
+{
+    "action": "aggregated functions",  # Calculating averages and related metrics
+    "queries": "What's the average population density in this map?" # or "What’s the state closest to the average population density?"
+},
+{
+    "action": "filter", # Filtering based on conditions
+    "query": "Which state has a population density of lower than 100 people per square mile?"
+},
+{
+    "action": "sort", # Ordering and ranking
+    "query": "What’s the top 3 states with the highest population density?"
+},
+{
+    "action": "data ranges",  # Finding data ranges
+    "query": "What is the range of population density in the United States?"
+},
+{
+    "action": "characterize data distribution",  # Distribution analysis
+    "query": "TBD, (e.g. Across the world, are there more countries with a low GDP, medium GDP, or a high GDP?)"
+},
+{
+    "action": "cluster",  # Finding similar values/groups
+    "query": "Which state has a similar population density to New York?"
+},
+{
+    "action": "is pattern", # Pattern recognition
+    "queries": "Is there a pattern in this map? (run Moran’s I)"
+},
+
+{
+    "action": "describe pattern", # Pattern description
+    "queries": "Can you describe the pattern in this map? (get LISA clusters)"
+},
+{
+    "action": "find outliers", # Finding outliers
+    "query": "What states have high population density despite being surrounded by low population density?"
+},
+{
+    "action": "correlate", # Relationship analysis
+    "query": "Is there a relationship between income and population density?"
+},
+{
+    "action": "others",  # No-data situations
+    "queries": "What’s population density?" # or "What’s the population density of a banana?", or "What’s a choropleth map?"
+}
+
+Rule 2: Please return the result in a JSON format.
+Rule 3: Please answer the question in this format 
+{
+    "question": ${question},
+    "action": # only one of the 13 actions in a string
+}
+    
+Question: ${question}`;
+
+        console.log(" ... classify question");
+
+        try {
+            const response = await handleAPIRequest(CLASSIFY_PROMPT);
+            console.log(response);
+
+            if (response) {
+                if (response.action) {
+                    return response.action;
+                } else {
+                    throw new Error('No action in response');
+                }
+            }
+        } catch (error) {
+            console.error('Error details:', error);
+            setMessages(prev => [...prev, {
+                text: 'Sorry, I encountered an error when classifying the question. Please try again.',
+                sender: 'bot'
+            }]);
+        }
+    }
+
+    const handleQuestionAI = async (question) => {
+        setIsLoading(true);
+
+        try {
+            // Check if the question has ambiguous pronouns
+            const isAmbiguous = await handlePronounceAmbiguity(question);
+            if (!isAmbiguous) {
+                // TODO: is relevant
+                // Classify the question
+                const action = await handleClassifyQuestion(question);
+                console.log(action);
+                if (action) {
+                    // set to the correct action
+                    if(['average', 'yes_no', 'description'].includes(action)) {
+                        onStateQuestion(null);
+                        if (action === 'description') {
+                            onPatternQuestion(true);
+                        }
+                    } else {
+                        if (action === 'state_value' && data.state) {
+                            onStateQuestion([data.state]);
+                        } else if (action === 'state_comparison' && data.states) {
+                            onStateQuestion(data.states);
+                        } else if (action === 'extrema' && data.state) {
+                            onStateQuestion([data.state]);
+                        }
+                    }
+                } else {
+                    console.error('No action in response ...');
+                }
+            }  
+        } catch (error) {
+            console.error('Error details:', error);
+            setMessages(prev => [...prev, { 
+                text: 'Sorry, I encountered an error. Please try again.',
+                sender: 'bot'
+            }]);
+        }
+    }
 
     // Separated API call logic for reuse
     const handleQuestionSubmit = async (question) => {
