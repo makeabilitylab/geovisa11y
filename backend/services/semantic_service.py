@@ -30,7 +30,8 @@ class SemanticService:
         
         # Define question types with example patterns
         self.question_types = {
-            'state_value': {
+            # 'state_value': {
+            'retrieve' : {
                 'phrases': [
                     "what is the {metric} of {state}",
                     "what's the {metric} in {state}",
@@ -41,7 +42,8 @@ class SemanticService:
                     "show me {state}'s {metric}"
                 ]
             },
-            'state_comparison': {
+            # 'state_comparison': {
+            'compare' : {
                 'phrases': [
                     "which state has higher {metric}, {state1} or {state2}",
                     "compare {state1} and {state2}",
@@ -332,8 +334,10 @@ class SemanticService:
                 question_type = qtype
         
         # Use different thresholds for different question types
-        if question_type == 'state_value' and max_similarity > 0.6:
-            return 'state_value'
+        # if question_type == 'state_value' and max_similarity > 0.6:
+        if question_type == 'retrieve' and max_similarity > 0.6:
+            # return 'state_value'
+            return 'retrieve'
         elif question_type == 'state_comparison' and max_similarity > 0.6:
             return 'state_comparison'
         elif question_type == 'extrema' and max_similarity > 0.6:
