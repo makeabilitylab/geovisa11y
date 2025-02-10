@@ -61,7 +61,14 @@ const Chatbot = ({
     // State to track if speech recognition is being used currently
     const [isRecording, setIsRecording] = useState(false);
     const [transcript, setTranscript] = useState("");
+
+    // Used to keep track of timer to send off a voice based input from client
     const voiceModeQueryTimer = useRef(null);
+    const [isVoiceBasedQuery, setIsVoiceBasedQuery] = useState(false);
+    // eslint-disable-next-line no-unused-vars
+    const [audioPlaying, setAudioPlaying] = useState(false); // State to track if audio is playing
+    const audioRef = useRef(null); // Ref to hold the Audio instance
+
 
     // Perhaps merge isSpeech -> (into) micPermission
     const [isSpeechRecActive, setIsSpeechRecActive] = useState(false);
@@ -131,9 +138,27 @@ const Chatbot = ({
                     ],
                 });
 
+                // Adds an object to be transcribed into a HTML element for
+                // the chatbox chain of messages.
+                // (Added the most recent message)
                 setResponses(prev => [...prev, completion.choices[0].message]);
+
+                // Here is where the text to speech logic should go
+                // completion.choices[0].message should be read by to the client
+                // if the response was a voice based query (TODO)
+                // Check if the response should be spoken (custom logic)
+                if (isVoiceBasedQuery) {
+                  console.log("About to play the audio");
+                  // Play the the text out load if it is derived from a
+                  // voice query from the client.
+                  playNewAudio(completion.choices[0].message.content);
+
+                  // Reset the state of the voice query
+                  setIsVoiceBasedQuery(false);
+                }
             }
 
+            // Clears input after retriving a response from backend
             setInput('');
         } catch (error) {
             console.error('Error:', error);
@@ -145,6 +170,12 @@ const Chatbot = ({
 
     // Modify handleInputChange
     const handleInputChange = (e) => {
+        // Stop any audio from playing if the client decides to re type a query
+        // Perhaps a TODO for later is to place a stop button on the screen
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
         // Clear the timer to send a query if the user decides to self-modify
         // before it is sent
         stopTimer();
@@ -301,8 +332,9 @@ const Chatbot = ({
         setMicPermission("granted");
         setIsSpeechRecActive(true);
       } catch (error) {
-        console.error("Microphone access denied:", error);
         setMicPermission("denied");
+        console.error("Microphone access denied:", error);
+        alert('Error: ' + error.message);
       }
     };
 
@@ -314,8 +346,90 @@ const Chatbot = ({
         console.log("Clearing up timer from stopTimer function");
         clearTimeout(voiceModeQueryTimer.current);
         voiceModeQueryTimer.current = null;
+
+        // Stop text to speech from activating
+        setIsVoiceBasedQuery(false);
       }
     }
+
+
+    // Function for the text to speech feature
+    // Text-to-Speech logic: Play the response as audio
+    const playNewAudio = async (text) => {
+      const openai = new OpenAI({
+          apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+          dangerouslyAllowBrowser: true,
+      });
+
+      try {
+          // Request speech from OpenAI
+          console.log("Requesting speech from OpenAI...");
+
+          const mp3 = await openai.audio.speech.create({
+              model: "tts-1",
+              voice: "sage",  // Customizable via ChatGPT website
+              input: text,
+          });
+
+          console.log("Received audio response from OpenAI.");
+
+          // Convert response into a blob URL. Essentially a blob URL set as a
+          // audio/mp3 is a binary file that is temporaily saved in memory like
+          // a file but isn't saved locally.
+          const arrayBuffer = await mp3.arrayBuffer();  // Right now this takes
+                                                        // time
+          const blob = new Blob([arrayBuffer], { type: "audio/mp3" });
+          const audioUrl = URL.createObjectURL(blob);
+
+          console.log("Generated audio URL, playing now...");
+
+          // Stop and reset previous audio if it's playing
+          if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current.currentTime = 0;
+          }
+
+          // Create new audio instance and store it in ref
+          audioRef.current = new Audio(audioUrl);
+          audioRef.current.volume = 1.0;
+
+          // Using the play() Promise to detect when the audio starts playing
+          audioRef.current.play()
+            .then(() => {
+                setAudioPlaying(true); // Update state when audio starts
+                console.log("Audio has started playing!");
+            })
+            .catch((error) => {
+                console.error("Error playing audio:", error);
+            });
+
+          // Cleanup Blob URL after playback ends
+          audioRef.current.onended = () => {
+              URL.revokeObjectURL(audioUrl);
+              console.log("Audio playback finished. Blob URL revoked.");
+              audioRef.current = null; // Reset ref
+              setAudioPlaying(false); // Update state when audio is stopped
+          };
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error: ' + error.message);
+      }
+    };
+
+    // A dependency effect for testing purposes
+    useEffect(() => {
+      console.log("Current state of the isVoiceBased Query state variable: " +
+                                                            isVoiceBasedQuery);
+        // Only fired when the isVoiceBasedQuery state variable is set to true
+        // when the timeout of the voice capture from the client into the input
+        // form is complete.
+        if (isVoiceBasedQuery) {
+          console.log("about to send the message");
+          // Send the message off to promote a handles off interaction
+          handleSendMessage();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVoiceBasedQuery]);
 
 
 
@@ -378,8 +492,9 @@ const Chatbot = ({
           // Send input text
           console.log("To be sent after query is in the text bar and a 2.5 second delay");
 
-          // Send the message off to promote a handles off interaction
-          handleSendMessage();
+          // Set the text to speech feature on since the client is using a
+          // voice query so far
+          setIsVoiceBasedQuery(true);
         }, 2500);
       }
 
@@ -473,6 +588,12 @@ const Chatbot = ({
                     )}
                 </div>
 
+                {/* Logic for appending messages from the client or backend
+                    the msg object has a structure as follows
+                    {
+                    role: "assistant or user"
+                    content: message
+                    }*/}
                 <div className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md">
                     {responses.map((msg, index) => (
                         <div
