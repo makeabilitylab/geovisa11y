@@ -365,16 +365,20 @@ def check_location_exists(location):
         print(f"Error checking location: {str(e)}")
         return False
 
-def analyze_spatial_question(question, current_dataset='ppl_densit'):
+
+def analyze_spatial_question(question, question_type=None, current_dataset='ppl_densit'):
     """Analyze spatial questions for any dataset"""
     try:
-        question_type = semantic_service.identify_question_type(question, current_dataset)
+        # if not question_type:
+        #     question_type = semantic_service.identify_question_type(question, current_dataset)
+        
         print(f"\nDebug - Identified question type: {question_type}")
         
-        if not question_type:
+        if not question_type or question_type == "others":
             return None
             
-        if question_type == 'state_value':
+        # if question_type == 'state_value':
+        if question_type == 'retrieve':
             states = semantic_service.extract_states(question)
             if not states:
                 return None
@@ -384,10 +388,12 @@ def analyze_spatial_question(question, current_dataset='ppl_densit'):
                 'result': result['result'],
                 'state': result['state'],
                 'dataset': current_dataset,
-                'question_type': 'state_value'
+                'question_type': 'retrieve'
+                # 'question_type': 'state_value'
             }
             
-        elif question_type == 'state_comparison':
+        # elif question_type == 'state_comparison':
+        elif question_type == 'compare':
             states = semantic_service.extract_states(question)
             if len(states) != 2:
                 return None
@@ -397,29 +403,50 @@ def analyze_spatial_question(question, current_dataset='ppl_densit'):
                 'result': result,
                 'states': states,  # Array of state names
                 'dataset': current_dataset,
-                'question_type': 'state_comparison'
+                'question_type': 'compare'
+                # 'question_type': 'state_comparison'
             }
             
-        elif question_type == 'extrema':
+        # elif question_type == 'extrema':
+        elif question_type == 'find_extremum':
             result = get_extrema(question, current_dataset)
             return {
                 'result': result['result'],
                 'state': result['state'],  # Pass through the state
                 'dataset': current_dataset,
-                'question_type': 'extrema'
+                'question_type': 'find_extremum'
+                # 'question_type': 'extrema'
             }
             
-        elif question_type == 'average':
+        # elif question_type == 'average':
+        elif question_type == 'aggregated_functions':
             result = get_average(current_dataset)
-            return {'result': result, 'dataset': current_dataset, 'question_type': 'average'}
+            return {
+                'result': result, 
+                'dataset': current_dataset, 
+                'question_type': 'aggregated_functions'
+                # 'question_type': 'average'
+            }
             
-        elif question_type == 'pattern_existence':
+        # elif question_type == 'pattern_existence':
+        elif question_type == 'is_pattern':
             result = analyze_global_pattern(current_dataset)
-            return {'result': result['description'], 'dataset': current_dataset, 'question_type': 'yes_no'}
+            return {
+                'result': result['description'], 
+                'dataset': current_dataset, 
+                'question_type': 'is_pattern'
+                # 'question_type': 'yes_no'
+                }
             
-        elif question_type == 'pattern_description':
+        # elif question_type == 'pattern_description':
+        elif question_type == 'describe_pattern':
             result = analyze_spatial_patterns(current_dataset)
-            return {'result': format_lisa_results(result, current_dataset), 'dataset': current_dataset, 'question_type': 'description'}
+            return {
+                'result': format_lisa_results(result, current_dataset), 
+                'dataset': current_dataset, 
+                'question_type': 'describe_pattern'
+                # 'question_type': 'description'
+                }
             
         return None
 
