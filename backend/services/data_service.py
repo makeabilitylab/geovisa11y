@@ -428,7 +428,7 @@ def analyze_spatial_question(question, current_dataset='ppl_densit'):
         return None
 
 def format_lisa_results(results, dataset):
-    """Format LISA cluster results into a readable string"""
+    """Format LISA cluster results into a readable string with limited examples"""
     try:
         metric_name = {
             'ppl_densit': 'population density',
@@ -438,13 +438,21 @@ def format_lisa_results(results, dataset):
         
         parts = []
         if results['HH']:
-            parts.append(f"High-{metric_name} clusters are found in {', '.join(results['HH'])}.")
+            # Take up to 2 examples from HH
+            examples = results['HH'][:2]
+            parts.append(f"High-{metric_name} clusters are found in states like {' and '.join(examples)}.")
         if results['LL']:
-            parts.append(f"Low-{metric_name} clusters are found in {', '.join(results['LL'])}.")
+            # Take up to 2 examples from LL
+            examples = results['LL'][:2]
+            parts.append(f"Low-{metric_name} clusters are found in states like {' and '.join(examples)}.")
         if results['HL']:
-            parts.append(f"Interesting outliers with high {metric_name} surrounded by low values are found in {', '.join(results['HL'])}.")
+            # Take up to 2 examples from HL
+            examples = results['HL'][:2]
+            parts.append(f"Interesting outliers with high {metric_name} surrounded by low values are found in states like {' and '.join(examples)}.")
         if results['LH']:
-            parts.append(f"Interesting outliers with low {metric_name} surrounded by high values are found in {', '.join(results['LH'])}.")
+            # Take up to 2 examples from LH
+            examples = results['LH'][:2]
+            parts.append(f"Interesting outliers with low {metric_name} surrounded by high values are found in states like {' and '.join(examples)}.")
         
         return ' '.join(parts)
     except Exception as e:
