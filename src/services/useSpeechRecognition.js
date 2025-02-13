@@ -76,15 +76,9 @@ const useSpeechRecognition = ({ resetTranscriptText,
 
     // Using transcript state variable handler from parent, passed down as
     // a prop to update the state of the transcript.
-    resetTranscriptText((prevTranscript) => {
-      console.log("Prev transcript: " + prevTranscript);
-      console.log("New transcript: " + newTranscript);
-      //const combinedTranscript = prevTranscript + " " + newTranscript;
-      const combinedTranscript = newTranscript;
+    resetTranscriptText(newTranscript);
 
-      // Set transcript state variable as the combined transcript
-      return combinedTranscript;
-    });
+    console.log("Updated transcript: " + newTranscript)
 
     // Reset silence timer after new speech
     resetSilenceTimer();

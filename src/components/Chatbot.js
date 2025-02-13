@@ -65,13 +65,13 @@ const Chatbot = ({
     // Used to keep track of timer to send off a voice based input from client
     const voiceModeQueryTimer = useRef(null);
     const [isVoiceBasedQuery, setIsVoiceBasedQuery] = useState(false);
+
+    // State to track if audio is playing
     // eslint-disable-next-line no-unused-vars
-    const [audioPlaying, setAudioPlaying] = useState(false); // State to track if audio is playing
+    const [audioPlaying, setAudioPlaying] = useState(false);
     const audioRef = useRef(null); // Ref to hold the Audio instance
 
-
-    // Perhaps merge isSpeech -> (into) micPermission
-    const [isSpeechRecActive, setIsSpeechRecActive] = useState(false);
+    // Keeps track if the microphone has had its permission set
     const [micPermission, setMicPermission] = useState("Checking...");
 
     // Initialize the SpeechRecognition instance directly (Self-Made React Hook)
@@ -143,17 +143,14 @@ const Chatbot = ({
                 // (Added the most recent message)
                 setResponses(prev => [...prev, completion.choices[0].message]);
 
-                // Here is where the text to speech logic should go
-                // completion.choices[0].message should be read by to the client
-                // if the response was a voice based query (TODO)
-                // Check if the response should be spoken (custom logic)
+                // Check if the response should be spoken
                 if (isVoiceBasedQuery) {
                   console.log("About to play the audio");
                   // Play the the text out load if it is derived from a
                   // voice query from the client.
                   playNewAudio(completion.choices[0].message.content);
 
-                  // Reset the state of the voice query
+                  // Reset the state of the voice query for the next message
                   setIsVoiceBasedQuery(false);
                 }
             }
@@ -177,7 +174,7 @@ const Chatbot = ({
             audioRef.current.currentTime = 0;
         }
         // Clear the timer to send a query if the user decides to self-modify
-        // before it is sent
+        // the query in the input form before it is sent
         stopTimer();
 
         const newValue = e.target.value.toLowerCase();
@@ -265,7 +262,8 @@ const Chatbot = ({
         setIsRecording(false);
         console.log("Stopped recording");
 
-        // Update the transcript bar to reflect this (Triggers UseEffect)
+        // Update the input form element to reflect the most recently recieved
+        // transcript (Triggers UseEffect)
         setInput(transcript);
         console.log("After the transcript sets the input to empty");
       } else {
@@ -276,22 +274,7 @@ const Chatbot = ({
       }
     };
 
-    /**
-     * Handler function to set the isSpeechRecActive state variable to true
-     * once the RecordButton component is clicked.
-     */
-    const handleActivateSpeechRec = () => {
-      // Enable speaker access to use speech recognition API
-      requestMicAccess();
-    }
-
-
-
     // Microphone related functions and useEffects
-
-    // Perhaps moving forward the isSpeechRecActive state variable isn't needed
-    // since the micPermission state variable essitially covers all the same
-    // logic. (TODO) (Look into this later)
 
     /**
      * Checks the status of the microphone access. Updates the state variable
@@ -302,12 +285,13 @@ const Chatbot = ({
         // Checks if the browser supports the Permissions API:
         // https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API
         if (!(navigator.permissions)) {
-          setMicPermission("Permission API not supported");
+          setMicPermission("Permission API not supported on your browser");
           return;
         }
 
         // Gets information pertaining the microphone enable status
-        const permissionStatus = await navigator.permissions.query({ name: "microphone" });
+        const permissionStatus = await navigator.permissions.query(
+                                            { name: "microphone" });
         setMicPermission(permissionStatus.state);
 
         // Listen for permission changes, and change the micPermission state
@@ -328,9 +312,12 @@ const Chatbot = ({
     const requestMicAccess = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // If there is an error with the promise then the line of execution
+        // shifts to the catch block. Otherwise continue sequentially to the
+        // next line.
+
         console.log("Microphone access granted", stream);
         setMicPermission("granted");
-        setIsSpeechRecActive(true);
       } catch (error) {
         setMicPermission("denied");
         console.error("Microphone access denied:", error);
@@ -343,7 +330,7 @@ const Chatbot = ({
     // is reset
     const stopTimer = () => {
       if (voiceModeQueryTimer.current) {
-        console.log("Clearing up timer from stopTimer function");
+        console.log("Terminating the timer to send the text form the input form");
         clearTimeout(voiceModeQueryTimer.current);
         voiceModeQueryTimer.current = null;
 
@@ -371,19 +358,53 @@ const Chatbot = ({
               input: text,
           });
 
+          // Prior buffer creation process from the mp3
+          /*
+            const arrayBuffer = await mp3.arrayBuffer();
+          */
+
           console.log("Received audio response from OpenAI.");
 
           // Convert response into a blob URL. Essentially a blob URL set as a
           // audio/mp3 is a binary file that is temporaily saved in memory like
           // a file but isn't saved locally.
-          const arrayBuffer = await mp3.arrayBuffer();  // Right now this takes
-                                                        // time
-          const blob = new Blob([arrayBuffer], { type: "audio/mp3" });
+          console.log("Before buffer creation");
+
+          // Convert response to a stream and process it in chunks
+          // (This might be slightly faster than the latter)
+          // Looks like CSE 333 read and write into a file stream. Read more
+          // into it later
+          const reader = mp3.body.getReader();
+          const chunks = [];
+          let totalLength = 0;
+
+          while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              chunks.push(value);
+              totalLength += value.length;
+          }
+
+          // Combine chunks into a single ArrayBuffer
+          const fullBuffer = new Uint8Array(totalLength);
+          let offset = 0;
+          for (const chunk of chunks) {
+              fullBuffer.set(chunk, offset);
+              offset += chunk.length;
+          }
+
+          console.log("After buffer creation");
+
+          // Convert to Blob and create URL
+          const blob = new Blob([fullBuffer], { type: "audio/mp3" });
           const audioUrl = URL.createObjectURL(blob);
 
           console.log("Generated audio URL, playing now...");
 
           // Stop and reset previous audio if it's playing
+          // Prevents overlapping audio!!!! (Later try to make an if else block
+          // starting from line 352, aka the very start to make this audio
+          // check occur before any processing takes place)
           if (audioRef.current) {
               audioRef.current.pause();
               audioRef.current.currentTime = 0;
@@ -436,7 +457,8 @@ const Chatbot = ({
     // UseEffects for speech recognition feature
 
     // Checks the status of the mic access for the webpage on load. If not, the
-    // record button has an "Enable Record" text. (Runs only once)
+    // once voice mode is clicked, a request is made to the client to give
+    // access
     useEffect(() => {
       // Set the mic permissions variable
       console.log("Here on load");
@@ -445,24 +467,11 @@ const Chatbot = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Sets the speechRec variable to true once the micPermission is triggered
-    // and first set to granted. This UseEffect runs as a byproduct of the
-    // UseEffect on load.
+    // Used to check the current state of the mic permission state variables
+    // (TODO) Perhaps remove this dependency later
     useEffect(() => {
-      console.log("Setting the speech recognition variable");
-      // Automatically display the record button if the website  has microphone
-      // access already.
-      if (micPermission === "granted") {
-        setIsSpeechRecActive(true);
-      }
+      console.log("Current state of micPermission: " + micPermission);
     }, [micPermission]);
-
-    // Side effect for testing whether or not speech recognizion is active
-    useEffect(() => {
-      if (isSpeechRecActive) {
-        console.log("Speech Recognizion is created: " + isSpeechRecActive);
-      }
-    }, [isSpeechRecActive]);
 
     /**
      * Side effect to be run when the is recording state is changed. This
@@ -476,10 +485,10 @@ const Chatbot = ({
       // The recording instance only starts recording when recording state
       // has been changed to active and also if the instance has been set in
       // the first place
-      if (isRecording && isSpeechRecActive) {
+      if (isRecording && micPermission === "granted") {
         // Start speech recognition
         speechRecInstance.startRecording();
-      } else if (!(isRecording) && isSpeechRecActive) {
+      } else if (!(isRecording) && micPermission === "granted") {
         // Stop the recording
         speechRecInstance.stopRecording();
 
@@ -517,7 +526,7 @@ const Chatbot = ({
      */
     useEffect(() => {
       // Load the transcript into the input bar. If it empty then its record
-      // just start. If it is non-empty then a record just took place.
+      // just started. If it is non-empty then a record just took place.
       setInput(transcript);
 
     }, [transcript]);
@@ -681,13 +690,11 @@ const Chatbot = ({
 
                     {/* Custom button to request audio for query */}
                     <RecordButton
-                      text={micPermission === "granted" && isSpeechRecActive ?
+                      text={micPermission === "granted" ?
                         (isRecording ? "Exit Voice Mode":"Use Voice Mode") : "Enable Voice Mode"
                       }
-                      handleToggleRecording={isSpeechRecActive ?
-                        // Perhaps just passing the setter function should work
-                        // {TODO}
-                        handleToggleRecording : handleActivateSpeechRec
+                      handleToggleRecording={micPermission === "granted" ?
+                        handleToggleRecording : requestMicAccess
                       }
                       isRecording={isRecording} // Pass recording state
                     />
