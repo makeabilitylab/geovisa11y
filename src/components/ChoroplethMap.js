@@ -1,12 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSpatialClustersToggle, onDatasetChange }) => {
+const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
+    const popup = useRef(null);
     const [selectedDataset, setSelectedDataset] = useState('ppl_densit');
     const [geoData, setGeoData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [lisaLayer, setLisaLayer] = useState(null);
+    const [lisaLegend, setLisaLegend] = useState(null);
 
     const datasets = {
         ppl_densit: {
@@ -34,34 +37,43 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
         const fetchGeoJSON = async () => {
             setIsLoading(true);
             try {
-                const apiUrl = `${process.env.REACT_APP_API_URL}/api/geojson/${selectedDataset}`;
-                console.log('Fetching GeoJSON from:', apiUrl);
+                const apiUrl = `${process.env.REACT_APP_API_URL}/geojson/${selectedDataset}`;
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-                const response = await fetch(apiUrl);
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
                 const data = await response.json();
-                console.log('GeoJSON Response Stats:', {
-                    featureCount: data.features.length,
-                    valueRange: {
-                        min: Math.min(...data.features.map(f => f.properties.value)),
-                        max: Math.max(...data.features.map(f => f.properties.value))
-                    }
-                });
                 setGeoData(data);
 
                 // Update the map source if it exists
                 if (map.current && map.current.getSource('population')) {
                     map.current.getSource('population').setData(data);
                     
-                    // Set the fill-opacity back to 0.75 after data is loaded
-                    setTimeout(() => {
-                        if (map.current) {
-                            map.current.setPaintProperty('population-density', 'fill-opacity', 0.75);
+                    // Update layer visibility based on showSpatialClusters
+                    if (showSpatialClusters) {
+                        if (map.current.getLayer('lisa-clusters')) {
+                            map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
+                            map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
                         }
-                    }, 100); // Small delay to ensure data is rendered
+                    } else {
+                        if (map.current.getLayer('lisa-clusters')) {
+                            map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+                            map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
+                        }
+                    }
+                    
+                    map.current.triggerRepaint();
                 }
             } catch (error) {
                 console.error('Error fetching GeoJSON data:', error);
@@ -70,30 +82,16 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
             }
         };
 
-        fetchGeoJSON();
-    }, [selectedDataset]);
+        if (map.current) {
+            fetchGeoJSON();
+        }
+    }, [selectedDataset, showSpatialClusters]);
 
     // Update map when dataset changes
     useEffect(() => {
         if (map.current && map.current.isStyleLoaded() && geoData) {
             const dataset = datasets[selectedDataset];
-            console.log('Selected Dataset:', selectedDataset);
-            console.log('Dataset Configuration:', dataset);
             
-            // Set fill-opacity to 0 before updating colors
-            map.current.setPaintProperty('population-density', 'fill-opacity', 0);
-            
-            // Log some sample values from the data
-            const sampleValues = geoData.features
-                .slice(0, 5)
-                .map(feature => ({
-                    state: feature.properties.state_name,
-                    value: feature.properties.value,
-                    raw_value: feature.properties[selectedDataset]
-                }));
-            console.log('Sample Values:', sampleValues);
-            
-            // Log the expression being used for coloring
             const expression = [
                 'interpolate',
                 ['linear'],
@@ -106,111 +104,159 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                     dataset.colors[i]
                 ])
             ];
-
-            console.log('Color Expression:', expression);
+            
             map.current.setPaintProperty('population-density', 'fill-color', expression);
+            map.current.setPaintProperty('population-density', 'fill-opacity', 0.75);
         }
     }, [selectedDataset, geoData]);
-
-    // Update borders whenever selectedStates changes
-    useEffect(() => {
-        if (map.current && map.current.isStyleLoaded() && geoData) {
-            console.log('Selected states:', selectedStates);
-
-            const selectedStateIds = selectedStates.map((state) => state.id);
-            console.log('Selected state GEOIDs:', selectedStateIds);
-
-            map.current.setPaintProperty('state-borders', 'line-opacity', [
-                'case',
-                ['in', ['get', 'GEOID'], ['literal', selectedStateIds]],
-                1,
-                0
-            ]);
-        }
-    }, [selectedStates, geoData]);
 
     // Update clusters visibility whenever showSpatialClusters changes
     useEffect(() => {
         if (map.current && map.current.isStyleLoaded()) {
-            map.current.setLayoutProperty(
-                'lisa-clusters-fill',
-                'visibility',
-                showSpatialClusters ? 'visible' : 'none'
-            );
-            map.current.setLayoutProperty(
-                'lisa-clusters',
-                'visibility',
-                showSpatialClusters ? 'visible' : 'none'
-            );
+            if (showSpatialClusters) {
+                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
+                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
+                // Also show the legend
+                if (!lisaLegend) {
+                    const legend = createLisaLegend();
+                    map.current.getContainer().appendChild(legend);
+                    setLisaLegend(legend);
+                }
+            } else {
+                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
+                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+                // Remove the legend
+                if (lisaLegend) {
+                    lisaLegend.remove();
+                    setLisaLegend(null);
+                }
+            }
         }
     }, [showSpatialClusters]);
 
+    // Update effect to handle focused state(s)
     useEffect(() => {
-        if (!geoData) {
-            console.log('GeoJSON not yet loaded. Waiting...');
-            return;
-        }
+        if (map.current && map.current.isStyleLoaded() && geoData) {
+            if (focusedState === null) {
+                // Reset to default view
+                map.current.flyTo({
+                    center: [-96, 37.8],
+                    zoom: 4,
+                    duration: 2000
+                });
+                
+                // Clear state highlights
+                map.current.setPaintProperty('state-borders', 'line-opacity', 0);
+            } else {
+                console.log('Focusing on states:', focusedState);
+                
+                // Handle both single state and array of states
+                const statesToFocus = Array.isArray(focusedState) ? focusedState : [focusedState];
+                
+                // Find features for all focused states
+                const features = statesToFocus.map(state => 
+                    geoData.features.find(f => 
+                        f.properties.state_name.toLowerCase() === state.toLowerCase()
+                    )
+                ).filter(f => f);
+                
+                if (features.length > 0) {
+                    // Calculate bounds that include all states
+                    const bounds = new mapboxgl.LngLatBounds();
+                    
+                    features.forEach(feature => {
+                        const coordinates = feature.geometry.type === 'Polygon' 
+                            ? [feature.geometry.coordinates[0]]
+                            : feature.geometry.coordinates[0];
+                        
+                        coordinates.forEach(coord => {
+                            bounds.extend(coord);
+                        });
+                    });
+                    
+                    // Zoom to include all states
+                    map.current.fitBounds(bounds, {
+                        padding: 200,
+                        duration: 2000,
+                        maxZoom: 5
+                    });
 
-        if (map.current) {
-            console.log('Map already initialized.');
-            return;
-        }
-
-        console.log('Initializing Mapbox map...');
-        mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
-
-        map.current = new mapboxgl.Map({
-            container: mapContainer.current,
-            style: 'mapbox://styles/mapbox/light-v10',
-            center: [-96, 37.8],
-            zoom: 4
-        });
-
-        // Add navigation controls
-        console.log('Adding navigation controls...');
-        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-        map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-        map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
-        map.current.addControl(
-            new mapboxgl.GeolocateControl({
-                positionOptions: { enableHighAccuracy: true },
-                trackUserLocation: true
-            }),
-            'top-right'
-        );
-
-        map.current.on('load', () => {
-            console.log('Map loaded. Adding layers...');
-
-            // Add GeoJSON source
-            map.current.addSource('population', {
-                type: 'geojson',
-                data: geoData
-            });
-
-            // Add choropleth layer with initial transparent fill
-            map.current.addLayer({
-                id: 'population-density',
-                type: 'fill',
-                source: 'population',
-                paint: {
-                    'fill-color': [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce',
-                            ['get', 'value'],
-                            0
-                        ],
-                        ...datasets[selectedDataset].breaks.flatMap((break_, i) => [
-                            break_,
-                            datasets[selectedDataset].colors[i]
-                        ])
-                    ],
-                    'fill-opacity': 0
+                    // Highlight all focused states
+                    map.current.setPaintProperty('state-borders', 'line-opacity', [
+                        'case',
+                        ['in', ['get', 'state_name'], ['literal', statesToFocus]],
+                        1,
+                        0
+                    ]);
+                    map.current.setPaintProperty('state-borders', 'line-color', '#000');
+                    map.current.setPaintProperty('state-borders', 'line-width', 2);
                 }
+            }
+        }
+    }, [focusedState, geoData]);
+
+    useEffect(() => {
+        if (mapContainer.current && !map.current) {
+            mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+
+            map.current = new mapboxgl.Map({
+                container: mapContainer.current,
+                style: 'mapbox://styles/mapbox/light-v10',
+                center: [-96, 37.8],
+                zoom: 4
             });
-                   // Add LISA cluster fills
-                   map.current.addLayer({
+
+            // Initialize popup
+            popup.current = new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+
+            // Add navigation controls
+            map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+            map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+            map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
+            map.current.addControl(
+                new mapboxgl.GeolocateControl({
+                    positionOptions: { enableHighAccuracy: true },
+                    trackUserLocation: true
+                }),
+                'top-right'
+            );
+
+            map.current.on('load', () => {
+                console.log('Map loaded. Adding layers...');
+
+                // Add the main data source
+                map.current.addSource('population', {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: []
+                    }
+                });
+
+                // Add the main choropleth layer
+                map.current.addLayer({
+                    id: 'population-density',
+                    type: 'fill',
+                    source: 'population',
+                    paint: {
+                        'fill-color': [
+                            'interpolate',
+                            ['linear'],
+                            ['get', 'value'],
+                            ...datasets[selectedDataset].breaks.flatMap((break_, i) => [
+                                break_,
+                                datasets[selectedDataset].colors[i]
+                            ])
+                        ],
+                        'fill-opacity': 0.75
+                    }
+                });
+
+                // Add LISA cluster fills
+                map.current.addLayer({
                     id: 'lisa-clusters-fill',
                     type: 'fill',
                     source: 'population',
@@ -236,92 +282,173 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                     }
                 });
 
-            // Add LISA cluster outlines
-            map.current.addLayer({
-                id: 'lisa-clusters',
-                type: 'line',
-                source: 'population',
-                layout: {
-                    'visibility': 'none'  // Initially hidden
-                },
-                paint: {
-                    'line-color': [
-                        'match',
-                        ['get', 'lisa_class'],
-                        'LL', '#01579b',  // Blue for Low-Low
-                        'HL', '#f06292',  // Pink for High-Low
-                        'LH', '#00bcd4',  // Light Blue for Low-High
-                        'HH', '#d81b60',  // Red for High-High
-                        'transparent'
-                    ],
-                    'line-width': 2,
-                    'line-opacity': [
-                        'case',
-                        ['has', 'lisa_class'],
-                        0.8,
-                        0
-                    ],
-                    'line-offset': 1,
-                    'line-join': 'round',
-                }
-            });
+                // Add LISA cluster outlines
+                map.current.addLayer({
+                    id: 'lisa-clusters',
+                    type: 'line',
+                    source: 'population',
+                    layout: {
+                        'visibility': 'none'  // Initially hidden
+                    },
+                    paint: {
+                        'line-color': [
+                            'match',
+                            ['get', 'lisa_class'],
+                            'LL', '#01579b',  // Blue for Low-Low
+                            'HL', '#f06292',  // Pink for High-Low
+                            'LH', '#00bcd4',  // Light Blue for Low-High
+                            'HH', '#d81b60',  // Red for High-High
+                            'transparent'
+                        ],
+                        'line-width': 2,
+                        'line-opacity': [
+                            'case',
+                            ['has', 'lisa_class'],
+                            0.8,
+                            0
+                        ],
+                        'line-offset': 1,
+                        'line-join': 'round',
+                    }
+                });
 
-            // Add state borders layer
-            map.current.addLayer({
-                id: 'state-borders',
-                type: 'line',
-                source: 'population',
-                paint: {
-                    'line-color': '#627BC1',
-                    'line-width': 2,
-                    'line-opacity': 0
-                }
-            });
+                // Add state borders layer
+                map.current.addLayer({
+                    id: 'state-borders',
+                    type: 'line',
+                    source: 'population',
+                    paint: {
+                        'line-color': '#000',
+                        'line-width': 2,
+                        'line-opacity': 0
+                    }
+                });
 
-            console.log('Layers added. Setting up interactions...');
+                // Add state outlines layer
+                map.current.addLayer({
+                    id: 'state-outlines',
+                    type: 'line',
+                    source: 'population',
+                    paint: {
+                        'line-color': '#000',
+                        'line-width': 1,
+                        'line-opacity': 0
+                    }
+                });
 
-            // Click geometry interaction
-            map.current.on('click', 'population-density', (e) => {
-                if (e.features && e.features.length > 0) {
-                    const feature = e.features[0];
-                    const stateId = feature.properties.GEOID;
-                    const stateName = feature.properties.state_name;
-                    const value = feature.properties.value;
-                    
-                    // Get the current dataset configuration
-                    const dataset = datasets[selectedDataset];
-                    
-                    // Calculate the color based on the value
-                    let color = dataset.colors[0];
-                    for (let i = 0; i < dataset.breaks.length; i++) {
-                        if (value >= dataset.breaks[i]) {
-                            color = dataset.colors[i];
+                console.log('Layers added. Setting up interactions...');
+
+                // Add hover interactions
+                map.current.on('mousemove', 'population-density', (e) => {
+                    if (e.features.length > 0) {
+                        map.current.getCanvas().style.cursor = 'pointer';
+                        
+                        const feature = e.features[0];
+                        const value = feature.properties.value;
+                        const stateName = feature.properties.state_name;
+                        
+                        // Format value based on dataset
+                        let formattedValue;
+                        if (dataset === 'ppl_densit') {
+                            formattedValue = `${value.toFixed(2)} people per square mile`;
+                        } else {
+                            formattedValue = `${value.toFixed(2)}%`;
                         }
+
+                        // Position the popup at the mouse pointer
+                        const coordinates = e.lngLat;
+
+                        popup.current
+                            .setLngLat(coordinates)
+                            .setHTML(`
+                                <div class="text-xs font-semibold">${stateName}</div>
+                                <div class="text-xs">${formattedValue}</div>
+                            `)
+                            .addTo(map.current);
+                    }
+                });
+
+                // Remove popup on mouseleave
+                map.current.on('mouseleave', 'population-density', () => {
+                    map.current.getCanvas().style.cursor = '';
+                    popup.current.remove();
+                });
+            });
+        }
+    }, []);
+
+    // Update tooltip content when dataset changes
+    useEffect(() => {
+        if (map.current && map.current.isStyleLoaded()) {
+            // Remove existing mousemove handler
+            map.current.off('mousemove', 'population-density');
+            
+            // Add new mousemove handler with updated dataset
+            map.current.on('mousemove', 'population-density', (e) => {
+                if (e.features.length > 0) {
+                    map.current.getCanvas().style.cursor = 'pointer';
+                    
+                    const feature = e.features[0];
+                    const value = feature.properties.value;
+                    const stateName = feature.properties.state_name;
+                    
+                    // Format value based on current dataset
+                    let formattedValue;
+                    if (dataset === 'ppl_densit') {
+                        formattedValue = `${value.toFixed(2)} people per square mile`;
+                    } else {
+                        formattedValue = `${value.toFixed(2)}%`;
                     }
 
-                    console.log('Clicked State Details:', {
-                        state: stateName,
-                        dataset: dataset.name,
-                        value: `${value}${dataset.unit === 'percent' ? '%' : ''}`,
-                        unit: dataset.unit,
-                        color: color
-                    });
+                    const coordinates = e.lngLat;
 
-                    // Call the callback with state info
-                    onStateClick(stateId, stateName);
+                    popup.current
+                        .setLngLat(coordinates)
+                        .setHTML(`
+                            <div class="text-xs font-semibold">${stateName}</div>
+                            <div class="text-xs">${formattedValue}</div>
+                        `)
+                        .addTo(map.current);
                 }
             });
+        }
+    }, [dataset]);
 
-            // Change cursor on hover
-            map.current.on('mouseenter', 'population-density', () => {
-                map.current.getCanvas().style.cursor = 'pointer';
-            });
+    const removeLisaLayer = () => {
+        if (lisaLayer) {
+            map.current.removeLayer(lisaLayer);
+            setLisaLayer(null);
+            setLisaLegend(null);  // Also remove the legend when layer is removed
+        }
+    };
 
-            map.current.on('mouseleave', 'population-density', () => {
-                map.current.getCanvas().style.cursor = '';
-            });
-        });
-    }, [geoData, onStateClick]);
+    const createLisaLegend = () => {
+        const div = document.createElement('div');
+        div.className = 'legend';
+        div.style.backgroundColor = 'white';
+        div.style.padding = '10px';
+        div.style.borderRadius = '5px';
+
+        const title = document.createElement('div');
+        title.innerHTML = '<strong>LISA Clusters</strong> <span class="legend-close">×</span>';
+        title.style.marginBottom = '5px';
+        div.appendChild(title);
+
+        // Add click handler to the close button
+        const closeButton = title.querySelector('.legend-close');
+        closeButton.style.cursor = 'pointer';
+        closeButton.style.float = 'right';
+        closeButton.onclick = removeLisaLayer;
+
+        // ... rest of legend creation code ...
+
+        return div;
+    };
+
+    // Add handler for closing LISA clusters
+    const handleCloseLisaClusters = () => {
+        onSpatialClustersToggle(false);  // This will trigger the useEffect to hide layers
+    };
 
     return (
         <div className="relative h-full">
@@ -379,10 +506,18 @@ const ChoroplethMap = ({ onStateClick, selectedStates, showSpatialClusters, onSp
                 </div>
             </div>
 
-            {/* LISA Clusters Legend - Only show when clusters are visible */}
+            {/* LISA Clusters Legend with close button */}
             {showSpatialClusters && (
                 <div className="absolute bottom-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90">
-                    <h3 className="text-sm font-bold mb-2">Hot and Cold Spots</h3>
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-bold">Hot and Cold Spots</h3>
+                        <button
+                            onClick={handleCloseLisaClusters}
+                            className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+                        >
+                            ×
+                        </button>
+                    </div>
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center">
                             <div className="w-4 h-4 mr-2 border-2 border-[#d81b60] bg-[#d81b60] bg-opacity-20"></div>

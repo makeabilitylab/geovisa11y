@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
-import { ArrowRight } from "@phosphor-icons/react";
+import { ArrowRight, Microphone, MicrophoneSlash } from "@phosphor-icons/react";
 import {
     Card,
     CardBody,
@@ -8,7 +8,6 @@ import {
     Input,
     Button,
 } from '@material-tailwind/react';
-import { DATASET_CONFIG, SPATIAL_PATTERN_KEYWORDS } from '../constants';
 
 const SuggestionText = ({ text, datasetPhrase }) => {
     const parts = text.split(' in ');
@@ -37,308 +36,489 @@ const SuggestionText = ({ text, datasetPhrase }) => {
     );
 };
 
-const Chatbot = ({ 
-    selectedStates, 
-    onStateRemove, 
-    onSpatialClustersChange,
-    showSpatialClusters,
-    currentDataset,
-    onClearAllStates
-}) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
-    const [responses, setResponses] = useState([]);
-    const [showSuggestion, setShowSuggestion] = useState(false);
-    const [suggestion, setSuggestion] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isSpeechLoading, setIsSpeechLoading] = useState(false);
+    const chatContainerRef = useRef(null);
+    const [isRecording, setIsRecording] = useState(false);
+    const [audioBlob, setAudioBlob] = useState(null);
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+    const audioRef = useRef(new Audio());
+    const [useSpeech, setUseSpeech] = useState(false);
 
-    const handleSendMessage = async () => {
-        if (!input.trim()) return;
+    const openai = new OpenAI({
+        apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+        dangerouslyAllowBrowser: true
+    });
 
+    // List of US states
+    const states = [
+        'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+        'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+        'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
+        'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+        'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
+        'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
+        'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+        'Wisconsin', 'Wyoming'
+    ];
+
+    // Function to get n unique random states
+    const getRandomStates = (n) => {
+        const shuffled = [...states].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, n);
+    };
+
+    // Function to get random example questions
+    const getExampleQuestions = () => {
+        const [state1, state2, state3] = getRandomStates(3);
+        const extrema = Math.random() < 0.5 ? 'highest' : 'lowest';
+        
+        // Dataset-specific questions
+        if (dataset === 'walk_to_wo') {
+            return [
+                `What percentage of people walk to work in ${state1}?`,
+                `Which state has a higher percentage of people walking to work, ${state2} or ${state3}?`,
+                `Which state has the ${extrema} percentage of people walking to work?`,
+                "What's the average percentage of people who walk to work?",
+                "Is there a pattern in this map?",
+                "Can you describe the pattern?"
+            ];
+        } else if (dataset === 'transit_to') {
+            return [
+                `What percentage of people use public transit in ${state1}?`,
+                `Which state has a higher percentage of public transit usage, ${state2} or ${state3}?`,
+                `Which state has the ${extrema} percentage of public transit usage?`,
+                "What's the average percentage of people who use public transit?",
+                "Is there a pattern in this map?",
+                "Can you describe the pattern?"
+            ];
+        } else {  // ppl_densit
+            return [
+                `What's the population density of ${state1}?`,
+                `Which state has higher population density, ${state2} or ${state3}?`,
+                `Which state has the ${extrema} population density?`,
+                "What's the average population density in this map?",
+                "Is there a pattern in this map?",
+                "Can you describe the pattern?"
+            ];
+        }
+    };
+
+    // Get fresh example questions whenever dataset changes
+    const [exampleQuestions, setExampleQuestions] = useState([]);
+    
+    useEffect(() => {
+        setExampleQuestions(getExampleQuestions());
+        setUseSpeech(false);  // Reset speech mode when dataset changes
+    }, [dataset]);
+
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [messages, isLoading]);
+
+    // Function to handle example question click
+    const handleExampleClick = (question) => {
+        setUseSpeech(false);  // Disable speech mode
+        setMessages(prev => [...prev, { text: question, sender: 'user' }]);
+        handleQuestionSubmit(question, false);  // Explicitly pass false to disable speech
+        audioRef.current.pause();  // Stop any ongoing speech
+        audioRef.current.currentTime = 0;  // Reset audio
+    };
+
+    const startRecording = async () => {
         try {
-            setResponses(prev => [...prev, { role: 'user', content: input }]);
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorderRef.current = new MediaRecorder(stream);
+            audioChunksRef.current = [];
+
+            mediaRecorderRef.current.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
+            };
+
+            mediaRecorderRef.current.onstop = async () => {
+                if (audioChunksRef.current.length > 0) {
+                    const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                    setUseSpeech(true);
+                    await processAudioToText(audioBlob);
+                }
+            };
+
+            // Request data every 250ms
+            mediaRecorderRef.current.start(250);
+            setIsRecording(true);
             
-            setIsLoading(true);
+            // Add visual feedback for recording
+            setMessages(prev => [...prev, { 
+                text: 'Listening...', 
+                sender: 'bot',
+                isTemp: true 
+            }]);
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+            setMessages(prev => [...prev, { 
+                text: 'Error accessing microphone. Please check your permissions.',
+                sender: 'bot'
+            }]);
+        }
+    };
 
-            const isSpatialPatternQuestion = SPATIAL_PATTERN_KEYWORDS.some(
-                keyword => input.toLowerCase().includes(keyword)
-            );
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+            mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+            
+            // Remove the "Listening..." message
+            setMessages(prev => prev.filter(msg => !msg.isTemp));
+        }
+    };
 
-            if (isSpatialPatternQuestion) {
-                onSpatialClustersChange(true);
+    const processAudioToText = async (audioBlob) => {
+        try {
+            // Show processing message
+            setMessages(prev => [...prev.filter(msg => !msg.isTemp), { 
+                text: 'Processing your speech...', 
+                sender: 'bot',
+                isTemp: true 
+            }]);
+
+            const formData = new FormData();
+            formData.append('file', new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
+
+            const transcriptionResponse = await openai.audio.transcriptions.create({
+                file: new File([audioBlob], 'audio.webm', { type: 'audio/webm' }),
+                model: 'whisper-1',
+            });
+
+            // Remove processing message
+            setMessages(prev => prev.filter(msg => !msg.isTemp));
+
+            const transcribedText = transcriptionResponse.text;
+            if (transcribedText.trim()) {
+                // Add the transcribed text to chat as a user message
+                setMessages(prev => [...prev, { text: transcribedText, sender: 'user' }]);
+                // Send to API for processing with speech preserved
+                handleQuestionSubmit(transcribedText, true);  // Pass true to preserve speech
+            } else {
+                setMessages(prev => [...prev, { 
+                    text: 'I couldn\'t detect any speech. Please try again.',
+                    sender: 'bot'
+                }]);
             }
+        } catch (error) {
+            console.error('Error processing audio:', error);
+            setMessages(prev => [...prev, { 
+                text: 'Sorry, I had trouble understanding that. Please try again.',
+                sender: 'bot'
+            }]);
+        }
+    };
 
-            // First try to get analysis from backend
-            const response = await fetch(`http://127.0.0.1:5000/api/analyze-density`, {
+    const speakResponse = async (text) => {
+        try {
+            setIsSpeechLoading(true);  // Set speech loading state
+            const speechResponse = await openai.audio.speech.create({
+                model: 'tts-1',
+                voice: 'alloy',
+                input: text,
+            });
+
+            const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            audioRef.current.src = audioUrl;
+            await audioRef.current.play();
+        } catch (error) {
+            console.error('Error generating speech:', error);
+        } finally {
+            setIsSpeechLoading(false);  // Reset speech loading state
+        }
+    };
+
+    // Modify handleQuestionSubmit to preserve speech mode
+    const handleQuestionSubmit = async (question, preserveSpeech = false) => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/analyze-question`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    question: input,
-                    selected_states: selectedStates.map(state => state.name),
-                    dataset: currentDataset
-                })
+                    question: question,
+                    current_dataset: dataset
+                }),
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
-            console.log('Backend response:', data);
+            console.log('API Response:', data);
 
             if (data.result) {
-                // When having a result from back end
-                setResponses(prev => [...prev, { role: 'assistant', content: data.result }]);
+                setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
+                // Only speak if in voice mode
+                if (useSpeech || preserveSpeech) {
+                    await speakResponse(data.result.replace(/<[^>]*>/g, '')); // Remove HTML tags
+                }
+                
+                // Reset map for average, pattern existence, and pattern description questions
+                if (['average', 'yes_no', 'description'].includes(data.question_type)) {
+                    onStateQuestion(null);  // Reset the map view
+                    if (data.question_type === 'description') {
+                        onPatternQuestion(true);
+                    }
+                } else {
+                    // Handle state focusing for other question types
+                    if (data.question_type === 'state_value' && data.state) {
+                        onStateQuestion([data.state]);
+                    } else if (data.question_type === 'state_comparison' && data.states) {
+                        onStateQuestion(data.states);
+                    } else if (data.question_type === 'extrema' && data.state) {
+                        onStateQuestion([data.state]);
+                    }
+                }
             } else {
-                console.log('No result from backend, falling back to OpenAI');
-                // Fall back to OpenAI for non-density questions
-                const openai = new OpenAI({
-                    apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-                    dangerouslyAllowBrowser: true,
-                });
-
-                const completion = await openai.chat.completions.create({
-                    model: 'gpt-4o-mini',
-                    messages: [
-                        { 
-                            role: 'system', 
-                            content: `You are a helpful assistant specializing in spatial data analysis. 
-                                     For questions about US states' population density, refer to the data.` 
-                        },
-                        { role: 'user', content: input },
-                    ],
-                });
-
-                setResponses(prev => [...prev, completion.choices[0].message]);
+                throw new Error('No result in response');
             }
-
-            setInput('');
         } catch (error) {
-            console.error('Error:', error);
-            alert('Error: ' + error.message);
-        } finally {
-            setIsLoading(false);
+            console.error('Error details:', error);
+            setMessages(prev => [...prev, { 
+                text: 'Sorry, I encountered an error. Please try again.',
+                sender: 'bot'
+            }]);
         }
+        setIsLoading(false);
     };
 
-    // Modify handleInputChange
-    const handleInputChange = (e) => {
-        const newValue = e.target.value.toLowerCase();
-        setInput(e.target.value);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!input.trim()) return;
 
-        // Check for dataset-specific triggers
-        const currentDatasetTriggers = DATASET_CONFIG[currentDataset];
-        const shouldAutoComplete = currentDatasetTriggers.phrases.some(phrase => 
-            newValue.trim().endsWith(phrase.toLowerCase().trim())
-        );
-
-        if (shouldAutoComplete) {
-            // Remove extra spaces before adding the completion
-            const baseText = e.target.value.replace(/\s+$/, '') + ' ';
-            const suggestionText = `${baseText}${currentDatasetTriggers.completion}`;
-            
-            if (selectedStates.length > 0) {
-                const stateNames = selectedStates.map(state => state.name);
-                if (stateNames.length === 1) {
-                    setSuggestion(`${suggestionText} in ${stateNames[0]}`);
-                } else {
-                    const lastState = stateNames.pop();
-                    setSuggestion(`${suggestionText} in ${stateNames.join(', ')} and ${lastState}`);
-                }
-            } else {
-                setSuggestion(suggestionText);
-            }
-            setShowSuggestion(true);
-        } else {
-            // Check if the input matches any of the question templates
-            const matchingTemplate = currentDatasetTriggers.questionTemplates.find(template =>
-                newValue.trim().endsWith(template.toLowerCase().trim())
-            );
-
-            if (matchingTemplate && selectedStates.length > 0) {
-                const stateNames = selectedStates.map(state => state.name);
-                let suggestionText = newValue;
-                
-                if (stateNames.length === 1) {
-                    suggestionText = `${newValue} ${stateNames[0]}`;
-                } else {
-                    const lastState = stateNames.pop();
-                    suggestionText = newValue.endsWith(':') 
-                        ? `${newValue} ${stateNames.join(', ')} or ${lastState}`
-                        : `${newValue} ${stateNames.join(', ')} and ${lastState}`;
-                }
-                
-                setSuggestion(suggestionText);
-                setShowSuggestion(true);
-            } else {
-                setShowSuggestion(false);
-            }
-        }
+        const userMessage = input;
+        setInput('');
+        setUseSpeech(false);  // Disable speech mode
+        setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
+        handleQuestionSubmit(userMessage, false);  // Explicitly pass false to disable speech
     };
 
+    // Add keydown handler for Enter key
     const handleKeyDown = (e) => {
-        if (e.key === 'Tab' && showSuggestion) {
-            e.preventDefault(); // Prevent default tab behavior
-            setInput(suggestion);
-            setShowSuggestion(false);
-        } else if (e.key === 'Enter') {
-            handleSendMessage();
+        if (e.key === 'Enter') {
+            handleSubmit(e);
         }
     };
 
-    const handleSuggestionClick = () => {
-        setInput(suggestion);
-        setShowSuggestion(false);
+    // Function to get map description based on dataset
+    const getMapDescription = () => {
+        switch(dataset) {
+            case 'walk_to_wo':
+                return "This is a choropleth map of the United States showing the percentage of people who walk to work in each state. Darker shades indicate higher percentages of walking commuters.";
+            case 'transit_to':
+                return "This is a choropleth map of the United States showing the percentage of people who use public transit in each state. Darker shades indicate higher percentages of public transit usage.";
+            default: // ppl_densit
+                return "This is a choropleth map of the United States showing population density for each state. Darker shades indicate higher population density.";
+        }
     };
 
-    const handleSpatialClustersRemove = () => {
-        onSpatialClustersChange(false);
+    // Function to get general knowledge questions based on dataset
+    const getGeneralQuestions = () => {
+        switch(dataset) {
+            case 'walk_to_wo':
+                return [
+                    "What's a choropleth map?",
+                    "Is there a relationship between population density and the percentage of people who walk to work?"
+                ];
+            case 'transit_to':
+                return [
+                    "What's a choropleth map?",
+                    "Is there a relationship between population density and public transit usage?"
+                ];
+            default: // ppl_densit
+                return [
+                    "What's a choropleth map?",
+                    "Is there a relationship between income and population density?"
+                ];
+        }
     };
+
+    // Get fresh general questions whenever dataset changes
+    const [generalQuestions, setGeneralQuestions] = useState([]);
+    
+    useEffect(() => {
+        setExampleQuestions(getExampleQuestions());
+        setGeneralQuestions(getGeneralQuestions());
+        setUseSpeech(false);  // Reset speech mode when dataset changes
+    }, [dataset]);
+
+    // Function to speak the welcome message
+    const speakWelcomeMessage = async () => {
+        const description = getMapDescription();
+        const exampleQuestions = getExampleQuestions();
+        const generalQuestions = getGeneralQuestions();
+
+        const welcomeMessage = `${description} You can ask me questions like: ${exampleQuestions.join('. ')}. Or ask me about: ${generalQuestions.join('. ')}`;
+        
+        try {
+            setIsSpeechLoading(true);
+            const speechResponse = await openai.audio.speech.create({
+                model: 'tts-1',
+                voice: 'alloy',
+                input: welcomeMessage,
+            });
+
+            const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            audioRef.current.src = audioUrl;
+            await audioRef.current.play();
+        } catch (error) {
+            console.error('Error generating welcome speech:', error);
+        } finally {
+            setIsSpeechLoading(false);
+        }
+    };
+
+    // Speak welcome message on initial load and dataset change
+    useEffect(() => {
+        speakWelcomeMessage();
+        // Cleanup function to stop audio when component unmounts or dataset changes
+        return () => {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        };
+    }, [dataset]);
 
     return (
-        // <Card className="w-full h-full p-0">
-            <CardBody className="flex flex-col h-full p-2">
-                <Typography variant="h6" color="blue-gray" className="mb-2">
-                    MappieTalkie
-                </Typography>
+        <CardBody className="flex flex-col h-full p-2">
+            <Typography variant="h6" color="blue-gray" className="mb-2">
+                MappieTalkie
+            </Typography>
 
-                {/* Selected Geographies Section */}
-                <div className="mb-4 p-3 rounded-md outline outline-2 outline-blue-gray-50">
-                    <div className="flex justify-between items-center mb-2">
-                        <Typography variant="small" color="blue-gray" className="font-medium text-left">
-                            Selected Geographies
-                        </Typography>
-                        {selectedStates.length > 0 && (
-                            <Button
-                                size="sm"
-                                variant="text"
-                                color="pink"
-                                className="h-6 flex items-center justify-center px-2 text-xs"
-                                onClick={onClearAllStates}
-                            >
-                                Clear All
-                            </Button>
-                        )}
-                    </div>
-                    {selectedStates.length === 0 && !showSpatialClusters ? (
-                        <Typography variant="small" className="text-gray-600 italic text-left text-xs">
-                            Click on areas of interest
-                        </Typography>
-                    ) : (
-                        <div className="flex flex-wrap gap-2">
-                            {selectedStates.map((state) => (
-                                <div
-                                    key={state.id}
-                                    className="bg-light-green-50 text-light-green-800 px-2 py-1 rounded-md text-xs flex items-center gap-1"
-                                >
-                                    <button
-                                        onClick={() => onStateRemove(state.id)}
-                                        className="hover:text-light-green-800 focus:outline-none"
-                                        aria-label={`Remove ${state.name}`}
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                        </svg>
-                                    </button>
-                                    {state.name}
-                                </div>
-                            ))}
-                            {showSpatialClusters && (
-                                <div className="bg-blue-gray-50 text-blue-gray-800 px-2 py-1 rounded-md text-xs flex items-center gap-1">
-                                    <button
-                                        onClick={handleSpatialClustersRemove}
-                                        className="hover:text-blue-gray-800 focus:outline-none"
-                                        aria-label="Remove hot and cold spots"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                        </svg>
-                                    </button>
-                                    Hot and Cold Spots
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
+            {/* Map Description and Example Questions Intro */}
+            <Typography variant="small" color="gray" className="mb-4 text-xs">
+                <span className="italic">{getMapDescription()}</span>
+                {' You can ask me questions like:'}
+            </Typography>
 
-                <div className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md">
-                    {responses.map((msg, index) => (
-                        <div
+            {/* Dataset-specific Questions Section */}
+            <div className="mb-2">
+                <div className="flex flex-wrap gap-2">
+                    {exampleQuestions.map((question, index) => (
+                        <button
                             key={index}
-                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
+                            onClick={() => handleExampleClick(question)}
+                            className="px-3 py-1 bg-light-green-50 hover:bg-light-green-100 rounded-full text-xs text-green-900 transition-colors text-left"
                         >
-                            <div
-                                className={`py-2 px-4 rounded-md max-w-[80%] font-['Roboto'] ${
-                                    msg.role === 'user'
-                                        ? 'bg-teal-100 text-teal-900 text-left text-xs'
-                                        : 'bg-gray-200 text-gray-900 text-left text-xs'
-                                }`}
-                            >
-                                <Typography 
-                                    variant="small" 
-                                    className="font-['Roboto'] font-normal leading-[1.2]"
-                                >
-                                    {msg.content}
-                                </Typography>
-                            </div>
-                        </div>
+                            {question}
+                        </button>
                     ))}
-                    {isLoading && (
-                        <div className="flex justify-start mb-2">
-                            <div className="py-2 px-4 rounded-md bg-gray-200 text-gray-900 text-left text-xs">
-                                <Typography 
-                                    variant="small" 
-                                    className="font-['Roboto'] font-normal leading-[1.2] italic"
-                                >
-                                    Looking for answers...
-                                </Typography>
-                            </div>
-                        </div>
-                    )}
                 </div>
+            </div>
 
-                {/* Updated Suggestion UI */}
-                {showSuggestion && (
-                    <div 
-                        className="mb-2 bg-white rounded-md shadow-lg p-3 cursor-pointer hover:bg-gray-50 border border-gray-200"
-                        onClick={handleSuggestionClick}
+            {/* General Knowledge Questions Section */}
+            <div className="mb-4">
+                <Typography variant="small" color="gray" className="mb-2 text-xs">
+                    Or ask me about:
+                </Typography>
+                <div className="flex flex-wrap gap-2">
+                    {generalQuestions.map((question, index) => (
+                        <button
+                            key={index}
+                            onClick={() => handleExampleClick(question)}
+                            className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left"
+                        >
+                            {question}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div 
+                ref={chatContainerRef}
+                className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md"
+            >
+                {messages.map((msg, index) => (
+                    <div
+                        key={index}
+                        className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
                     >
-                        <div className="flex items-center justify-between gap-4">
-                            <SuggestionText 
-                                text={suggestion} 
-                                datasetPhrase={DATASET_CONFIG[currentDataset].completion}
+                        <div
+                            className={`py-2 px-4 rounded-md max-w-[80%] font-['Roboto'] ${
+                                msg.sender === 'user'
+                                    ? 'bg-teal-100 text-teal-900 text-left text-xs'
+                                    : 'bg-gray-200 text-gray-900 text-left text-xs'
+                            }`}
+                        >
+                            <Typography 
+                                variant="small" 
+                                className="font-['Roboto'] font-normal leading-[1.2]"
+                                dangerouslySetInnerHTML={{ __html: msg.text }}
                             />
-                            <span className="text-xs text-gray-500 italic whitespace-nowrap">
-                                Press Tab or click to complete
-                            </span>
+                        </div>
+                    </div>
+                ))}
+                {(isLoading || isSpeechLoading) && (
+                    <div className="flex justify-start mb-2">
+                        <div className="py-2 px-4 rounded-md bg-gray-200 text-gray-900 text-left text-xs">
+                            <Typography 
+                                variant="small" 
+                                className="font-['Roboto'] font-normal leading-[1.2] italic"
+                            >
+                                {isSpeechLoading ? 'Generating speech...' : 'Looking for answers...'}
+                            </Typography>
                         </div>
                     </div>
                 )}
+            </div>
 
-                {/* Input and Button */}
-                <div className="flex gap-2 items-center">
-                    <div className="flex-grow">
-                        <Input
-                            type="text"
-                            label="Ask MappieTalkie"
-                            value={input}
-                            onChange={handleInputChange}
-                            onKeyDown={handleKeyDown}
-                            className="font-['Roboto']"
-                            labelProps={{
-                                className: "!text-teal-500"
-                            }}
-                            color="teal"
-                        />
-                    </div>
-                    <Button 
-                        onClick={handleSendMessage}
-                        className='bg-teal-500 text-white p-2.5 aspect-square'
-                        size="sm"
-                    >
-                        <ArrowRight size={20} weight="bold" />
-                    </Button>
+            {/* Input, Microphone, and Send Button */}
+            <div className="flex gap-2 items-center">
+                <div className="flex-grow">
+                    <Input
+                        type="text"
+                        label="Ask MappieTalkie"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="font-['Roboto']"
+                        labelProps={{
+                            className: "!text-teal-500"
+                        }}
+                        color="teal"
+                    />
                 </div>
-            </CardBody>
-        // </Card>
+                <Button 
+                    onClick={isRecording ? stopRecording : startRecording}
+                    className={`${
+                        isRecording ? 'bg-red-500' : 'bg-teal-500'
+                    } text-white p-2.5 aspect-square`}
+                    size="sm"
+                >
+                    {isRecording ? 
+                        <MicrophoneSlash size={20} weight="bold" /> : 
+                        <Microphone size={20} weight="bold" />
+                    }
+                </Button>
+                <Button 
+                    onClick={handleSubmit}
+                    className='bg-teal-500 text-white p-2.5 aspect-square'
+                    size="sm"
+                >
+                    <ArrowRight size={20} weight="bold" />
+                </Button>
+            </div>
+        </CardBody>
     );
 };
 
