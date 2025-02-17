@@ -13,11 +13,16 @@ app.config.from_object(DevelopmentConfig)
 # Enable CORS for all routes with proper configuration
 CORS(app, resources={
     r"/*": {
-        "origins": ["http://localhost:3000"],
+        "origins": ["*"],
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
+        "allow_headers": ["Content-Type", "Authorization"],
+        "expose_headers": ["Content-Type", "Authorization"]
     }
 })
+
+@app.route('/')
+def index():
+    return "Hello, World!"
 
 # Register blueprints
 app.register_blueprint(api, url_prefix='/')
