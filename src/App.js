@@ -9,6 +9,10 @@ function App() {
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
   const [focusedState, setFocusedState] = useState(null);
 
+  const API_URL = process.env.NODE_ENV === 'production'
+    ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
+    : 'http://localhost:5000';
+
   const handleDatasetChange = (dataset) => {
     setCurrentDataset(dataset);
   };
@@ -30,6 +34,7 @@ function App() {
           onSpatialClustersToggle={setShowSpatialClusters}
           onDatasetChange={handleDatasetChange}
           focusedState={focusedState}
+          apiUrl={API_URL}
         />
       </div>
       <div className="w-1/3 h-full">
@@ -37,6 +42,7 @@ function App() {
           dataset={currentDataset}
           onPatternQuestion={handlePatternQuestion}
           onStateQuestion={handleStateQuestion}
+          apiUrl={API_URL}
         />
       </div>
     </div>

@@ -1,6 +1,6 @@
 # app.py 
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from routes.api import api
 from routes.test_routes import test_bp
@@ -11,20 +11,34 @@ app = Flask(__name__)
 
 # Determine environment and apply configuration
 if os.getenv('GAE_ENV', '').startswith('standard'):
-    # Running on GAE
     app.config.from_object(ProductionConfig)
 else:
-    # Local development
     app.config.from_object(DevelopmentConfig)
 
-# Enable CORS
-CORS(app, resources={
-    r"/*": {
-        "origins": app.config['CORS_ORIGINS'],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})
+# CORS configuration with explicit options
+CORS(app, 
+    resources={
+        r"/*": {
+            "origins": ["http://localhost:3000", "https://mappie-talkie-frontend-245835075814.us-central1.run.app"],
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization", "Origin", "Accept"],
+            "supports_credentials": True,
+            "expose_headers": ["Access-Control-Allow-Credentials"],
+            "send_wildcard": False
+        }
+    })
+
+@app.after_request
+def after_request(response):
+    origin = request.headers.get('Origin')
+    allowed_origins = ["http://localhost:3000", "https://mappie-talkie-frontend-245835075814.us-central1.run.app"]
+    
+    if origin in allowed_origins:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Origin, Accept'
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
 
 @app.route('/')
 def index():
@@ -39,6 +53,5 @@ app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(test_bp)
 
 if __name__ == '__main__':
-    # Use PORT environment variable provided by Cloud Run
-    port = int(os.getenv("PORT", 8080))
+    port = int(os.getenv("PORT", 5000))
     app.run(host='0.0.0.0', port=port)

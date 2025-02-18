@@ -29,7 +29,7 @@ RUN useradd -m myuser
 USER myuser
 
 # Set environment variables
-ENV PORT=8080
+ENV PORT=5000
 ENV PYTHONUNBUFFERED=1
 
 # Run the application with increased timeout
