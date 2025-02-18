@@ -46,7 +46,7 @@ class SemanticService:
 
             openai.api_key = DevelopmentConfig.OPENAI_API_KEY
             response = openai.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
@@ -73,7 +73,7 @@ class SemanticService:
 
             openai.api_key = DevelopmentConfig.OPENAI_API_KEY
             response = openai.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": question}

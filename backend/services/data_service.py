@@ -647,7 +647,7 @@ def filter_states(question, dataset):
         
         openai.api_key = DevelopmentConfig.OPENAI_API_KEY
         response = openai.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": question}
@@ -687,7 +687,7 @@ def sort_states(question, dataset):
         
         openai.api_key = DevelopmentConfig.OPENAI_API_KEY
         response = openai.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": question}

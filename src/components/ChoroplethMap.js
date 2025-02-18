@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 
-const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState }) => {
+const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, apiUrl }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
@@ -37,42 +37,71 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         const fetchGeoJSON = async () => {
             setIsLoading(true);
             try {
-                const apiUrl = `${process.env.REACT_APP_API_URL}/geojson/${selectedDataset}`;
-                const response = await fetch(apiUrl, {
+                const url = `${apiUrl}/api/geojson/${selectedDataset}`;
+                console.log('Fetching GeoJSON from:', url);
+                
+                const response = await fetch(url, {
                     method: 'GET',
-                    mode: 'cors',
                     headers: {
                         'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    }
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    credentials: 'include',
+                    mode: 'cors'
                 });
 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Error response:', errorText);
-                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    console.error('GeoJSON fetch failed:', response.status, response.statusText);
+                    const text = await response.text();
+                    console.error('Response text:', text);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
+                console.log('Received GeoJSON data:', data);
                 setGeoData(data);
 
-                // Update the map source if it exists
-                if (map.current && map.current.getSource('population')) {
-                    map.current.getSource('population').setData(data);
-                    
-                    // Update layer visibility based on showSpatialClusters
-                    if (showSpatialClusters) {
-                        if (map.current.getLayer('lisa-clusters')) {
-                            map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
-                            map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
+                if (map.current) {
+                    // Wait for style to load if it hasn't yet
+                    if (!map.current.isStyleLoaded()) {
+                        await new Promise(resolve => {
+                            map.current.once('style.load', resolve);
+                        });
+                    }
+
+                    // Check if source exists, if not create it
+                    if (!map.current.getSource('population')) {
+                        map.current.addSource('population', {
+                            type: 'geojson',
+                            data: data
+                        });
+
+                        // Add layer if it doesn't exist
+                        if (!map.current.getLayer('population-density')) {
+                            map.current.addLayer({
+                                id: 'population-density',
+                                type: 'fill',
+                                source: 'population',
+                                paint: {
+                                    'fill-color': [
+                                        'interpolate',
+                                        ['linear'],
+                                        ['get', 'value'],
+                                        ...datasets[selectedDataset].breaks.flatMap((break_, i) => [
+                                            break_,
+                                            datasets[selectedDataset].colors[i]
+                                        ])
+                                    ],
+                                    'fill-opacity': 0.75
+                                }
+                            });
                         }
                     } else {
-                        if (map.current.getLayer('lisa-clusters')) {
-                            map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
-                            map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
-                        }
+                        // Update existing source
+                        map.current.getSource('population').setData(data);
                     }
-                    
+
                     map.current.triggerRepaint();
                 }
             } catch (error) {
@@ -85,7 +114,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         if (map.current) {
             fetchGeoJSON();
         }
-    }, [selectedDataset, showSpatialClusters]);
+    }, [selectedDataset, apiUrl]);
 
     // Update map when dataset changes
     useEffect(() => {
@@ -197,183 +226,199 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
     useEffect(() => {
         if (mapContainer.current && !map.current) {
-            mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+            try {
+                if (!process.env.REACT_APP_MAPBOX_TOKEN) {
+                    console.error('Mapbox token is missing!');
+                    throw new Error('Mapbox token is not configured');
+                }
 
-            map.current = new mapboxgl.Map({
-                container: mapContainer.current,
-                style: 'mapbox://styles/mapbox/light-v10',
-                center: [-96, 37.8],
-                zoom: 4
-            });
+                mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_TOKEN;
+                console.log('Initializing map with token:', process.env.REACT_APP_MAPBOX_TOKEN.substring(0, 10) + '...');
 
-            // Initialize popup
-            popup.current = new mapboxgl.Popup({
-                closeButton: false,
-                closeOnClick: false
-            });
-
-            // Add navigation controls
-            map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-            map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
-            map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
-            map.current.addControl(
-                new mapboxgl.GeolocateControl({
-                    positionOptions: { enableHighAccuracy: true },
-                    trackUserLocation: true
-                }),
-                'top-right'
-            );
-
-            map.current.on('load', () => {
-                console.log('Map loaded. Adding layers...');
-
-                // Add the main data source
-                map.current.addSource('population', {
-                    type: 'geojson',
-                    data: {
-                        type: 'FeatureCollection',
-                        features: []
-                    }
+                map.current = new mapboxgl.Map({
+                    container: mapContainer.current,
+                    style: 'mapbox://styles/mapbox/light-v10',
+                    center: [-96, 37.8],
+                    zoom: 4
                 });
 
-                // Add the main choropleth layer
-                map.current.addLayer({
-                    id: 'population-density',
-                    type: 'fill',
-                    source: 'population',
-                    paint: {
-                        'fill-color': [
-                            'interpolate',
-                            ['linear'],
-                            ['get', 'value'],
-                            ...datasets[selectedDataset].breaks.flatMap((break_, i) => [
-                                break_,
-                                datasets[selectedDataset].colors[i]
-                            ])
-                        ],
-                        'fill-opacity': 0.75
-                    }
+                // Initialize popup (only once)
+                popup.current = new mapboxgl.Popup({
+                    closeButton: false,
+                    closeOnClick: false
                 });
 
-                // Add LISA cluster fills
-                map.current.addLayer({
-                    id: 'lisa-clusters-fill',
-                    type: 'fill',
-                    source: 'population',
-                    layout: {
-                        'visibility': 'none'  // Initially hidden
-                    },
-                    paint: {
-                        'fill-color': [
-                            'match',
-                            ['get', 'lisa_class'],
-                            'LL', '#01579b',  // Blue for Low-Low
-                            'HL', '#f06292',  // Pink for High-Low
-                            'LH', '#00bcd4',  // Light Blue for Low-High
-                            'HH', '#d81b60',  // Red for High-High
-                            'transparent'
-                        ],
-                        'fill-opacity': [
-                            'case',
-                            ['has', 'lisa_class'],
-                            0.2,  // Lower opacity for fills
-                            0
-                        ]
-                    }
-                });
+                // Add navigation controls (only once)
+                map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+                map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+                map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
+                map.current.addControl(
+                    new mapboxgl.GeolocateControl({
+                        positionOptions: { enableHighAccuracy: true },
+                        trackUserLocation: true
+                    }),
+                    'top-right'
+                );
 
-                // Add LISA cluster outlines
-                map.current.addLayer({
-                    id: 'lisa-clusters',
-                    type: 'line',
-                    source: 'population',
-                    layout: {
-                        'visibility': 'none'  // Initially hidden
-                    },
-                    paint: {
-                        'line-color': [
-                            'match',
-                            ['get', 'lisa_class'],
-                            'LL', '#01579b',  // Blue for Low-Low
-                            'HL', '#f06292',  // Pink for High-Low
-                            'LH', '#00bcd4',  // Light Blue for Low-High
-                            'HH', '#d81b60',  // Red for High-High
-                            'transparent'
-                        ],
-                        'line-width': 2,
-                        'line-opacity': [
-                            'case',
-                            ['has', 'lisa_class'],
-                            0.8,
-                            0
-                        ],
-                        'line-offset': 1,
-                        'line-join': 'round',
-                    }
-                });
-
-                // Add state borders layer
-                map.current.addLayer({
-                    id: 'state-borders',
-                    type: 'line',
-                    source: 'population',
-                    paint: {
-                        'line-color': '#000',
-                        'line-width': 2,
-                        'line-opacity': 0
-                    }
-                });
-
-                // Add state outlines layer
-                map.current.addLayer({
-                    id: 'state-outlines',
-                    type: 'line',
-                    source: 'population',
-                    paint: {
-                        'line-color': '#000',
-                        'line-width': 1,
-                        'line-opacity': 0
-                    }
-                });
-
-                console.log('Layers added. Setting up interactions...');
-
-                // Add hover interactions
-                map.current.on('mousemove', 'population-density', (e) => {
-                    if (e.features.length > 0) {
-                        map.current.getCanvas().style.cursor = 'pointer';
-                        
-                        const feature = e.features[0];
-                        const value = feature.properties.value;
-                        const stateName = feature.properties.state_name;
-                        
-                        // Format value based on dataset
-                        let formattedValue;
-                        if (dataset === 'ppl_densit') {
-                            formattedValue = `${value.toFixed(2)} people per square mile`;
-                        } else {
-                            formattedValue = `${value.toFixed(2)}%`;
+                map.current.on('load', () => {
+                    console.log('Map loaded successfully');
+                    
+                    // Add the main data source
+                    map.current.addSource('population', {
+                        type: 'geojson',
+                        data: geoData || {
+                            type: 'FeatureCollection',
+                            features: []
                         }
+                    });
 
-                        // Position the popup at the mouse pointer
-                        const coordinates = e.lngLat;
+                    // Add the main choropleth layer
+                    map.current.addLayer({
+                        id: 'population-density',
+                        type: 'fill',
+                        source: 'population',
+                        paint: {
+                            'fill-color': [
+                                'interpolate',
+                                ['linear'],
+                                ['get', 'value'],
+                                ...datasets[selectedDataset].breaks.flatMap((break_, i) => [
+                                    break_,
+                                    datasets[selectedDataset].colors[i]
+                                ])
+                            ],
+                            'fill-opacity': 0.75
+                        }
+                    });
 
-                        popup.current
-                            .setLngLat(coordinates)
-                            .setHTML(`
-                                <div class="text-xs font-semibold">${stateName}</div>
-                                <div class="text-xs">${formattedValue}</div>
-                            `)
-                            .addTo(map.current);
-                    }
+                    // Add LISA cluster fills
+                    map.current.addLayer({
+                        id: 'lisa-clusters-fill',
+                        type: 'fill',
+                        source: 'population',
+                        layout: {
+                            'visibility': 'none'  // Initially hidden
+                        },
+                        paint: {
+                            'fill-color': [
+                                'match',
+                                ['get', 'lisa_class'],
+                                'LL', '#01579b',  // Blue for Low-Low
+                                'HL', '#f06292',  // Pink for High-Low
+                                'LH', '#00bcd4',  // Light Blue for Low-High
+                                'HH', '#d81b60',  // Red for High-High
+                                'transparent'
+                            ],
+                            'fill-opacity': [
+                                'case',
+                                ['has', 'lisa_class'],
+                                0.2,  // Lower opacity for fills
+                                0
+                            ]
+                        }
+                    });
+
+                    // Add LISA cluster outlines
+                    map.current.addLayer({
+                        id: 'lisa-clusters',
+                        type: 'line',
+                        source: 'population',
+                        layout: {
+                            'visibility': 'none'  // Initially hidden
+                        },
+                        paint: {
+                            'line-color': [
+                                'match',
+                                ['get', 'lisa_class'],
+                                'LL', '#01579b',  // Blue for Low-Low
+                                'HL', '#f06292',  // Pink for High-Low
+                                'LH', '#00bcd4',  // Light Blue for Low-High
+                                'HH', '#d81b60',  // Red for High-High
+                                'transparent'
+                            ],
+                            'line-width': 2,
+                            'line-opacity': [
+                                'case',
+                                ['has', 'lisa_class'],
+                                0.8,
+                                0
+                            ],
+                            'line-offset': 1,
+                            'line-join': 'round',
+                        }
+                    });
+
+                    // Add state borders layer
+                    map.current.addLayer({
+                        id: 'state-borders',
+                        type: 'line',
+                        source: 'population',
+                        paint: {
+                            'line-color': '#000',
+                            'line-width': 2,
+                            'line-opacity': 0
+                        }
+                    });
+
+                    // Add state outlines layer
+                    map.current.addLayer({
+                        id: 'state-outlines',
+                        type: 'line',
+                        source: 'population',
+                        paint: {
+                            'line-color': '#000',
+                            'line-width': 1,
+                            'line-opacity': 0
+                        }
+                    });
+
+                    console.log('Layers added. Setting up interactions...');
+
+                    // Add hover interactions
+                    map.current.on('mousemove', 'population-density', (e) => {
+                        if (e.features.length > 0) {
+                            map.current.getCanvas().style.cursor = 'pointer';
+                            
+                            const feature = e.features[0];
+                            const value = feature.properties.value;
+                            const stateName = feature.properties.state_name;
+                            
+                            // Format value based on dataset
+                            let formattedValue;
+                            if (dataset === 'ppl_densit') {
+                                formattedValue = `${value.toFixed(2)} people per square mile`;
+                            } else {
+                                formattedValue = `${value.toFixed(2)}%`;
+                            }
+
+                            // Position the popup at the mouse pointer
+                            const coordinates = e.lngLat;
+
+                            popup.current
+                                .setLngLat(coordinates)
+                                .setHTML(`
+                                    <div class="text-xs font-semibold">${stateName}</div>
+                                    <div class="text-xs">${formattedValue}</div>
+                                `)
+                                .addTo(map.current);
+                        }
+                    });
+
+                    // Remove popup on mouseleave
+                    map.current.on('mouseleave', 'population-density', () => {
+                        map.current.getCanvas().style.cursor = '';
+                        popup.current.remove();
+                    });
                 });
 
-                // Remove popup on mouseleave
-                map.current.on('mouseleave', 'population-density', () => {
-                    map.current.getCanvas().style.cursor = '';
-                    popup.current.remove();
+                // Add error handling
+                map.current.on('error', (e) => {
+                    console.error('Mapbox error:', e);
                 });
-            });
+
+            } catch (error) {
+                console.error('Error initializing map:', error);
+            }
         }
     }, []);
 

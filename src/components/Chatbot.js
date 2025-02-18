@@ -36,7 +36,7 @@ const SuggestionText = ({ text, datasetPhrase }) => {
     );
 };
 
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -48,11 +48,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
     const audioChunksRef = useRef([]);
     const audioRef = useRef(new Audio());
     const [useSpeech, setUseSpeech] = useState(false);
-
-    const openai = new OpenAI({
-        apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-        dangerouslyAllowBrowser: true
-    });
 
     // List of US states
     const states = [
@@ -183,6 +178,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
 
     const processAudioToText = async (audioBlob) => {
         try {
+            const openai = new OpenAI({
+                apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+                dangerouslyAllowBrowser: true
+            });
             // Show processing message
             setMessages(prev => [...prev.filter(msg => !msg.isTemp), { 
                 text: 'Processing your speech...', 
@@ -224,7 +223,11 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
 
     const speakResponse = async (text) => {
         try {
-            setIsSpeechLoading(true);  // Set speech loading state
+            setIsSpeechLoading(true);
+            const openai = new OpenAI({
+                apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+                dangerouslyAllowBrowser: true
+            });
             const speechResponse = await openai.audio.speech.create({
                 model: 'tts-1',
                 voice: 'alloy',
@@ -247,11 +250,14 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
     const handleQuestionSubmit = async (question, preserveSpeech = false) => {
         setIsLoading(true);
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/analyze-question`, {
+            const response = await fetch(`${apiUrl}/api/analyze-question`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Origin': window.location.origin
                 },
+                credentials: 'include',
+                mode: 'cors', // Explicitly set CORS mode
                 body: JSON.stringify({
                     question: question,
                     current_dataset: dataset
@@ -372,6 +378,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
         
         try {
             setIsSpeechLoading(true);
+            const openai = new OpenAI({
+                apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+                dangerouslyAllowBrowser: true
+            });
             const speechResponse = await openai.audio.speech.create({
                 model: 'tts-1',
                 voice: 'alloy',
@@ -390,15 +400,32 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
         }
     };
 
-    // Speak welcome message on initial load and dataset change
+    // Modify the useEffect for welcome message
     useEffect(() => {
-        speakWelcomeMessage();
+        // Only generate welcome speech if voice mode is on
+        if (useSpeech) {
+            speakWelcomeMessage();
+        } else {
+            // Just set the text without speech
+            setMessages(prev => [...prev, { 
+                text: getMapDescription(),
+                sender: 'bot' 
+            }]);
+        }
+        
         // Cleanup function to stop audio when component unmounts or dataset changes
         return () => {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
         };
-    }, [dataset]);
+    }, [dataset, useSpeech]);
+
+    useEffect(() => {
+        console.log('OpenAI API Key:', process.env.REACT_APP_OPENAI_API_KEY ? 'Set' : 'Not Set');
+        console.log('Mapbox Token:', process.env.REACT_APP_MAPBOX_TOKEN ? 'Set' : 'Not Set');
+    }, []);
 
     return (
         <CardBody className="flex flex-col h-full p-2">
