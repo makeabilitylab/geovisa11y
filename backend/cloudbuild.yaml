@@ -1,0 +1,30 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/mappie-talkie-api', '.']
+  
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/mappie-talkie-api']
+  
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+    - 'run'
+    - 'deploy'
+    - 'mappie-talkie-api'
+    - '--image'
+    - 'gcr.io/$PROJECT_ID/mappie-talkie-api'
+    - '--region'
+    - 'us-central1'
+    - '--platform'
+    - 'managed'
+    - '--allow-unauthenticated'
+    - '--port'
+    - '8080'
+    - '--ingress'
+    - 'all'
+
+images:
+  - 'gcr.io/$PROJECT_ID/mappie-talkie-api' 
