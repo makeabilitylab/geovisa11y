@@ -371,56 +371,121 @@ def analyze_spatial_question(question, current_dataset='ppl_densit'):
         question_type = semantic_service.identify_question_type(question, current_dataset)
         print(f"\nDebug - Identified question type: {question_type}")
         
-        if not question_type:
-            return None
-            
-        if question_type == 'state_value':
+        # Get metric details
+        metric_name = semantic_service.dataset_terms[current_dataset]['metric']
+        unit = semantic_service.dataset_terms[current_dataset]['unit']
+        
+        if question_type == 'retrieve':
             states = semantic_service.extract_states(question)
             if not states:
                 return None
             result = analyze_state_data(question, current_dataset)
-            # Pass through both result and state information
             return {
                 'result': result['result'],
                 'state': result['state'],
                 'dataset': current_dataset,
-                'question_type': 'state_value'
+                'question_type': 'retrieve'
             }
             
-        elif question_type == 'state_comparison':
+        elif question_type == 'compare':
             states = semantic_service.extract_states(question)
             if len(states) != 2:
                 return None
             result = compare_states(states[0], states[1], current_dataset)
-            # Include both states in the response
             return {
                 'result': result,
-                'states': states,  # Array of state names
+                'states': states,
                 'dataset': current_dataset,
-                'question_type': 'state_comparison'
+                'question_type': 'compare'
             }
             
-        elif question_type == 'extrema':
+        elif question_type == 'find_extremum':
             result = get_extrema(question, current_dataset)
             return {
                 'result': result['result'],
-                'state': result['state'],  # Pass through the state
+                'state': result['state'],
                 'dataset': current_dataset,
-                'question_type': 'extrema'
+                'question_type': 'find_extremum'
             }
             
-        elif question_type == 'average':
+        elif question_type == 'aggregate':
             result = get_average(current_dataset)
-            return {'result': result, 'dataset': current_dataset, 'question_type': 'average'}
+            return {
+                'result': result,
+                'dataset': current_dataset,
+                'question_type': 'aggregate'
+            }
             
-        elif question_type == 'pattern_existence':
+        elif question_type == 'filter':
+            result = filter_states(question, current_dataset)
+            return {
+                'result': result,
+                'dataset': current_dataset,
+                'question_type': 'filter'
+            }
+            
+        elif question_type == 'sort':
+            result = sort_states(question, current_dataset)
+            return {
+                'result': result,
+                'dataset': current_dataset,
+                'question_type': 'sort'
+            }
+            
+        elif question_type == 'data_ranges':
+            result = get_data_range(current_dataset)
+            return {
+                'result': result,
+                'dataset': current_dataset,
+                'question_type': 'data_ranges'
+            }
+            
+        elif question_type == 'cluster':
+            states = semantic_service.extract_states(question)
+            if not states:
+                return None
+            result = find_similar_states(states[0], current_dataset)
+            return {
+                'result': result,
+                'dataset': current_dataset,
+                'question_type': 'cluster'
+            }
+            
+        elif question_type == 'is_pattern':
             result = analyze_global_pattern(current_dataset)
-            return {'result': result['description'], 'dataset': current_dataset, 'question_type': 'yes_no'}
+            return {
+                'result': result['description'],
+                'dataset': current_dataset,
+                'question_type': 'is_pattern'
+            }
             
-        elif question_type == 'pattern_description':
+        elif question_type == 'describe_pattern':
             result = analyze_spatial_patterns(current_dataset)
-            return {'result': format_lisa_results(result, current_dataset), 'dataset': current_dataset, 'question_type': 'description'}
+            return {
+                'result': format_lisa_results(result, current_dataset),
+                'dataset': current_dataset,
+                'question_type': 'describe_pattern'
+            }
             
+        elif question_type == 'find_outliers':
+            result = analyze_spatial_patterns(current_dataset)
+            outliers = format_outliers(result, current_dataset)
+            return {
+                'result': outliers,
+                'dataset': current_dataset,
+                'question_type': 'find_outliers'
+            }
+            
+        elif question_type == 'correlate':
+            return {
+                'result': "I apologize, but I cannot perform correlation analysis at this time.",
+                'dataset': current_dataset,
+                'question_type': 'correlate'
+            }
+            
+        elif question_type == 'others':
+            return None
+
         return None
 
     except Exception as e:
@@ -569,4 +634,166 @@ def get_average(dataset):
         return f"The average {metric_name} across all states is {result[0]:.2f} {unit}."
     except Exception as e:
         print(f"Error calculating average: {str(e)}")
+        return None
+
+def filter_states(question, dataset):
+    """Filter states based on conditions"""
+    try:
+        # Extract condition from question using GPT
+        system_prompt = """Extract the numeric condition from the question.
+        Return in format: operator,value
+        Example: "Which states have density less than 100?" -> "<,100"
+        Operators: <,>,<=,>=,="""
+        
+        openai.api_key = DevelopmentConfig.OPENAI_API_KEY
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            temperature=0
+        )
+        
+        condition = response.choices[0].message.content.strip()
+        operator, value = condition.split(',')
+        
+        # Build and execute query
+        query = f"""
+            SELECT state_name, {dataset} as value
+            FROM state
+            WHERE {dataset} {operator} {value}
+            ORDER BY {dataset} DESC
+        """
+        
+        results = con.execute(query).fetchall()
+        if not results:
+            return f"No states match the condition."
+            
+        states = [r[0] for r in results]
+        metric_name = semantic_service.dataset_terms[dataset]['metric']
+        return f"States with {metric_name} {operator} {value}: {', '.join(states)}"
+        
+    except Exception as e:
+        print(f"Error in filter_states: {str(e)}")
+        return None
+
+def sort_states(question, dataset):
+    """Sort states based on values"""
+    try:
+        # Extract number of results from question
+        system_prompt = """Extract the number of results requested.
+        Return just the number, or '50' if not specified."""
+        
+        openai.api_key = DevelopmentConfig.OPENAI_API_KEY
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            temperature=0
+        )
+        
+        limit = int(response.choices[0].message.content.strip())
+        
+        query = f"""
+            SELECT state_name, {dataset} as value
+            FROM state
+            ORDER BY {dataset} DESC
+            LIMIT {limit}
+        """
+        
+        results = con.execute(query).fetchall()
+        metric_name = semantic_service.dataset_terms[dataset]['metric']
+        unit = semantic_service.dataset_terms[dataset]['unit']
+        
+        formatted_results = [f"{i+1}. {r[0]} ({r[1]:.2f} {unit})" 
+                           for i, r in enumerate(results)]
+        return f"Top {limit} states by {metric_name}:\n" + "\n".join(formatted_results)
+        
+    except Exception as e:
+        print(f"Error in sort_states: {str(e)}")
+        return None
+
+def get_data_range(dataset):
+    """Get the range of values in the dataset"""
+    try:
+        query = f"""
+            SELECT MIN({dataset}) as min_val, 
+                   MAX({dataset}) as max_val,
+                   AVG({dataset}) as avg_val
+            FROM state
+        """
+        
+        result = con.execute(query).fetchone()
+        metric_name = semantic_service.dataset_terms[dataset]['metric']
+        unit = semantic_service.dataset_terms[dataset]['unit']
+        
+        return (f"The {metric_name} ranges from {result[0]:.2f} to {result[1]:.2f} {unit}, "
+                f"with an average of {result[2]:.2f} {unit}.")
+                
+    except Exception as e:
+        print(f"Error in get_data_range: {str(e)}")
+        return None
+
+def find_similar_states(state, dataset):
+    """Find states with similar values"""
+    try:
+        # First get the value for the reference state
+        query = f"""
+            SELECT {dataset} as value
+            FROM state
+            WHERE state_name = ?
+        """
+        
+        ref_value = con.execute(query, [state]).fetchone()[0]
+        
+        # Then find states within 10% of this value
+        margin = ref_value * 0.1
+        query = f"""
+            SELECT state_name, {dataset} as value
+            FROM state
+            WHERE {dataset} BETWEEN ? AND ?
+            AND state_name != ?
+            ORDER BY ABS({dataset} - ?)
+            LIMIT 5
+        """
+        
+        results = con.execute(query, [ref_value - margin, ref_value + margin, 
+                                    state, ref_value]).fetchall()
+                                    
+        metric_name = semantic_service.dataset_terms[dataset]['metric']
+        unit = semantic_service.dataset_terms[dataset]['unit']
+        
+        if not results:
+            return f"No states have similar {metric_name} to {state}."
+            
+        similar_states = [f"{r[0]} ({r[1]:.2f} {unit})" for r in results]
+        return f"States with similar {metric_name} to {state}: " + ", ".join(similar_states)
+        
+    except Exception as e:
+        print(f"Error in find_similar_states: {str(e)}")
+        return None
+
+def format_outliers(lisa_results, dataset):
+    """Format outlier results from LISA analysis"""
+    try:
+        metric_name = semantic_service.dataset_terms[dataset]['metric']
+        
+        outliers = []
+        if lisa_results['HL']:  # High-Low outliers
+            outliers.extend([f"{state} (high {metric_name})" 
+                           for state in lisa_results['HL']])
+        if lisa_results['LH']:  # Low-High outliers
+            outliers.extend([f"{state} (low {metric_name})" 
+                           for state in lisa_results['LH']])
+            
+        if not outliers:
+            return f"No significant outliers found in {metric_name}."
+            
+        return "Outlier states: " + ", ".join(outliers)
+        
+    except Exception as e:
+        print(f"Error formatting outliers: {str(e)}")
         return None

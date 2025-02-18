@@ -263,7 +263,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
             }
 
             const data = await response.json();
-            console.log('API Response:', data);
+            console.log('Question:', question);
+            console.log('Question Type:', data.question_type);
 
             if (data.result) {
                 setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
