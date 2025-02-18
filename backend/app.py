@@ -1,19 +1,26 @@
 # app.py 
-from flask import Flask
+import os
+from flask import Flask, jsonify
 from flask_cors import CORS
 from routes.api import api
-from config import DevelopmentConfig
+from routes.test_routes import test_bp
+from config import DevelopmentConfig, ProductionConfig
 
 # Create the Flask app instance
 app = Flask(__name__)
 
-# Apply the configuration
-app.config.from_object(DevelopmentConfig)
+# Determine environment and apply configuration
+if os.getenv('GAE_ENV', '').startswith('standard'):
+    # Running on GAE
+    app.config.from_object(ProductionConfig)
+else:
+    # Local development
+    app.config.from_object(DevelopmentConfig)
 
-# Enable CORS for all routes with proper configuration
+# Enable CORS
 CORS(app, resources={
     r"/*": {
-        "origins": ["http://localhost:3000"],
+        "origins": app.config['CORS_ORIGINS'],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
@@ -21,10 +28,17 @@ CORS(app, resources={
 
 @app.route('/')
 def index():
-    return 'Hello, World!'
+    return jsonify({"message": "Hello, World!"}), 200
+
+@app.route('/test')
+def test():
+    return jsonify({"message": "API is working"}), 200
 
 # Register blueprints
-app.register_blueprint(api, url_prefix='/')
+app.register_blueprint(api, url_prefix='/api')
+app.register_blueprint(test_bp)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    # Use PORT environment variable provided by Cloud Run
+    port = int(os.getenv("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
