@@ -19,6 +19,10 @@ CORS(app, resources={
     }
 })
 
+@app.route('/')
+def index():
+    return 'Hello, World!'
+
 # Register blueprints
 app.register_blueprint(api, url_prefix='/')
 
