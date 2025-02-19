@@ -535,14 +535,19 @@ def compare_states(state1, state2, dataset):
                        ELSE {dataset}
                    END as value
             FROM state
-            WHERE state_name IN (?, ?)
+            WHERE LOWER(state_name) IN (LOWER(?), LOWER(?))
         """
         results = con.execute(query, [state1, state2]).fetchall()
+        print(f"Debug - Compare states results: {results}")
         if len(results) != 2:
             return None
             
-        state1_data = next(r for r in results if r[0] == state1)
-        state2_data = next(r for r in results if r[0] == state2)
+        # Convert input state names to title case for matching
+        state1 = state1.title()
+        state2 = state2.title()
+        
+        state1_data = next(r for r in results if r[0].lower() == state1.lower())
+        state2_data = next(r for r in results if r[0].lower() == state2.lower())
         
         metric_name = {
             'ppl_densit': 'population density',
@@ -553,12 +558,12 @@ def compare_states(state1, state2, dataset):
         unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
         
         # Determine which state has higher value
-        higher_state = state1 if state1_data[1] > state2_data[1] else state2
-        lower_state = state2 if state1_data[1] > state2_data[1] else state1
+        higher_state = state1_data[0] if state1_data[1] > state2_data[1] else state2_data[0]
+        lower_state = state2_data[0] if state1_data[1] > state2_data[1] else state1_data[0]
         
         return (
-            f"{state1} has {state1_data[1]:.2f} {unit} {metric_name} while "
-            f"{state2} has {state2_data[1]:.2f} {unit}. "
+            f"{state1_data[0]} has {state1_data[1]:.2f} {unit} {metric_name} while "
+            f"{state2_data[0]} has {state2_data[1]:.2f} {unit}. "
             f"{higher_state} has higher {metric_name} than {lower_state}."
         )
     except Exception as e:
