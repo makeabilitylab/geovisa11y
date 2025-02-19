@@ -184,7 +184,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             //     }
             // });
 
-            // Now add the population source and layer
+            // Add the population source
             map.current.addSource('population', {
                 type: 'geojson',
                 data: {
@@ -193,19 +193,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }
             });
 
-            // Add state borders layer
-            map.current.addLayer({
-                id: 'state-borders',
-                type: 'line',
-                source: 'population',
-                paint: {
-                    'line-color': '#000',
-                    'line-width': 1,
-                    'line-opacity': 0
-                }
-            });
-
-            // Add population density layer
+            // Add population density layer first (bottom layer)
             map.current.addLayer({
                 id: 'population-density',
                 type: 'fill',
@@ -224,7 +212,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }
             });
 
-            //Add LISA clusters layer
+            // Add LISA clusters layer next
             map.current.addLayer({
                 id: 'lisa-clusters-fill',
                 type: 'fill',
@@ -251,36 +239,50 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }
             });
 
-                          // Add LISA cluster outlines
-                          map.current.addLayer({
-                            id: 'lisa-clusters',
-                            type: 'line',
-                            source: 'population',
-                            layout: {
-                                'visibility': 'none'  // Initially hidden
-                            },
-                            paint: {
-                                'line-color': [
-                                    'match',
-                                    ['get', 'lisa_class'],
-                                    'LL', '#01579b',  // Blue for Low-Low
-                                    'HL', '#f06292',  // Pink for High-Low
-                                    'LH', '#00bcd4',  // Light Blue for Low-High
-                                    'HH', '#d81b60',  // Red for High-High
-                                    'transparent'
-                                ],
-                                'line-width': 2,
-                                'line-opacity': [
-                                    'case',
-                                    ['has', 'lisa_class'],
-                                    0.8,
-                                    0
-                                ],
-                                'line-offset': 1,
-                                'line-join': 'round',
-                            }
-                        });
-            
+            // Add LISA cluster outlines
+            map.current.addLayer({
+                id: 'lisa-clusters',
+                type: 'line',
+                source: 'population',
+                layout: {
+                    'visibility': 'none'
+                },
+                paint: {
+                    'line-color': [
+                        'match',
+                        ['get', 'lisa_class'],
+                        'LL', '#01579b',
+                        'HL', '#f06292',
+                        'LH', '#00bcd4',
+                        'HH', '#d81b60',
+                        'transparent'
+                    ],
+                    'line-width': 2,
+                    'line-opacity': [
+                        'case',
+                        ['has', 'lisa_class'],
+                        0.8,
+                        0
+                    ],
+                    'line-offset': 1,
+                    'line-join': 'round',
+                }
+            });
+
+            // Add state borders layer last (top layer)
+            map.current.addLayer({
+                id: 'state-borders',
+                type: 'line',
+                source: 'population',
+                paint: {
+                    'line-color': '#000',
+                    'line-width': 2,
+                    'line-opacity': 0
+                },
+                // Ensure this layer is always on top
+                maxzoom: 24
+            });
+
             // Add mousemove handler for popup
             map.current.on('mousemove', 'population-density', (e) => {
                 if (e.features.length > 0) {
@@ -442,7 +444,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 // Handle both single state and array of states
                 const statesToFocus = Array.isArray(focusedState) ? focusedState : [focusedState];
                 
-                // Find features for all focused states
+                // Find features for all focused states (case-insensitive)
                 const features = statesToFocus.map(state => 
                     geoData.features.find(f => 
                         f.properties.state_name.toLowerCase() === state.toLowerCase()
@@ -454,26 +456,35 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     const bounds = new mapboxgl.LngLatBounds();
                     
                     features.forEach(feature => {
-                        const coordinates = feature.geometry.type === 'Polygon' 
-                            ? [feature.geometry.coordinates[0]]
-                            : feature.geometry.coordinates[0];
-                        
-                        coordinates.forEach(coord => {
-                            bounds.extend(coord);
-                        });
+                        if (feature.geometry.coordinates) {
+                            // Handle both Polygon and MultiPolygon
+                            const coordinates = feature.geometry.type === 'Polygon' 
+                                ? feature.geometry.coordinates[0]
+                                : feature.geometry.coordinates.flat(1);
+                            
+                            coordinates.forEach(coord => {
+                                bounds.extend(coord);
+                            });
+                        }
                     });
                     
                     // Zoom to include all states
                     map.current.fitBounds(bounds, {
-                        padding: 200,
+                        padding: 100,
                         duration: 2000,
                         maxZoom: 5
                     });
 
+                    // Create a case-insensitive filter for state names
+                    const stateFilter = ['in', 
+                        ['downcase', ['get', 'state_name']], 
+                        ['literal', statesToFocus.map(state => state.toLowerCase())]
+                    ];
+
                     // Highlight all focused states
                     map.current.setPaintProperty('state-borders', 'line-opacity', [
                         'case',
-                        ['in', ['get', 'state_name'], ['literal', statesToFocus]],
+                        stateFilter,
                         1,
                         0
                     ]);
