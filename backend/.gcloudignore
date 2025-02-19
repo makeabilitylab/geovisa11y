@@ -1,0 +1,30 @@
+# Ignore node_modules (Cloud Build will install them)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Ignore local dev environment files
+.env
+.env.local
+.env.production
+*.log
+*.sqlite
+*.db
+*.pid
+
+# Ignore Git & Cloud Build artifacts
+.git
+.gitignore
+.gcloudignore
+cloudbuild.yaml
+.DS_Store
+
+# Ignore IDE & Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore dependencies cache (for Python, Node.js, etc.)
+.pip_cache/
+__pycache__/

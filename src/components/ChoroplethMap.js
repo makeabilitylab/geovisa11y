@@ -12,6 +12,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const [lisaLayer, setLisaLayer] = useState(null);
     const [lisaLegend, setLisaLegend] = useState(null);
     const [isStyleLoaded, setIsStyleLoaded] = useState(false);
+    const [layersInitialized, setLayersInitialized] = useState(false);
 
     const datasets = {
         ppl_densit: {
@@ -60,8 +61,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 mode: 'cors'
             });
             
-
-
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
@@ -317,56 +316,44 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     };
 
-    // Initialize map
+    // Update the map initialization useEffect
     useEffect(() => {
         if (mapContainer.current && !map.current) {
             try {
-                console.log('Initializing map...');
-                console.log('API URL:', apiUrl);
+                console.log('Map initialization starting...');
                 
                 const mapboxToken = window.ENV?.REACT_APP_MAPBOX_TOKEN || process.env.REACT_APP_MAPBOX_TOKEN;
                 
-                console.log('Mapbox token available:', !!mapboxToken);
-                console.log('Mapbox token length:', mapboxToken?.length);
-                
                 if (!mapboxToken) {
-                    throw new Error('Mapbox token is not configured');
+                    throw new Error('Mapbox token is missing');
                 }
 
                 mapboxgl.accessToken = mapboxToken;
-                try { 
-                    map.current = new mapboxgl.Map({
-                        container: mapContainer.current,
-                        style: 'mapbox://styles/mapbox/light-v10',
-                        center: [-96, 37.8],
-                        zoom: 4
-                    });
-                } catch (error) {
-                    console.error('Error creating map:', error);
-                }
 
-                console.log('Map created successfully');
+                map.current = new mapboxgl.Map({
+                    container: mapContainer.current,
+                    style: 'mapbox://styles/mapbox/light-v10',
+                    center: [-96, 37.8],
+                    zoom: 4
+                });
 
-                console.log('Initializing layers...');
-
-                map.current.on('style.load', () => {
-                    console.log('Style loaded');
+                // Set up layers once when style loads
+                map.current.once('style.load', () => {
+                    console.log('Style loaded, initializing layers...');
                     initializeLayers();
+                    setLayersInitialized(true);
                     setIsStyleLoaded(true);
                 });
 
             } catch (error) {
-                console.error('Fatal error in map setup:', error);
+                console.error('Map initialization error:', error);
             }
         }
 
         return () => {
-            // Cleanup on unmount
             if (map.current) {
-                console.log('Cleaning up map instance');
                 map.current.remove();
                 map.current = null;
-                window.map = null;
             }
         };
     }, []);
@@ -380,16 +367,12 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
     // Update map when dataset changes
     useEffect(() => {
-        if (map.current && map.current.isStyleLoaded() && geoData) {
+        if (map.current && layersInitialized && geoData) {
             const dataset = datasets[selectedDataset];
-            
             const expression = [
                 'interpolate',
                 ['linear'],
-                ['coalesce',
-                    ['get', 'value'],
-                    0
-                ],
+                ['coalesce', ['get', 'value'], 0],
                 ...dataset.breaks.flatMap((break_, i) => [
                     break_,
                     dataset.colors[i]
@@ -399,35 +382,33 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             map.current.setPaintProperty('population-density', 'fill-color', expression);
             map.current.setPaintProperty('population-density', 'fill-opacity', 0.75);
         }
-    }, [selectedDataset, geoData]);
+    }, [selectedDataset, geoData, layersInitialized]);
 
     // Update clusters visibility whenever showSpatialClusters changes
     useEffect(() => {
-        if (map.current && map.current.isStyleLoaded()) {
-            if (showSpatialClusters) {
-                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
-                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
-                // Also show the legend
-                if (!lisaLegend) {
+        if (map.current && layersInitialized) {
+            try {
+                const visibility = showSpatialClusters ? 'visible' : 'none';
+                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', visibility);
+                map.current.setLayoutProperty('lisa-clusters', 'visibility', visibility);
+                
+                if (showSpatialClusters && !lisaLegend) {
                     const legend = createLisaLegend();
                     map.current.getContainer().appendChild(legend);
                     setLisaLegend(legend);
-                }
-            } else {
-                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
-                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
-                // Remove the legend
-                if (lisaLegend) {
+                } else if (!showSpatialClusters && lisaLegend) {
                     lisaLegend.remove();
                     setLisaLegend(null);
                 }
+            } catch (error) {
+                console.error('Error updating clusters visibility:', error);
             }
         }
-    }, [showSpatialClusters]);
+    }, [showSpatialClusters, layersInitialized]);
 
     // Update effect to handle focused state(s)
     useEffect(() => {
-        if (map.current && map.current.isStyleLoaded() && geoData) {
+        if (map.current && layersInitialized && geoData) {
             if (focusedState === null) {
                 // Reset to default view
                 map.current.flyTo({
@@ -493,7 +474,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }
             }
         }
-    }, [focusedState, geoData]);
+    }, [focusedState, geoData, layersInitialized]);
 
     // Update tooltip content when dataset changes
     useEffect(() => {
