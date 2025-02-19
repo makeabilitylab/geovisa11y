@@ -16,7 +16,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     const [isSpeechLoading, setIsSpeechLoading] = useState(false);
     const chatContainerRef = useRef(null);
     const [isRecording, setIsRecording] = useState(false);
-    // const [audioBlob, setAudioBlob] = useState(null);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const audioRef = useRef(new Audio());
@@ -24,8 +23,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
 
     // List of US states
     const states = [
-        'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
-        'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+        'Alabama', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+        'Delaware', 'Florida', 'Georgia', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
         'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
         'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
         'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
@@ -292,10 +291,40 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
         handleQuestionSubmit(userMessage, false);  // Explicitly pass false to disable speech
     };
 
-    // Add keydown handler for Enter key
+    // Add keydown and keyup handlers for spacebar
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Only start recording if space is pressed and we're not already recording
+            if (e.code === 'Space' && !isRecording && !e.repeat) {
+                e.preventDefault(); // Prevent space from scrolling the page
+                startRecording();
+            }
+        };
+
+        const handleKeyUp = (e) => {
+            if (e.code === 'Space' && isRecording) {
+                e.preventDefault();
+                stopRecording();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
+    }, [isRecording]); // Add isRecording to dependency array
+
+    // Modify handleKeyDown for text input to ignore spacebar
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             handleSubmit(e);
+        }
+        // Prevent spacebar from triggering in the input field
+        if (e.code === 'Space') {
+            e.stopPropagation();
         }
     };
 
@@ -443,6 +472,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                         </button>
                     ))}
                 </div>
+                <Typography variant="small" color="gray" className="mt-2 text-xs">
+                    Press and hold the spacebar to speak.
+                </Typography>
             </div>
 
             <div 
