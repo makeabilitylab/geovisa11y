@@ -71,13 +71,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 },
                 credentials: 'include',
                 mode: 'cors',
-                // signal: controller.signal
             });
-
-            // clearTimeout(timeout);  // Clear timeout if fetch succeeds
-
-            console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries([...response.headers]));
 
             if (!response.ok) {
                 const text = await response.text();
@@ -136,7 +130,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const initializeLayers = () => {
         try {
 
-            // Add navigation controls first
+            // Add navigation controls
             map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
             map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
             map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
