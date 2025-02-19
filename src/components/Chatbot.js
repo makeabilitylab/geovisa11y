@@ -280,9 +280,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                 }
                 
                 // Reset map for average, pattern existence, and pattern description questions
-                if (['average', 'yes_no', 'description'].includes(data.question_type)) {
+                if (['average', 'yes_no', 'describe_pattern'].includes(data.question_type)) {
                     onStateQuestion(null);  // Reset the map view
-                    if (data.question_type === 'description') {
+                    if (data.question_type === 'describe_pattern') {
                         onPatternQuestion(true);
                     }
                 } else {
