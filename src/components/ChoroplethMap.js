@@ -549,8 +549,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         closeButton.style.float = 'right';
         closeButton.onclick = removeLisaLayer;
 
-        // ... rest of legend creation code ...
-
         return div;
     };
 
