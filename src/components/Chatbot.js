@@ -2,39 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
 import { ArrowRight, Microphone, MicrophoneSlash } from "@phosphor-icons/react";
 import {
-    Card,
     CardBody,
     Typography,
     Input,
     Button,
 } from '@material-tailwind/react';
 
-const SuggestionText = ({ text, datasetPhrase }) => {
-    const parts = text.split(' in ');
-    const beforeIn = parts[0];
-    const afterIn = parts[1];
-
-    // Split the text before 'in' into pre-dataset and dataset parts
-    const [preDataset, ...rest] = beforeIn.split(new RegExp(`(${datasetPhrase})`, 'i'));
-    const dataset = rest.join(''); // Join in case the regex split created multiple parts
-
-    return (
-        <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs">{preDataset}</span>
-            <div className="bg-purple-50 text-purple-800 px-2 py-1 rounded-md text-xs">
-                {datasetPhrase}
-            </div>
-            {afterIn && (
-                <>
-                    <span className="text-xs">in</span>
-                    <div className="bg-light-green-50 text-light-green-800 px-2 py-1 rounded-md text-xs">
-                        {afterIn}
-                    </div>
-                </>
-            )}
-        </div>
-    );
-};
 
 const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     const [messages, setMessages] = useState([]);
@@ -43,7 +16,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     const [isSpeechLoading, setIsSpeechLoading] = useState(false);
     const chatContainerRef = useRef(null);
     const [isRecording, setIsRecording] = useState(false);
-    const [audioBlob, setAudioBlob] = useState(null);
+    // const [audioBlob, setAudioBlob] = useState(null);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const audioRef = useRef(new Audio());
