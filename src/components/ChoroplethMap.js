@@ -224,7 +224,62 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }
             });
 
-            console.log('Population layers added successfully');
+            //Add LISA clusters layer
+            map.current.addLayer({
+                id: 'lisa-clusters-fill',
+                type: 'fill',
+                source: 'population',
+                layout: {
+                    'visibility': 'none'  // Initially hidden
+                },
+                paint: {
+                    'fill-color': [
+                        'match',
+                        ['get', 'lisa_class'],
+                        'LL', '#01579b',  // Blue for Low-Low
+                        'HL', '#f06292',  // Pink for High-Low
+                        'LH', '#00bcd4',  // Light Blue for Low-High
+                        'HH', '#d81b60',  // Red for High-High
+                        'transparent'
+                    ],
+                    'fill-opacity': [
+                        'case',
+                        ['has', 'lisa_class'],
+                        0.2, 
+                        0
+                    ]
+                }
+            });
+
+                          // Add LISA cluster outlines
+                          map.current.addLayer({
+                            id: 'lisa-clusters',
+                            type: 'line',
+                            source: 'population',
+                            layout: {
+                                'visibility': 'none'  // Initially hidden
+                            },
+                            paint: {
+                                'line-color': [
+                                    'match',
+                                    ['get', 'lisa_class'],
+                                    'LL', '#01579b',  // Blue for Low-Low
+                                    'HL', '#f06292',  // Pink for High-Low
+                                    'LH', '#00bcd4',  // Light Blue for Low-High
+                                    'HH', '#d81b60',  // Red for High-High
+                                    'transparent'
+                                ],
+                                'line-width': 2,
+                                'line-opacity': [
+                                    'case',
+                                    ['has', 'lisa_class'],
+                                    0.8,
+                                    0
+                                ],
+                                'line-offset': 1,
+                                'line-join': 'round',
+                            }
+                        });
             
             // Add mousemove handler for popup
             map.current.on('mousemove', 'population-density', (e) => {
