@@ -280,18 +280,18 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                 }
                 
                 // Reset map for average, pattern existence, and pattern description questions
-                if (['average', 'yes_no', 'describe_pattern'].includes(data.question_type)) {
+                if (['aggregate', 'is_pattern', 'describe_pattern'].includes(data.question_type)) {
                     onStateQuestion(null);  // Reset the map view
                     if (data.question_type === 'describe_pattern') {
                         onPatternQuestion(true);
                     }
                 } else {
                     // Handle state focusing for other question types
-                    if (data.question_type === 'state_value' && data.state) {
+                    if (data.question_type === 'retrieve' && data.state) {
                         onStateQuestion([data.state]);
-                    } else if (data.question_type === 'state_comparison' && data.states) {
+                    } else if (data.question_type === 'compare' && data.states) {
                         onStateQuestion(data.states);
-                    } else if (data.question_type === 'extrema' && data.state) {
+                    } else if (data.question_type === 'find_extremum' && data.state) {
                         onStateQuestion([data.state]);
                     }
                 }

@@ -332,8 +332,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }
 
                 mapboxgl.accessToken = mapboxToken;
-
-                console.log('Creating map...');
                 try { 
                     map.current = new mapboxgl.Map({
                         container: mapContainer.current,
@@ -554,59 +552,59 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
     // Add handler for closing LISA clusters
     const handleCloseLisaClusters = () => {
-        onSpatialClustersToggle(false);  // This will trigger the useEffect to hide layers
+        onSpatialClustersToggle(false); 
     };
 
-    useEffect(() => {
-        // Debug function available in console
-        window.debugMap = {
-            addTestLayer: () => {
-                if (map.current && map.current.isStyleLoaded()) {
-                    // Add a simple rectangle
-                    map.current.addSource('debug', {
-                        type: 'geojson',
-                        data: {
-                            type: 'Polygon',
-                            coordinates: [[
-                                [-100, 40],
-                                [-90, 40],
-                                [-90, 35],
-                                [-100, 35],
-                                [-100, 40]
-                            ]]
-                        }
-                    });
+    // useEffect(() => {
+    //     // Debug function available in console
+    //     window.debugMap = {
+    //         addTestLayer: () => {
+    //             if (map.current && map.current.isStyleLoaded()) {
+    //                 // Add a simple rectangle
+    //                 map.current.addSource('debug', {
+    //                     type: 'geojson',
+    //                     data: {
+    //                         type: 'Polygon',
+    //                         coordinates: [[
+    //                             [-100, 40],
+    //                             [-90, 40],
+    //                             [-90, 35],
+    //                             [-100, 35],
+    //                             [-100, 40]
+    //                         ]]
+    //                     }
+    //                 });
 
-                    map.current.addLayer({
-                        id: 'debug-layer',
-                        type: 'fill',
-                        source: 'debug',
-                        paint: {
-                            'fill-color': '#ff0000',
-                            'fill-opacity': 0.5
-                        }
-                    });
+    //                 map.current.addLayer({
+    //                     id: 'debug-layer',
+    //                     type: 'fill',
+    //                     source: 'debug',
+    //                     paint: {
+    //                         'fill-color': '#ff0000',
+    //                         'fill-opacity': 0.5
+    //                     }
+    //                 });
                     
-                    console.log('Debug layer added');
-                } else {
-                    console.log('Map not ready');
-                }
-            },
-            getMapState: () => {
-                if (map.current) {
-                    return {
-                        loaded: map.current.loaded(),
-                        styleLoaded: map.current.isStyleLoaded(),
-                        sources: Object.keys(map.current.getStyle().sources || {}),
-                        layers: map.current.getStyle().layers?.map(l => l.id),
-                        center: map.current.getCenter(),
-                        zoom: map.current.getZoom()
-                    };
-                }
-                return 'Map not initialized';
-            }
-        };
-    }, []);
+    //                 console.log('Debug layer added');
+    //             } else {
+    //                 console.log('Map not ready');
+    //             }
+    //         },
+    //         getMapState: () => {
+    //             if (map.current) {
+    //                 return {
+    //                     loaded: map.current.loaded(),
+    //                     styleLoaded: map.current.isStyleLoaded(),
+    //                     sources: Object.keys(map.current.getStyle().sources || {}),
+    //                     layers: map.current.getStyle().layers?.map(l => l.id),
+    //                     center: map.current.getCenter(),
+    //                     zoom: map.current.getZoom()
+    //                 };
+    //             }
+    //             return 'Map not initialized';
+    //         }
+    //     };
+    // }, []);
 
     return (
         <div className="relative h-full">
