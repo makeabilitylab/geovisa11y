@@ -11,7 +11,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const [isLoading, setIsLoading] = useState(false);
     const [lisaLayer, setLisaLayer] = useState(null);
     const [lisaLegend, setLisaLegend] = useState(null);
-    const [isStyleLoaded, setIsStyleLoaded] = useState(false);
     const [layersInitialized, setLayersInitialized] = useState(false);
 
     const datasets = {
@@ -342,7 +341,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     console.log('Style loaded, initializing layers...');
                     initializeLayers();
                     setLayersInitialized(true);
-                    setIsStyleLoaded(true);
                 });
 
             } catch (error) {
@@ -478,7 +476,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
     // Update tooltip content when dataset changes
     useEffect(() => {
-        if (map.current && map.current.isStyleLoaded()) {
+        if (map.current && layersInitialized) {
             // Remove existing mousemove handler
             map.current.off('mousemove', 'population-density');
             
@@ -511,7 +509,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }
             });
         }
-    }, [dataset]);
+    }, [dataset, layersInitialized]);
 
     const removeLisaLayer = () => {
         if (lisaLayer) {
@@ -602,8 +600,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         <div className="relative h-full">
             <div ref={mapContainer} className="h-full" />
 
-            {/* Loading Dialog - Show when map is not initialized or style not loaded */}
-            {(!map.current || !isStyleLoaded) && (
+            {/* Loading Dialog - Show when map is not initialized or layers not ready */}
+            {(!map.current || !layersInitialized) && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
                     <div className="bg-white p-4 rounded-lg shadow-lg">
                         <div className="flex items-center space-x-3">

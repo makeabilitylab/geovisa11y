@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Layout from './components/Layout';
 import './App.css';
 import ChoroplethMap from './components/ChoroplethMap';
 import Chatbot from './components/Chatbot';
