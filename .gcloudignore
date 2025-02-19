@@ -1,0 +1,15 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+.env
+.env.local
+.python-version
+.pytest_cache 
+node_modules
+.git
+.cache
+.DS_Store
+build
+coverage
+logs

@@ -134,7 +134,7 @@ def analyze_question():
 
 @api.route('/test', methods=['GET'])
 def test():
-    return jsonify({"message": "API is working"}), 200
+    return jsonify({"message": "API is working!"})
 
 @api.route('/test-cors', methods=['GET', 'OPTIONS'])
 def test_cors():
@@ -142,3 +142,9 @@ def test_cors():
     if request.method == 'OPTIONS':
         return '', 200
     return jsonify({"status": "CORS is working"}), 200
+
+# Comment out other routes temporarily
+# @api.route('/geojson/<value_column>', methods=['GET'])
+# def get_density_data(value_column):
+#     accuracy = 0.01
+#     return fetch_density_data('states', accuracy, value_column)
