@@ -1,0 +1,36 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/mappie-talkie-frontend',
+      '--build-arg', 'REACT_APP_MAPBOX_TOKEN=${_MAPBOX_TOKEN}',
+      '--build-arg', 'REACT_APP_OPENAI_API_KEY=${_OPENAI_API_KEY}',
+      '.'
+    ]
+  
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/mappie-talkie-frontend']
+  
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+    - 'run'
+    - 'deploy'
+    - 'mappie-talkie-frontend'
+    - '--image'
+    - 'gcr.io/$PROJECT_ID/mappie-talkie-frontend'
+    - '--region'
+    - 'us-central1'
+    - '--platform'
+    - 'managed'
+    - '--allow-unauthenticated'
+    - '--port'
+    - '80'
+    - '--set-secrets'
+    - 'REACT_APP_MAPBOX_TOKEN=MAPBOX_TOKEN:latest,REACT_APP_OPENAI_API_KEY=OPENAI_API_KEY:latest'
+
+images:
+  - 'gcr.io/$PROJECT_ID/mappie-talkie-frontend' 

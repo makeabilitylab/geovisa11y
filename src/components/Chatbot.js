@@ -2,57 +2,25 @@ import React, { useState, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
 import { ArrowRight, Microphone, MicrophoneSlash } from "@phosphor-icons/react";
 import {
-    Card,
     CardBody,
     Typography,
     Input,
     Button,
 } from '@material-tailwind/react';
 
-const SuggestionText = ({ text, datasetPhrase }) => {
-    const parts = text.split(' in ');
-    const beforeIn = parts[0];
-    const afterIn = parts[1];
 
-    // Split the text before 'in' into pre-dataset and dataset parts
-    const [preDataset, ...rest] = beforeIn.split(new RegExp(`(${datasetPhrase})`, 'i'));
-    const dataset = rest.join(''); // Join in case the regex split created multiple parts
-
-    return (
-        <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs">{preDataset}</span>
-            <div className="bg-purple-50 text-purple-800 px-2 py-1 rounded-md text-xs">
-                {datasetPhrase}
-            </div>
-            {afterIn && (
-                <>
-                    <span className="text-xs">in</span>
-                    <div className="bg-light-green-50 text-light-green-800 px-2 py-1 rounded-md text-xs">
-                        {afterIn}
-                    </div>
-                </>
-            )}
-        </div>
-    );
-};
-
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSpeechLoading, setIsSpeechLoading] = useState(false);
     const chatContainerRef = useRef(null);
     const [isRecording, setIsRecording] = useState(false);
-    const [audioBlob, setAudioBlob] = useState(null);
+    // const [audioBlob, setAudioBlob] = useState(null);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const audioRef = useRef(new Audio());
     const [useSpeech, setUseSpeech] = useState(false);
-
-    const openai = new OpenAI({
-        apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-        dangerouslyAllowBrowser: true
-    });
 
     // List of US states
     const states = [
@@ -183,6 +151,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
 
     const processAudioToText = async (audioBlob) => {
         try {
+            const openai = new OpenAI({
+                apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+                dangerouslyAllowBrowser: true
+            });
             // Show processing message
             setMessages(prev => [...prev.filter(msg => !msg.isTemp), { 
                 text: 'Processing your speech...', 
@@ -224,7 +196,11 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
 
     const speakResponse = async (text) => {
         try {
-            setIsSpeechLoading(true);  // Set speech loading state
+            setIsSpeechLoading(true);
+            const openai = new OpenAI({
+                apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+                dangerouslyAllowBrowser: true
+            });
             const speechResponse = await openai.audio.speech.create({
                 model: 'tts-1',
                 voice: 'alloy',
@@ -247,11 +223,14 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
     const handleQuestionSubmit = async (question, preserveSpeech = false) => {
         setIsLoading(true);
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/analyze-question`, {
+            const response = await fetch(`${apiUrl}/api/analyze-question`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Origin': window.location.origin
                 },
+                credentials: 'include',
+                mode: 'cors', // Explicitly set CORS mode
                 body: JSON.stringify({
                     question: question,
                     current_dataset: dataset
@@ -263,7 +242,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
             }
 
             const data = await response.json();
-            console.log('API Response:', data);
+            console.log('Question:', question);
+            console.log('Question Type:', data.question_type);
 
             if (data.result) {
                 setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
@@ -273,18 +253,18 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
                 }
                 
                 // Reset map for average, pattern existence, and pattern description questions
-                if (['average', 'yes_no', 'description'].includes(data.question_type)) {
+                if (['aggregate', 'is_pattern', 'describe_pattern'].includes(data.question_type)) {
                     onStateQuestion(null);  // Reset the map view
-                    if (data.question_type === 'description') {
+                    if (data.question_type === 'describe_pattern') {
                         onPatternQuestion(true);
                     }
                 } else {
                     // Handle state focusing for other question types
-                    if (data.question_type === 'state_value' && data.state) {
+                    if (data.question_type === 'retrieve' && data.state) {
                         onStateQuestion([data.state]);
-                    } else if (data.question_type === 'state_comparison' && data.states) {
+                    } else if (data.question_type === 'compare' && data.states) {
                         onStateQuestion(data.states);
-                    } else if (data.question_type === 'extrema' && data.state) {
+                    } else if (data.question_type === 'find_extremum' && data.state) {
                         onStateQuestion([data.state]);
                     }
                 }
@@ -371,6 +351,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
         
         try {
             setIsSpeechLoading(true);
+            const openai = new OpenAI({
+                apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+                dangerouslyAllowBrowser: true
+            });
             const speechResponse = await openai.audio.speech.create({
                 model: 'tts-1',
                 voice: 'alloy',
@@ -389,15 +373,32 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion }) => {
         }
     };
 
-    // Speak welcome message on initial load and dataset change
+    // Modify the useEffect for welcome message
     useEffect(() => {
-        speakWelcomeMessage();
+        // Only generate welcome speech if voice mode is on
+        if (useSpeech) {
+            speakWelcomeMessage();
+        } else {
+            // Just set the text without speech
+            setMessages(prev => [...prev, { 
+                text: getMapDescription(),
+                sender: 'bot' 
+            }]);
+        }
+        
         // Cleanup function to stop audio when component unmounts or dataset changes
         return () => {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
         };
-    }, [dataset]);
+    }, [dataset, useSpeech]);
+
+    useEffect(() => {
+        console.log('OpenAI API Key:', process.env.REACT_APP_OPENAI_API_KEY ? 'Set' : 'Not Set');
+        console.log('Mapbox Token:', process.env.REACT_APP_MAPBOX_TOKEN ? 'Set' : 'Not Set');
+    }, []);
 
     return (
         <CardBody className="flex flex-col h-full p-2">
