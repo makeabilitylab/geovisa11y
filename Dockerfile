@@ -1,16 +1,10 @@
 # Build stage
-FROM node:18 as build
+FROM node:18-slim as build
 
 # Set working directory
 WORKDIR /app
 
-# Set environment variables
-ARG REACT_APP_OPENAI_API_KEY
-ARG REACT_APP_MAPBOX_TOKEN
-ENV REACT_APP_OPENAI_API_KEY=$REACT_APP_OPENAI_API_KEY
-ENV REACT_APP_MAPBOX_TOKEN=$REACT_APP_MAPBOX_TOKEN
-
-# Copy package files
+# Copy package files first
 COPY package*.json ./
 
 # Install dependencies
@@ -18,6 +12,19 @@ RUN npm install
 
 # Copy source code
 COPY . .
+
+# Verify and set environment variables
+ARG REACT_APP_MAPBOX_TOKEN
+ARG REACT_APP_OPENAI_API_KEY
+ENV REACT_APP_MAPBOX_TOKEN=$REACT_APP_MAPBOX_TOKEN
+ENV REACT_APP_OPENAI_API_KEY=$REACT_APP_OPENAI_API_KEY
+
+# Add environment verification
+RUN echo "Building with environment variables configured..."
+
+# Create .env file
+RUN echo "REACT_APP_MAPBOX_TOKEN=$REACT_APP_MAPBOX_TOKEN" > .env
+RUN echo "REACT_APP_OPENAI_API_KEY=$REACT_APP_OPENAI_API_KEY" >> .env
 
 # Build the app
 RUN npm run build
@@ -31,8 +38,16 @@ COPY --from=build /app/build /usr/share/nginx/html
 # Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Create a script to inject environment variables at runtime
+RUN echo "window.ENV = {};" > /usr/share/nginx/html/env-config.js
+
+# Modify entrypoint to include environment variable injection
+COPY docker-entrypoint.sh /
+RUN chmod +x /docker-entrypoint.sh
+
 # Expose port
 EXPOSE 80
 
-# Start nginx
+# Use custom entrypoint
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"] 

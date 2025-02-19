@@ -13,6 +13,13 @@ function App() {
     ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
     : 'http://localhost:5000';
 
+  console.log('App initialization:', {
+    nodeEnv: process.env.NODE_ENV,
+    apiUrl: process.env.NODE_ENV === 'production' 
+        ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
+        : 'http://localhost:5000'
+  });
+
   const handleDatasetChange = (dataset) => {
     setCurrentDataset(dataset);
   };
@@ -26,8 +33,8 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen">
-      <div className="w-2/3 h-full">
+    <div className="flex h-screen w-screen overflow-hidden">
+      <div className="w-2/3 h-full relative">
         <ChoroplethMap
           dataset={currentDataset}
           showSpatialClusters={showSpatialClusters}

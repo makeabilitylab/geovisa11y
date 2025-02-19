@@ -48,6 +48,14 @@ def index():
 def test():
     return jsonify({"message": "API is working"}), 200
 
+@app.route('/health')
+def health_check():
+    return jsonify({
+        'status': 'healthy',
+        'environment': os.getenv('FLASK_ENV', 'not_set'),
+        'version': '1.0'
+    })
+
 # Register blueprints
 app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(test_bp)
