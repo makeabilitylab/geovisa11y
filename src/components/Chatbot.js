@@ -13,13 +13,13 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [isSpeechLoading, setIsSpeechLoading] = useState(false);
+    // const [isSpeechLoading, setIsSpeechLoading] = useState(false);
     const chatContainerRef = useRef(null);
     const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const audioRef = useRef(new Audio());
-    const [useSpeech, setUseSpeech] = useState(false);
+    // const [useSpeech, setUseSpeech] = useState(false);
 
     // List of US states
     const states = [
@@ -80,7 +80,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     
     useEffect(() => {
         setExampleQuestions(getExampleQuestions());
-        setUseSpeech(false);  // Reset speech mode when dataset changes
+        //setUseSpeech(false);  // Reset speech mode when dataset changes
     }, [dataset]);
 
     useEffect(() => {
@@ -91,7 +91,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
 
     // Function to handle example question click
     const handleExampleClick = (question) => {
-        setUseSpeech(false);  // Disable speech mode
+        //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: question, sender: 'user' }]);
         handleQuestionSubmit(question, false);  // Explicitly pass false to disable speech
         audioRef.current.pause();  // Stop any ongoing speech
@@ -113,7 +113,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
             mediaRecorderRef.current.onstop = async () => {
                 if (audioChunksRef.current.length > 0) {
                     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                    setUseSpeech(true);
+                    //setUseSpeech(true);
                     await processAudioToText(audioBlob);
                 }
             };
@@ -193,30 +193,30 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
         }
     };
 
-    const speakResponse = async (text) => {
-        try {
-            setIsSpeechLoading(true);
-            const openai = new OpenAI({
-                apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-                dangerouslyAllowBrowser: true
-            });
-            const speechResponse = await openai.audio.speech.create({
-                model: 'tts-1',
-                voice: 'alloy',
-                input: text,
-            });
+    // const speakResponse = async (text) => {
+    //     try {
+    //         setIsSpeechLoading(true);
+    //         const openai = new OpenAI({
+    //             apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+    //             dangerouslyAllowBrowser: true
+    //         });
+    //         const speechResponse = await openai.audio.speech.create({
+    //             model: 'tts-1',
+    //             voice: 'alloy',
+    //             input: text,
+    //         });
 
-            const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
-            const audioUrl = URL.createObjectURL(audioBlob);
+    //         const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
+    //         const audioUrl = URL.createObjectURL(audioBlob);
             
-            audioRef.current.src = audioUrl;
-            await audioRef.current.play();
-        } catch (error) {
-            console.error('Error generating speech:', error);
-        } finally {
-            setIsSpeechLoading(false);  // Reset speech loading state
-        }
-    };
+    //         audioRef.current.src = audioUrl;
+    //         await audioRef.current.play();
+    //     } catch (error) {
+    //         console.error('Error generating speech:', error);
+    //     } finally {
+    //         setIsSpeechLoading(false);  // Reset speech loading state
+    //     }
+    // };
 
     // Modify handleQuestionSubmit to preserve speech mode
     const handleQuestionSubmit = async (question, preserveSpeech = false) => {
@@ -247,9 +247,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
             if (data.result) {
                 setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
                 // Only speak if in voice mode
-                if (useSpeech || preserveSpeech) {
-                    await speakResponse(data.result.replace(/<[^>]*>/g, '')); // Remove HTML tags
-                }
+                // if (useSpeech || preserveSpeech) {
+                //     await speakResponse(data.result.replace(/<[^>]*>/g, '')); // Remove HTML tags
+                // }
                 
                 // Reset map for average, pattern existence, and pattern description questions
                 if (['aggregate', 'is_pattern', 'describe_pattern'].includes(data.question_type)) {
@@ -286,7 +286,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
 
         const userMessage = input;
         setInput('');
-        setUseSpeech(false);  // Disable speech mode
+        //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
         handleQuestionSubmit(userMessage, false);  // Explicitly pass false to disable speech
     };
@@ -367,71 +367,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     useEffect(() => {
         setExampleQuestions(getExampleQuestions());
         setGeneralQuestions(getGeneralQuestions());
-        setUseSpeech(false);  // Reset speech mode when dataset changes
     }, [dataset]);
 
-    // Function to speak the welcome message
-    // const speakWelcomeMessage = async () => {
-    //     const description = getMapDescription();
-    //     const exampleQuestions = getExampleQuestions();
-    //     const generalQuestions = getGeneralQuestions();
-
-    //     const welcomeMessage = `${description} You can ask me questions like: ${exampleQuestions.join('. ')}. Or ask me about: ${generalQuestions.join('. ')}`;
-        
-    //     try {
-    //         setIsSpeechLoading(true);
-    //         const openai = new OpenAI({
-    //             apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-    //             dangerouslyAllowBrowser: true
-    //         });
-    //         const speechResponse = await openai.audio.speech.create({
-    //             model: 'tts-1',
-    //             voice: 'alloy',
-    //             input: welcomeMessage,
-    //         });
-
-    //         const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
-    //         const audioUrl = URL.createObjectURL(audioBlob);
-            
-    //         audioRef.current.src = audioUrl;
-    //         await audioRef.current.play();
-    //     } catch (error) {
-    //         console.error('Error generating welcome speech:', error);
-    //     } finally {
-    //         setIsSpeechLoading(false);
-    //     }
-    // };
-
-    // useEffect for welcome message
-    // useEffect(() => {
-    //     // Only generate welcome speech if voice mode is on
-    //     if (useSpeech) {
-    //         speakWelcomeMessage();
-    //     } else {
-    //         // Just set the text without speech
-    //         setMessages(prev => [...prev, { 
-    //             text: getMapDescription(),
-    //             sender: 'bot' 
-    //         }]);
-    //     }
-        
-    //     // Cleanup function to stop audio when component unmounts or dataset changes
-    //     return () => {
-    //         if (audioRef.current) {
-    //             audioRef.current.pause();
-    //             audioRef.current.currentTime = 0;
-    //         }
-    //     };
-    // }, [dataset, useSpeech]);
-
-
     useEffect(() => {
-        // Just set the text without speech
-        // setMessages(prev => [...prev, { 
-        //     text: getMapDescription(),
-        //     sender: 'bot' 
-        // }]);
-        
         // Cleanup function to stop audio when component unmounts or dataset changes
         return () => {
             if (audioRef.current) {
@@ -538,14 +476,14 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                             </div>
                         </div>
                     ))}
-                    {(isLoading || isSpeechLoading) && (
+                    {isLoading && (
                         <div className="flex justify-start mb-2">
                             <div className="py-2 px-4 rounded-md bg-gray-200 text-gray-900 text-left text-xs">
                                 <Typography 
                                     variant="small" 
                                     className="font-['Roboto'] font-normal leading-[1.2] italic"
                                 >
-                                    {isSpeechLoading ? 'Generating speech...' : 'Looking for answers...'}
+                                    Looking for answers...
                                 </Typography>
                             </div>
                         </div>
