@@ -22,7 +22,7 @@ const Layout = () => {
     return (
         <div className="flex h-screen w-full">
             {/* Map section - 3/4 width */}
-            <div className="w-3/4 h-full">
+            <div className="w-3/4 h-full" tabIndex="-1" aria-hidden="true">
                 <ChoroplethMap 
                     onStateClick={handleStateClick}
                     selectedStates={selectedStates}
@@ -30,7 +30,7 @@ const Layout = () => {
             </div>
 
             {/* Chatbot section - 1/4 width */}
-            <div className="w-1/4 h-full bg-gray-50 border-r border-gray-200">
+            <div className="w-1/4 h-full bg-gray-50 border-r border-gray-200" tabIndex="0">
                 <Chatbot 
                     selectedStates={selectedStates} 
                     onStateRemove={handleStateRemove}

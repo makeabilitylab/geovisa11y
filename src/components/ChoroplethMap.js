@@ -130,15 +130,49 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
             // Add navigation controls
             map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+            // Make nav control buttons inaccessible to screen readers
+            const navButtons = mapContainer.current.getElementsByClassName('mapboxgl-ctrl-group')[0];
+            if (navButtons) {
+                navButtons.setAttribute('aria-hidden', 'true');
+                navButtons.setAttribute('tabindex', '-1');
+                const buttons = navButtons.getElementsByTagName('button');
+                Array.from(buttons).forEach(button => {
+                    button.setAttribute('tabindex', '-1');
+                    button.setAttribute('aria-hidden', 'true');
+                });
+            }
+
+            // Add fullscreen control
             map.current.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+            // Make fullscreen control inaccessible to screen readers
+            const fullscreenButton = mapContainer.current.getElementsByClassName('mapboxgl-ctrl-fullscreen')[0];
+            if (fullscreenButton) {
+                fullscreenButton.setAttribute('aria-hidden', 'true');
+                fullscreenButton.setAttribute('tabindex', '-1');
+            }
+
+            // Add scale control
             map.current.addControl(new mapboxgl.ScaleControl(), 'bottom-right');
-            map.current.addControl(
-                new mapboxgl.GeolocateControl({
-                    positionOptions: { enableHighAccuracy: true },
-                    trackUserLocation: true
-                }),
-                'top-right'
-            );
+            // Make scale control inaccessible to screen readers
+            const scaleElement = mapContainer.current.getElementsByClassName('mapboxgl-ctrl-scale')[0];
+            if (scaleElement) {
+                scaleElement.setAttribute('aria-hidden', 'true');
+            }
+
+            // Add geolocate control
+            // map.current.addControl(
+            //     new mapboxgl.GeolocateControl({
+            //         positionOptions: { enableHighAccuracy: true },
+            //         trackUserLocation: true
+            //     }),
+            //     'top-right'
+            // );
+            // Make geolocate control inaccessible to screen readers
+            const geolocateButton = mapContainer.current.getElementsByClassName('mapboxgl-ctrl-geolocate')[0];
+            if (geolocateButton) {
+                geolocateButton.setAttribute('aria-hidden', 'true');
+                geolocateButton.setAttribute('tabindex', '-1');
+            }
 
             // Initialize popup
             if (!popup.current) {
@@ -545,59 +579,100 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         onSpatialClustersToggle(false); 
     };
 
-    // useEffect(() => {
-    //     // Debug function available in console
-    //     window.debugMap = {
-    //         addTestLayer: () => {
-    //             if (map.current && map.current.isStyleLoaded()) {
-    //                 // Add a simple rectangle
-    //                 map.current.addSource('debug', {
-    //                     type: 'geojson',
-    //                     data: {
-    //                         type: 'Polygon',
-    //                         coordinates: [[
-    //                             [-100, 40],
-    //                             [-90, 40],
-    //                             [-90, 35],
-    //                             [-100, 35],
-    //                             [-100, 40]
-    //                         ]]
-    //                     }
-    //                 });
+    // Debug layer code should stay
+    useEffect(() => {
+        // Debug function available in console
+        window.debugMap = {
+            addTestLayer: () => {
+                if (map.current && map.current.isStyleLoaded()) {
+                    // Add a simple rectangle
+                    map.current.addSource('debug', {
+                        type: 'geojson',
+                        data: {
+                            type: 'Polygon',
+                            coordinates: [[
+                                [-100, 40],
+                                [-90, 40],
+                                [-90, 35],
+                                [-100, 35],
+                                [-100, 40]
+                            ]]
+                        }
+                    });
 
-    //                 map.current.addLayer({
-    //                     id: 'debug-layer',
-    //                     type: 'fill',
-    //                     source: 'debug',
-    //                     paint: {
-    //                         'fill-color': '#ff0000',
-    //                         'fill-opacity': 0.5
-    //                     }
-    //                 });
+                    map.current.addLayer({
+                        id: 'debug-layer',
+                        type: 'fill',
+                        source: 'debug',
+                        paint: {
+                            'fill-color': '#ff0000',
+                            'fill-opacity': 0.5
+                        }
+                    });
                     
-    //                 console.log('Debug layer added');
-    //             } else {
-    //                 console.log('Map not ready');
-    //             }
-    //         },
-    //         getMapState: () => {
-    //             if (map.current) {
-    //                 return {
-    //                     loaded: map.current.loaded(),
-    //                     styleLoaded: map.current.isStyleLoaded(),
-    //                     sources: Object.keys(map.current.getStyle().sources || {}),
-    //                     layers: map.current.getStyle().layers?.map(l => l.id),
-    //                     center: map.current.getCenter(),
-    //                     zoom: map.current.getZoom()
-    //                 };
-    //             }
-    //             return 'Map not initialized';
-    //         }
-    //     };
-    // }, []);
+                    console.log('Debug layer added');
+                } else {
+                    console.log('Map not ready');
+                }
+            },
+            getMapState: () => {
+                if (map.current) {
+                    return {
+                        loaded: map.current.loaded(),
+                        styleLoaded: map.current.isStyleLoaded(),
+                        sources: Object.keys(map.current.getStyle().sources || {}),
+                        layers: map.current.getStyle().layers?.map(l => l.id),
+                        center: map.current.getCenter(),
+                        zoom: map.current.getZoom()
+                    };
+                }
+                return 'Map not initialized';
+            }
+        };
+    }, []);
+
+    // Add new useEffect for accessibility
+    useEffect(() => {
+        if (map.current) {
+            map.current.on('load', () => {
+                // Hide all mapbox controls from screen readers
+                const elementsToHide = document.querySelectorAll(`
+                    .mapboxgl-ctrl-attrib a, 
+                    .mapboxgl-ctrl-logo,
+                    .mapboxgl-ctrl-group button,
+                    .mapboxgl-ctrl-fullscreen,
+                    .mapboxgl-ctrl-geolocate,
+                    .mapboxgl-ctrl-scale,
+                    .mapboxgl-ctrl-compass,
+                    .mapboxgl-ctrl-zoom-in,
+                    .mapboxgl-ctrl-zoom-out
+                `);
+
+                elementsToHide.forEach(element => {
+                    element.setAttribute('tabindex', '-1');
+                    element.setAttribute('aria-hidden', 'true');
+                    element.setAttribute('role', 'presentation');
+                });
+
+                // Also hide the container elements
+                const containers = document.querySelectorAll(`
+                    .mapboxgl-control-container,
+                    .mapboxgl-ctrl-top-right,
+                    .mapboxgl-ctrl-top-left,
+                    .mapboxgl-ctrl-bottom-right,
+                    .mapboxgl-ctrl-bottom-left
+                `);
+
+                containers.forEach(container => {
+                    container.setAttribute('aria-hidden', 'true');
+                    container.setAttribute('role', 'presentation');
+                });
+            });
+        }
+    }, [map.current]);
 
     return (
-        <div className="relative h-full">
+        <div className="relative h-full" aria-hidden="true">
             <div ref={mapContainer} className="h-full" />
 
             {/* Loading Dialog - Show when map is not initialized or layers not ready */}
@@ -631,7 +706,9 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             )}
 
             {/* Dataset Selector and Legend Container */}
-            <div className="absolute top-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90">
+            <div className="absolute top-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90" 
+                aria-hidden="true"
+                tabIndex="-1">
                 {/* Dataset Selector */}
                 <div className="mb-4">
                     <h3 className="text-sm font-bold mb-2">Dataset</h3>
