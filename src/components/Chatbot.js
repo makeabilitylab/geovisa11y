@@ -172,10 +172,41 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
             // Remove processing message
             setMessages(prev => prev.filter(msg => !msg.isTemp));
 
-            const transcribedText = transcriptionResponse.text;
-            if (transcribedText.trim()) {
+            let transcribedText = transcriptionResponse.text;
+            
+            // Filter out various forms of the microphone access message
+            const micAccessMessages = [
+                "Page is accessing your microphone.",
+                "This page is accessing your microphone.",
+                "Change the setting in the address bar.",
+                "Change this setting in the address bar.",
+                "This page is accessing your microphone changes setting in the address bar.",
+                "Page is accessing your microphone changes setting in the address bar.",
+                "Listening.",
+                "listening.",
+                "You are currently on an application inside of Web Content. To exit this web area, press Control, Option, Shift, Up Arrow. "
+            ];
+
+            // Remove each variation of the message
+            micAccessMessages.forEach(msg => {
+                transcribedText = transcribedText.replace(msg, '');
+            });
+
+            // Clean up any extra spaces and trim
+            transcribedText = transcribedText.replace(/\s+/g, ' ').trim();
+
+            if (transcribedText) {
                 // Add the transcribed text to chat as a user message
                 setMessages(prev => [...prev, { text: transcribedText, sender: 'user' }]);
+                
+                // Add delay before processing the question
+                // Estimate reading time: ~200ms per word + 1 second base time
+                const wordCount = transcribedText.split(' ').length;
+                const readingDelay = Math.max(1000, wordCount * 200);
+                
+                // Wait for screen reader to finish
+                await new Promise(resolve => setTimeout(resolve, readingDelay));
+                
                 // Send to API for processing with speech preserved
                 handleQuestionSubmit(transcribedText, true);  // Pass true to preserve speech
             } else {
@@ -384,6 +415,23 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
         console.log('Mapbox Token:', process.env.REACT_APP_MAPBOX_TOKEN ? 'Set' : 'Not Set');
     }, []);
 
+    // Add new useEffect for microphone permission
+    useEffect(() => {
+        const requestMicrophonePermission = async () => {
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        // Stop the stream right away - we just wanted the permission
+                        stream.getTracks().forEach(track => track.stop());
+                    });
+            } catch (error) {
+                console.log('Microphone permission was denied or error occurred:', error);
+            }
+        };
+
+        requestMicrophonePermission();
+    }, []); // Empty dependency array means this runs once on mount
+
     return (
         <CardBody className="flex flex-col h-full p-2">
             
@@ -517,6 +565,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                         isRecording ? 'bg-red-500' : 'bg-teal-500'
                     } text-white p-2.5 aspect-square`}
                     size="sm"
+                    aria-label={isRecording ? "Stop recording voice input" : "Start recording voice input"}
+                    aria-pressed={isRecording}
                 >
                     {isRecording ? 
                         <MicrophoneSlash size={20} weight="bold" /> : 
@@ -527,6 +577,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                     onClick={handleSubmit}
                     className='bg-teal-500 text-white p-2.5 aspect-square'
                     size="sm"
+                    aria-label="Send question"
+                    disabled={!input.trim()}
                 >
                     <ArrowRight size={20} weight="bold" />
                 </Button>

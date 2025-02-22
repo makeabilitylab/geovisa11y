@@ -27,7 +27,7 @@ def get_openai_response(question):
                     - Provide clear, concise definitions
                     - Use simple examples when helpful
                     - Explain why the metric is important
-                    - Keep responses focused and under 100 words
+                    - Keep responses focused and under 50 words
                     """
                 },
                 {
@@ -116,7 +116,10 @@ def analyze_question():
             openai_response = get_openai_response(question)
             print(f"OpenAI response: {openai_response}")
             # Add disclaimer to GPT response with HTML styling
-            gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'>(Answer provided by GPT-4, may not be entirely accurate.)</span>"
+            # gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'>
+            # (Answer provided by GPT-4, may not be entirely accurate.)
+            # </span>"
+            gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>"
             return jsonify({
                 'result': gpt_response,
                 'dataset': current_dataset,

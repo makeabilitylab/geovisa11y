@@ -25,6 +25,8 @@ steps:
     - '5000'
     - '--ingress'
     - 'all'
+    - '--memory'
+    - '1Gi'
 
 images:
   - 'gcr.io/$PROJECT_ID/mappie-talkie-api' 
