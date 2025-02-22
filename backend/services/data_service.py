@@ -477,11 +477,7 @@ def analyze_spatial_question(question, current_dataset='ppl_densit'):
             }
             
         elif question_type == 'correlate':
-            return {
-                'result': "I apologize, but I cannot perform correlation analysis at this time.",
-                'dataset': current_dataset,
-                'question_type': 'correlate'
-            }
+            return None
             
         elif question_type == 'others':
             return None
