@@ -200,3 +200,4 @@ yarn-error.log*
 *.geojson
 
 *.db
+backend/database
