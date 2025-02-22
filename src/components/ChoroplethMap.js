@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import * as turf from '@turf/turf';
 
 const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, apiUrl }) => {
     const mapContainer = useRef(null);
@@ -12,6 +13,10 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const [lisaLayer, setLisaLayer] = useState(null);
     const [lisaLegend, setLisaLegend] = useState(null);
     const [layersInitialized, setLayersInitialized] = useState(false);
+    const [isMapInteractive, setIsMapInteractive] = useState(false);
+    const [currentFocusedState, setCurrentFocusedState] = useState(null);
+    const [stateAnnouncement, setStateAnnouncement] = useState('');
+    const announcementRef = useRef(null);
 
     const datasets = {
         ppl_densit: {
@@ -124,10 +129,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     };
 
-
     const initializeLayers = () => {
         try {
-
             // Add navigation controls
             map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
             // Make nav control buttons inaccessible to screen readers
@@ -371,7 +374,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 });
 
                 // Set up layers once when style loads
-                map.current.once('style.load', () => {
+                map.current.on('style.load', () => {
                     console.log('Style loaded, initializing layers...');
                     initializeLayers();
                     setLayersInitialized(true);
@@ -671,9 +674,207 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [map.current]);
 
+    // Function to find adjacent states using geometric relationships
+    const findAdjacentStates = useCallback((stateName) => {
+        if (!geoData) return null;
+
+        const currentState = geoData.features.find(
+            f => f.properties.state_name.toLowerCase() === stateName.toLowerCase()
+        );
+        if (!currentState) return null;
+
+        // Get current state's centroid from properties
+        const centerX = currentState.properties.c_lon;
+        const centerY = currentState.properties.c_lat;
+
+        if (!centerX || !centerY) {
+            console.error('Missing centroid data for', currentState.properties.state_name);
+            return null;
+        }
+
+        // Find states that share a border
+        const adjacentStates = {
+            north: null,
+            south: null,
+            east: null,
+            west: null
+        };
+
+        // Check each other state for adjacency
+        geoData.features.forEach(feature => {
+            if (feature.properties.state_name === currentState.properties.state_name) return;
+
+            const otherPolygon = turf.polygon(
+                feature.geometry.type === 'Polygon'
+                    ? feature.geometry.coordinates
+                    : feature.geometry.coordinates[0]
+            );
+
+            // Check if states share a border with current state polygon
+            const currentStatePolygon = turf.polygon(
+                currentState.geometry.type === 'Polygon'
+                    ? currentState.geometry.coordinates
+                    : currentState.geometry.coordinates[0]
+            );
+
+            const intersects = turf.booleanIntersects(currentStatePolygon, otherPolygon);
+            
+            if (intersects) {
+                // Get other state's centroid from properties
+                const otherX = feature.properties.c_lon;
+                const otherY = feature.properties.c_lat;
+
+                // Calculate angle between centroids
+                const angle = Math.atan2(otherY - centerY, otherX - centerX) * 180 / Math.PI;
+
+                // Assign state to direction based on angle
+                if (angle >= -45 && angle < 45 && !adjacentStates.east) {
+                    adjacentStates.east = feature.properties.state_name;
+                } else if (angle >= 45 && angle < 135 && !adjacentStates.north) {
+                    adjacentStates.north = feature.properties.state_name;
+                } else if ((angle >= 135 || angle < -135) && !adjacentStates.west) {
+                    adjacentStates.west = feature.properties.state_name;
+                } else if (angle >= -135 && angle < -45 && !adjacentStates.south) {
+                    adjacentStates.south = feature.properties.state_name;
+                }
+            }
+        });
+
+        return adjacentStates;
+    }, [geoData]);
+
+    // Add effect to update the focused state highlight
+    useEffect(() => {
+        if (map.current && layersInitialized && currentFocusedState) {
+            // Create a filter for the current focused state
+            const focusFilter = ['==', 
+                ['get', 'state_name'], 
+                currentFocusedState
+            ];
+
+            // Update the state borders layer to highlight only the focused state
+            map.current.setPaintProperty('state-borders', 'line-opacity', [
+                'case',
+                focusFilter,
+                1,
+                0
+            ]);
+            map.current.setPaintProperty('state-borders', 'line-color', '#000000');
+            map.current.setPaintProperty('state-borders', 'line-width', 1);
+            map.current.setLayoutProperty('state-borders', 'line-cap', 'round');
+        } else if (map.current && layersInitialized) {
+            // Reset the highlight when no state is focused
+            map.current.setPaintProperty('state-borders', 'line-opacity', 0);
+            map.current.setPaintProperty('state-borders', 'line-color', '#ccc');
+            map.current.setLayoutProperty('state-borders', 'line-cap', 'butt');  // Reset to default
+        }
+    }, [currentFocusedState, layersInitialized]);
+
+    // Handle keyboard navigation
+    const handleKeyNavigation = useCallback((e) => {
+        if (!isMapInteractive || !geoData) return;
+
+        if (e.key === 'Tab' && !currentFocusedState) {
+            e.preventDefault();
+            setCurrentFocusedState('Kansas');
+            setStateAnnouncement('Now focused on Kansas state');
+            focusStateOnMap('Kansas');
+        }
+
+        if (currentFocusedState && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+            e.preventDefault();
+            const direction = {
+                'ArrowUp': 'north',
+                'ArrowDown': 'south',
+                'ArrowLeft': 'west',
+                'ArrowRight': 'east'
+            }[e.key];
+
+            const adjacentStates = findAdjacentStates(currentFocusedState);
+            const nextState = adjacentStates?.[direction];
+
+            if (nextState) {
+                setCurrentFocusedState(nextState);
+                setStateAnnouncement(`Now focused on ${nextState} state`);
+                focusStateOnMap(nextState);
+            } else {
+                // Announce when there's no state in the attempted direction
+                setStateAnnouncement(
+                    `There is no state ${direction} of ${currentFocusedState}`
+                );
+            }
+        }
+    }, [isMapInteractive, currentFocusedState, geoData, findAdjacentStates]);
+
+    // Helper function to focus the map on a state
+    const focusStateOnMap = useCallback((stateName) => {
+        const feature = geoData?.features.find(f => 
+            f.properties.state_name.toLowerCase() === stateName.toLowerCase()
+        );
+        if (feature && map.current) {
+            const bounds = new mapboxgl.LngLatBounds();
+            const coordinates = feature.geometry.type === 'Polygon' 
+                ? feature.geometry.coordinates[0]
+                : feature.geometry.coordinates.flat(1);
+            coordinates.forEach(coord => bounds.extend(coord));
+            
+            map.current.fitBounds(bounds, {
+                padding: 200,
+                duration: 1000
+            });
+        }
+    }, [geoData]);
+
+    // Handle Shift+M to toggle map interaction
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.shiftKey && e.key.toLowerCase() === 'm') {
+                setIsMapInteractive(prev => !prev);
+                setStateAnnouncement(prev => 
+                    !isMapInteractive 
+                        ? 'Map interaction enabled. Press Tab to focus on Kansas.' 
+                        : 'Map interaction disabled.'
+                );
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keydown', handleKeyNavigation);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keydown', handleKeyNavigation);
+        };
+    }, [handleKeyNavigation]);
+
     return (
         <div className="relative h-full" aria-hidden="true">
-            <div ref={mapContainer} className="h-full" />
+            <div ref={mapContainer} className="h-full" 
+                aria-hidden={!isMapInteractive} 
+                role="application"
+                aria-label="Interactive map of United States"
+            />
+
+            {/* Live region for announcements */}
+            <div
+                ref={announcementRef}
+                role="status"
+                aria-live="polite"
+                className="sr-only"
+            >
+                {stateAnnouncement}
+            </div>
+
+            {/* Current focused state display and announcements */}
+            {(currentFocusedState || stateAnnouncement) && (
+                <div 
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg"
+                    role="status"
+                    aria-live="polite"
+                >
+                    {stateAnnouncement || `Now focused on ${currentFocusedState} state`}
+                </div>
+            )}
 
             {/* Loading Dialog - Show when map is not initialized or layers not ready */}
             {(!map.current || !layersInitialized) && (

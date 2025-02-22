@@ -29,6 +29,8 @@ def fetch_density_data(table_name, accuracy, value_column='ppl_densit'):
                    THEN COALESCE({value_column}, 0) * 100  -- Multiply percentages by 100
                    ELSE COALESCE({value_column}, 0)
                END as value,
+               ST_X(ST_Centroid(geom)) as c_lon,
+               ST_Y(ST_Centroid(geom)) as c_lat,
                ST_AsText(ST_Simplify(geom, {accuracy})) AS geom_wkt
         FROM {table_name}
         """
@@ -53,6 +55,10 @@ def fetch_density_data(table_name, accuracy, value_column='ppl_densit'):
                 lisa_mapping[state] = 'LH'
             
             gdf['lisa_class'] = gdf['state_name'].map(lisa_mapping)
+        
+        # Keep the centroid coordinates in the properties
+        gdf['c_lon'] = query_result['c_lon']
+        gdf['c_lat'] = query_result['c_lat']
         
         gdf.drop(columns=['geom_wkt'], inplace=True)
         geojson_data = json.loads(gdf.to_json())
