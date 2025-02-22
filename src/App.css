@@ -36,3 +36,32 @@
     transform: rotate(360deg);
   }
 }
+
+/* Add these styles to your existing App.css */
+
+/* Hide Mapbox controls from screen readers */
+.mapboxgl-control-container {
+    aria-hidden: true;
+}
+
+.mapboxgl-ctrl-group button,
+.mapboxgl-ctrl-fullscreen,
+.mapboxgl-ctrl-geolocate {
+    aria-hidden: true;
+    tabindex: -1;
+}
+
+/* Hide attribution from screen readers */
+.mapboxgl-ctrl-attrib {
+    aria-hidden: true;
+}
+
+/* Hide popup from screen readers as the information is available through the chat interface */
+.mapboxgl-popup {
+    aria-hidden: true;
+}
+
+/* Hide welcome message from screen readers */
+/* #welcome {
+    background-color: violet;
+} */

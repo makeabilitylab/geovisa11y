@@ -13,19 +13,18 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [isSpeechLoading, setIsSpeechLoading] = useState(false);
+    // const [isSpeechLoading, setIsSpeechLoading] = useState(false);
     const chatContainerRef = useRef(null);
     const [isRecording, setIsRecording] = useState(false);
-    // const [audioBlob, setAudioBlob] = useState(null);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const audioRef = useRef(new Audio());
-    const [useSpeech, setUseSpeech] = useState(false);
+    // const [useSpeech, setUseSpeech] = useState(false);
 
     // List of US states
     const states = [
-        'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
-        'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+        'Alabama', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+        'Delaware', 'Florida', 'Georgia', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
         'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
         'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
         'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
@@ -81,7 +80,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     
     useEffect(() => {
         setExampleQuestions(getExampleQuestions());
-        setUseSpeech(false);  // Reset speech mode when dataset changes
+        //setUseSpeech(false);  // Reset speech mode when dataset changes
     }, [dataset]);
 
     useEffect(() => {
@@ -92,7 +91,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
 
     // Function to handle example question click
     const handleExampleClick = (question) => {
-        setUseSpeech(false);  // Disable speech mode
+        //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: question, sender: 'user' }]);
         handleQuestionSubmit(question, false);  // Explicitly pass false to disable speech
         audioRef.current.pause();  // Stop any ongoing speech
@@ -114,7 +113,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
             mediaRecorderRef.current.onstop = async () => {
                 if (audioChunksRef.current.length > 0) {
                     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                    setUseSpeech(true);
+                    //setUseSpeech(true);
                     await processAudioToText(audioBlob);
                 }
             };
@@ -173,10 +172,41 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
             // Remove processing message
             setMessages(prev => prev.filter(msg => !msg.isTemp));
 
-            const transcribedText = transcriptionResponse.text;
-            if (transcribedText.trim()) {
+            let transcribedText = transcriptionResponse.text;
+            
+            // Filter out various forms of the microphone access message
+            const micAccessMessages = [
+                "Page is accessing your microphone.",
+                "This page is accessing your microphone.",
+                "Change the setting in the address bar.",
+                "Change this setting in the address bar.",
+                "This page is accessing your microphone changes setting in the address bar.",
+                "Page is accessing your microphone changes setting in the address bar.",
+                "Listening.",
+                "listening.",
+                "You are currently on an application inside of Web Content. To exit this web area, press Control, Option, Shift, Up Arrow. "
+            ];
+
+            // Remove each variation of the message
+            micAccessMessages.forEach(msg => {
+                transcribedText = transcribedText.replace(msg, '');
+            });
+
+            // Clean up any extra spaces and trim
+            transcribedText = transcribedText.replace(/\s+/g, ' ').trim();
+
+            if (transcribedText) {
                 // Add the transcribed text to chat as a user message
                 setMessages(prev => [...prev, { text: transcribedText, sender: 'user' }]);
+                
+                // Add delay before processing the question
+                // Estimate reading time: ~200ms per word + 1 second base time
+                const wordCount = transcribedText.split(' ').length;
+                const readingDelay = Math.max(1000, wordCount * 200);
+                
+                // Wait for screen reader to finish
+                await new Promise(resolve => setTimeout(resolve, readingDelay));
+                
                 // Send to API for processing with speech preserved
                 handleQuestionSubmit(transcribedText, true);  // Pass true to preserve speech
             } else {
@@ -194,30 +224,30 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
         }
     };
 
-    const speakResponse = async (text) => {
-        try {
-            setIsSpeechLoading(true);
-            const openai = new OpenAI({
-                apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-                dangerouslyAllowBrowser: true
-            });
-            const speechResponse = await openai.audio.speech.create({
-                model: 'tts-1',
-                voice: 'alloy',
-                input: text,
-            });
+    // const speakResponse = async (text) => {
+    //     try {
+    //         setIsSpeechLoading(true);
+    //         const openai = new OpenAI({
+    //             apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+    //             dangerouslyAllowBrowser: true
+    //         });
+    //         const speechResponse = await openai.audio.speech.create({
+    //             model: 'tts-1',
+    //             voice: 'alloy',
+    //             input: text,
+    //         });
 
-            const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
-            const audioUrl = URL.createObjectURL(audioBlob);
+    //         const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
+    //         const audioUrl = URL.createObjectURL(audioBlob);
             
-            audioRef.current.src = audioUrl;
-            await audioRef.current.play();
-        } catch (error) {
-            console.error('Error generating speech:', error);
-        } finally {
-            setIsSpeechLoading(false);  // Reset speech loading state
-        }
-    };
+    //         audioRef.current.src = audioUrl;
+    //         await audioRef.current.play();
+    //     } catch (error) {
+    //         console.error('Error generating speech:', error);
+    //     } finally {
+    //         setIsSpeechLoading(false);  // Reset speech loading state
+    //     }
+    // };
 
     // Modify handleQuestionSubmit to preserve speech mode
     const handleQuestionSubmit = async (question, preserveSpeech = false) => {
@@ -248,9 +278,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
             if (data.result) {
                 setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
                 // Only speak if in voice mode
-                if (useSpeech || preserveSpeech) {
-                    await speakResponse(data.result.replace(/<[^>]*>/g, '')); // Remove HTML tags
-                }
+                // if (useSpeech || preserveSpeech) {
+                //     await speakResponse(data.result.replace(/<[^>]*>/g, '')); // Remove HTML tags
+                // }
                 
                 // Reset map for average, pattern existence, and pattern description questions
                 if (['aggregate', 'is_pattern', 'describe_pattern'].includes(data.question_type)) {
@@ -287,15 +317,45 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
 
         const userMessage = input;
         setInput('');
-        setUseSpeech(false);  // Disable speech mode
+        //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
         handleQuestionSubmit(userMessage, false);  // Explicitly pass false to disable speech
     };
 
-    // Add keydown handler for Enter key
+    // Add keydown and keyup handlers for spacebar
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Only start recording if space is pressed and we're not already recording
+            if (e.code === 'Space' && !isRecording && !e.repeat) {
+                e.preventDefault(); // Prevent space from scrolling the page
+                startRecording();
+            }
+        };
+
+        const handleKeyUp = (e) => {
+            if (e.code === 'Space' && isRecording) {
+                e.preventDefault();
+                stopRecording();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
+    }, [isRecording]); // Add isRecording to dependency array
+
+    // Modify handleKeyDown for text input to ignore spacebar
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             handleSubmit(e);
+        }
+        // Prevent spacebar from triggering in the input field
+        if (e.code === 'Space') {
+            e.stopPropagation();
         }
     };
 
@@ -338,54 +398,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     useEffect(() => {
         setExampleQuestions(getExampleQuestions());
         setGeneralQuestions(getGeneralQuestions());
-        setUseSpeech(false);  // Reset speech mode when dataset changes
     }, [dataset]);
 
-    // Function to speak the welcome message
-    const speakWelcomeMessage = async () => {
-        const description = getMapDescription();
-        const exampleQuestions = getExampleQuestions();
-        const generalQuestions = getGeneralQuestions();
-
-        const welcomeMessage = `${description} You can ask me questions like: ${exampleQuestions.join('. ')}. Or ask me about: ${generalQuestions.join('. ')}`;
-        
-        try {
-            setIsSpeechLoading(true);
-            const openai = new OpenAI({
-                apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-                dangerouslyAllowBrowser: true
-            });
-            const speechResponse = await openai.audio.speech.create({
-                model: 'tts-1',
-                voice: 'alloy',
-                input: welcomeMessage,
-            });
-
-            const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            
-            audioRef.current.src = audioUrl;
-            await audioRef.current.play();
-        } catch (error) {
-            console.error('Error generating welcome speech:', error);
-        } finally {
-            setIsSpeechLoading(false);
-        }
-    };
-
-    // Modify the useEffect for welcome message
     useEffect(() => {
-        // Only generate welcome speech if voice mode is on
-        if (useSpeech) {
-            speakWelcomeMessage();
-        } else {
-            // Just set the text without speech
-            setMessages(prev => [...prev, { 
-                text: getMapDescription(),
-                sender: 'bot' 
-            }]);
-        }
-        
         // Cleanup function to stop audio when component unmounts or dataset changes
         return () => {
             if (audioRef.current) {
@@ -393,16 +408,35 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                 audioRef.current.currentTime = 0;
             }
         };
-    }, [dataset, useSpeech]);
+    }, [dataset]);
 
     useEffect(() => {
         console.log('OpenAI API Key:', process.env.REACT_APP_OPENAI_API_KEY ? 'Set' : 'Not Set');
         console.log('Mapbox Token:', process.env.REACT_APP_MAPBOX_TOKEN ? 'Set' : 'Not Set');
     }, []);
 
+    // Add new useEffect for microphone permission
+    useEffect(() => {
+        const requestMicrophonePermission = async () => {
+            try {
+                await navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        // Stop the stream right away - we just wanted the permission
+                        stream.getTracks().forEach(track => track.stop());
+                    });
+            } catch (error) {
+                console.log('Microphone permission was denied or error occurred:', error);
+            }
+        };
+
+        requestMicrophonePermission();
+    }, []); // Empty dependency array means this runs once on mount
+
     return (
         <CardBody className="flex flex-col h-full p-2">
-            <Typography variant="h6" color="blue-gray" className="mb-2">
+            
+            <div id = "welcome"  aria-live="polite" role="application" tabIndex="0">
+            <Typography variant="h1" color="blue-gray" className="mb-2">
                 MappieTalkie
             </Typography>
 
@@ -416,13 +450,20 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
             <div className="mb-2">
                 <div className="flex flex-wrap gap-2">
                     {exampleQuestions.map((question, index) => (
-                        <button
+                        <span
                             key={index}
                             onClick={() => handleExampleClick(question)}
-                            className="px-3 py-1 bg-light-green-50 hover:bg-light-green-100 rounded-full text-xs text-green-900 transition-colors text-left"
+                            className="px-3 py-1 bg-light-green-50 hover:bg-light-green-100 rounded-full text-xs text-green-900 transition-colors text-left cursor-pointer"
+                            role="text"
+                            tabIndex="0"
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    handleExampleClick(question);
+                                }
+                            }}
                         >
                             {question}
-                        </button>
+                        </span>
                     ))}
                 </div>
             </div>
@@ -434,57 +475,74 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                 </Typography>
                 <div className="flex flex-wrap gap-2">
                     {generalQuestions.map((question, index) => (
-                        <button
+                        <span
                             key={index}
                             onClick={() => handleExampleClick(question)}
-                            className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left"
+                            className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer"
+                            role="text"
+                            tabIndex="0"
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    handleExampleClick(question);
+                                }
+                            }}
                         >
                             {question}
-                        </button>
+                        </span>
                     ))}
                 </div>
+                <Typography variant="small" color="gray" className="mt-2 text-xs">
+                    Press and hold the spacebar to speak.
+                </Typography>
             </div>
-
+            </div>
             <div 
                 ref={chatContainerRef}
                 className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md"
+                // aria-hidden="true"
+                // tabIndex="-1"
             >
-                {messages.map((msg, index) => (
-                    <div
-                        key={index}
-                        className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
-                    >
+                <div aria-live="polite" role="log">
+                    {messages.map((msg, index) => (
                         <div
-                            className={`py-2 px-4 rounded-md max-w-[80%] font-['Roboto'] ${
-                                msg.sender === 'user'
-                                    ? 'bg-teal-100 text-teal-900 text-left text-xs'
-                                    : 'bg-gray-200 text-gray-900 text-left text-xs'
-                            }`}
+                            key={index}
+                            className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
+                            tabIndex="-1"
                         >
-                            <Typography 
-                                variant="small" 
-                                className="font-['Roboto'] font-normal leading-[1.2]"
-                                dangerouslySetInnerHTML={{ __html: msg.text }}
-                            />
-                        </div>
-                    </div>
-                ))}
-                {(isLoading || isSpeechLoading) && (
-                    <div className="flex justify-start mb-2">
-                        <div className="py-2 px-4 rounded-md bg-gray-200 text-gray-900 text-left text-xs">
-                            <Typography 
-                                variant="small" 
-                                className="font-['Roboto'] font-normal leading-[1.2] italic"
+                            <div
+                                className={`py-2 px-4 rounded-md max-w-[80%] font-['Roboto'] ${
+                                    msg.sender === 'user'
+                                        ? 'bg-teal-100 text-teal-900 text-left text-xs'
+                                        : 'bg-gray-200 text-gray-900 text-left text-xs'
+                                }`}
                             >
-                                {isSpeechLoading ? 'Generating speech...' : 'Looking for answers...'}
-                            </Typography>
+                                <Typography 
+                                    variant="small" 
+                                    className="font-['Roboto'] font-normal leading-[1.2]"
+                                    dangerouslySetInnerHTML={{ __html: msg.text }}
+                                />
+                            </div>
                         </div>
-                    </div>
-                )}
+                    ))}
+                    {isLoading && (
+                        <div className="flex justify-start mb-2">
+                            <div className="py-2 px-4 rounded-md bg-gray-200 text-gray-900 text-left text-xs">
+                                <Typography 
+                                    variant="small" 
+                                    className="font-['Roboto'] font-normal leading-[1.2] italic"
+                                >
+                                    Looking for answers...
+                                </Typography>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Input, Microphone, and Send Button */}
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center"
+               aria-hidden="true"
+               tabIndex="-1">
                 <div className="flex-grow">
                     <Input
                         type="text"
@@ -497,6 +555,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                             className: "!text-teal-500"
                         }}
                         color="teal"
+                        aria-label="Type your question here"
+                        aria-description="Press Enter to submit your question"
                     />
                 </div>
                 <Button 
@@ -505,6 +565,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                         isRecording ? 'bg-red-500' : 'bg-teal-500'
                     } text-white p-2.5 aspect-square`}
                     size="sm"
+                    aria-label={isRecording ? "Stop recording voice input" : "Start recording voice input"}
+                    aria-pressed={isRecording}
                 >
                     {isRecording ? 
                         <MicrophoneSlash size={20} weight="bold" /> : 
@@ -515,6 +577,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                     onClick={handleSubmit}
                     className='bg-teal-500 text-white p-2.5 aspect-square'
                     size="sm"
+                    aria-label="Send question"
+                    disabled={!input.trim()}
                 >
                     <ArrowRight size={20} weight="bold" />
                 </Button>
