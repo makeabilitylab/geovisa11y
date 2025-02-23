@@ -9,7 +9,7 @@ import {
 } from '@material-tailwind/react';
 
 
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, apiUrl }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -70,7 +70,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                 `Which state has the ${extrema} population density?`,
                 "What's the average population density in this map?",
                 "Is there a pattern in this map?",
-                "Can you describe the pattern?"
+                "Can you describe the pattern?",
             ];
         }
     };
@@ -192,10 +192,18 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                 transcribedText = transcribedText.replace(msg, '');
             });
 
-            // Clean up any extra spaces and trim
-            transcribedText = transcribedText.replace(/\s+/g, ' ').trim();
+            // Clean up punctuation and extra spaces
+            transcribedText = transcribedText
+                .replace(/[.,!?]+$/, '') // Remove ending punctuation
+                .replace(/\s+/g, ' ')
+                .trim();
 
             if (transcribedText) {
+                // Convert common speech patterns to standardized commands
+                transcribedText = transcribedText
+                    .replace(/^(?:can you |please |could you )?(?:show me |take me to |navigate to |zoom to |move to )/i, 'go to ')
+                    .replace(/^(?:can you |please |could you )?(?:focus |zoom |center |concentrate )/i, 'focus on ');
+
                 // Add the transcribed text to chat as a user message
                 setMessages(prev => [...prev, { text: transcribedText, sender: 'user' }]);
                 
@@ -208,7 +216,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                 await new Promise(resolve => setTimeout(resolve, readingDelay));
                 
                 // Send to API for processing with speech preserved
-                handleQuestionSubmit(transcribedText, true);  // Pass true to preserve speech
+                handleQuestionSubmit(transcribedText, true);
             } else {
                 setMessages(prev => [...prev, { 
                     text: 'I couldn\'t detect any speech. Please try again.',
@@ -250,9 +258,32 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
     // };
 
     // Modify handleQuestionSubmit to preserve speech mode
-    const handleQuestionSubmit = async (question, preserveSpeech = false) => {
-        setIsLoading(true);
+    const handleQuestionSubmit = async (question, useSpeech = false) => {
         try {
+            setIsLoading(true);
+
+            // Clean up the question text
+            const cleanQuestion = question.replace(/[.,!?]+$/, '').trim();
+
+            // Check for focus/navigation commands with more flexible matching
+            const focusMatch = cleanQuestion.match(/^(?:focus\s+on|go\s+to)\s+(.+)$/i);
+            if (focusMatch) {
+                const stateName = focusMatch[1].trim();
+                const validState = states.find(
+                    state => state.toLowerCase() === stateName.toLowerCase()
+                );
+                
+                if (validState) {
+                    // Reset county view before focusing on new state
+                    onStateQuestion(null); // This will trigger cleanup
+                    onStateFocus(validState);
+                    setMessages(prev => [...prev, 
+                        { text: `Focusing on ${validState}.`, sender: 'bot' }
+                    ]);
+                    return;
+                }
+            }
+
             const response = await fetch(`${apiUrl}/api/analyze-question`, {
                 method: 'POST',
                 headers: {
@@ -307,8 +338,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, apiUrl }) => {
                 text: 'Sorry, I encountered an error. Please try again.',
                 sender: 'bot'
             }]);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     const handleSubmit = async (e) => {

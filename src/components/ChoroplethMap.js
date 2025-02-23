@@ -448,7 +448,22 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     useEffect(() => {
         if (map.current && layersInitialized && geoData) {
             if (focusedState === null) {
-                // Reset to default view
+                // Reset to default view and clean up counties
+                setShowingCounties(false);
+                setCurrentFocusedCounty(null);
+                setCountyData(null);
+                if (map.current) {
+                    if (map.current.getLayer('county-borders')) {
+                        map.current.removeLayer('county-borders');
+                    }
+                    if (map.current.getLayer('county-fills')) {
+                        map.current.removeLayer('county-fills');
+                    }
+                    if (map.current.getSource('counties')) {
+                        map.current.removeSource('counties');
+                    }
+                }
+
                 map.current.flyTo({
                     center: [-96, 37.8],
                     zoom: 4,
@@ -457,13 +472,38 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 
                 // Clear state highlights
                 map.current.setPaintProperty('state-borders', 'line-opacity', 0);
+                setStateAnnouncement(''); // Clear the announcement
+                setCurrentFocusedState(null); // Clear the focused state
             } else {
                 console.log('Focusing on states:', focusedState);
                 
                 // Handle both single state and array of states
                 const statesToFocus = Array.isArray(focusedState) ? focusedState : [focusedState];
                 
-                // Find features for all focused states (case-insensitive)
+                // Update the current focused state and announcement
+                setCurrentFocusedState(statesToFocus[0]); // Set to first state if multiple
+                setStateAnnouncement(
+                    statesToFocus.length > 1 
+                        ? `Now comparing ${statesToFocus.join(' and ')}`
+                        : `Now focused on ${statesToFocus[0]} state`
+                );
+                // Clean up any existing county layers before focusing on new state
+                if (showingCounties) {
+                    setShowingCounties(false);
+                    setCurrentFocusedCounty(null);
+                    setCountyData(null);
+                    if (map.current.getLayer('county-borders')) {
+                        map.current.removeLayer('county-borders');
+                    }
+                    if (map.current.getLayer('county-fills')) {
+                        map.current.removeLayer('county-fills');
+                    }
+                    if (map.current.getSource('counties')) {
+                        map.current.removeSource('counties');
+                    }
+                }
+
+                // Rest of the focusing logic...
                 const features = statesToFocus.map(state => 
                     geoData.features.find(f => 
                         f.properties.state_name.toLowerCase() === state.toLowerCase()
@@ -1048,7 +1088,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
 
         // Handle zoom in/out
-        if ((e.key.toLowerCase() === 'z' || e.key === '+') && currentFocusedState) {
+        if ((e.key === '=') && currentFocusedState) {
             e.preventDefault();
             if (!showingCounties) {
                 fetchCountyData(currentFocusedState);
@@ -1091,7 +1131,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     // Handle Shift+M to toggle map interaction
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.shiftKey && e.key.toLowerCase() === 'm') {
+            if (e.ctrlKey && e.key.toLowerCase() === 'm') {
                 setIsMapInteractive(prev => !prev);
                 setStateAnnouncement(prev => 
                     !isMapInteractive 
@@ -1130,7 +1170,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
             {/* Current focused state display and announcements */}
             {(currentFocusedState || stateAnnouncement) && (
-                <div 
+                <div id="map-interaction-announcement"
                     className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg"
                     role="status"
                     aria-live="polite"

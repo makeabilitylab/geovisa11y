@@ -48,6 +48,7 @@ function App() {
           dataset={currentDataset}
           onPatternQuestion={handlePatternQuestion}
           onStateQuestion={handleStateQuestion}
+          onStateFocus={(stateName) => setFocusedState(stateName)}
           apiUrl={API_URL}
         />
       </div>
