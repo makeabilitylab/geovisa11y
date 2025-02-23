@@ -1039,13 +1039,13 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             }
         }
 
-        // Handle arrow key navigation - only if we're not in the transition state
+        // Handle arrow key navigation - only if we have a focused state or county
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
             e.preventDefault();
             
-            // Disable arrow keys when showing counties but no county is focused yet
-            if (showingCounties && !currentFocusedCounty) {
-                setStateAnnouncement('Press Tab to focus on a county before using arrow keys');
+            // Disable arrow keys when no state is focused or when showing counties but no county is focused
+            if (!currentFocusedState || (showingCounties && !currentFocusedCounty)) {
+                setStateAnnouncement('Press Tab to focus on a state before using arrow keys');
                 return;
             }
 
