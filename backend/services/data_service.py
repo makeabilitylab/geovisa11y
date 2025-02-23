@@ -205,7 +205,8 @@ def answer_question(question, current_dataset):
                 return None
             result = find_similar(states[0], current_dataset)
             return {
-                'result': result,
+                'result': result['result'],
+                'state': result['state'],
                 'dataset': current_dataset,
                 'question_type': 'cluster'
             }
@@ -236,6 +237,9 @@ def answer_question(question, current_dataset):
             }
             
         elif question_type == 'correlate':
+            return None
+        
+        elif question_type == 'describe_shape':
             return None
             
         elif question_type == 'others':
@@ -523,10 +527,17 @@ def find_similar(state, dataset):
         query = f"""
             SELECT {dataset} as value
             FROM state
-            WHERE state_name = ?
+            WHERE LOWER(state_name) = LOWER(?)
         """
         
-        ref_value = con.execute(query, [state]).fetchone()[0]
+        ref_result = con.execute(query, [state]).fetchone()
+        if not ref_result:
+            return {
+                'result': f"Could not find state: {state.title()}",
+                'state': state.title()
+            }
+        
+        ref_value = ref_result[0]
         
         # Then find states within 10% of this value
         margin = ref_value * 0.1
@@ -534,7 +545,7 @@ def find_similar(state, dataset):
             SELECT state_name, {dataset} as value
             FROM state
             WHERE {dataset} BETWEEN ? AND ?
-            AND state_name != ?
+            AND LOWER(state_name) != LOWER(?)
             ORDER BY ABS({dataset} - ?)
             LIMIT 5
         """
@@ -546,14 +557,23 @@ def find_similar(state, dataset):
         unit = semantic_service.dataset_terms[dataset]['unit']
         
         if not results:
-            return f"No states have similar {metric_name} to {state}."
+            return {
+                'result': f"No states have similar {metric_name} to {state.title()}.",
+                'state': state.title()
+            }
             
-        similar_states = [f"{r[0]} ({r[1]:.2f} {unit})" for r in results]
-        return f"States with similar {metric_name} to {state}: " + ", ".join(similar_states)
+        similar_states = [f"{r[0].title()} ({r[1]:.2f} {unit})" for r in results]
+        return {
+            'result': f"States with the closest {metric_name} to {state.title()}: " + ", ".join(similar_states),
+            'state': state.title()
+        }
         
     except Exception as e:
         print(f"Error in find_similar: {str(e)}")
-        return None
+        return {
+            'result': f"Error finding similar states to {state.title()}",
+            'state': state.title()
+        }
 
 #08_identify_pattern
 def get_moran_i(dataset):
