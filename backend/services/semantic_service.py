@@ -33,12 +33,13 @@ class SemanticService:
             5. filter - Condition-based filtering (e.g., "Which states have X less than Y?")
             6. sort - Ordering and ranking (e.g., "What are top 3 states with highest X?")
             7. data_ranges - Finding ranges (e.g., "What's the range of X values?")
-            8. cluster - Finding similar values (e.g., "Which states have similar X to Y?")
+            8. cluster - Finding similar values (e.g., "Which states have similar {values} to {state}?, Which states have {values} close to {state}?")
             9. is_pattern - Pattern existence (e.g., "Is there a pattern in the map?")
             10. describe_pattern - Pattern description (e.g., "Describe the pattern in the map")
             11. find_outliers - Finding outliers (e.g., "What states have high X despite low surroundings?")
             12. correlate - Relationship analysis (e.g., "Is there a relationship between X and Y?")
-            13. others - Conceptual/invalid questions (e.g., "What is X?" or invalid queries)
+            13. describe_shape - Shape description (e.g., "Can you describe the shape of X?")
+            14. others - Conceptual/invalid questions (e.g., "What is X?" or invalid queries)
 
             Respond with ONLY the category name, nothing else."""
 

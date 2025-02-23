@@ -1,7 +1,7 @@
 # routes/api.py
 
 from flask import Blueprint, jsonify, request, make_response
-from services.data_service import fetch_data, analyze_state_data, answer_question
+from services.data_service import fetch_data, answer_question
 from services.semantic_service import SemanticService
 import openai
 from config import DevelopmentConfig
@@ -61,29 +61,29 @@ def get_geojson(dataset):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@api.route('/analyze-density', methods=['POST', 'OPTIONS'])
-def analyze_density():
-    if request.method == 'OPTIONS':
-        return '', 200
+# @api.route('/analyze-density', methods=['POST', 'OPTIONS'])
+# def analyze_density():
+#     if request.method == 'OPTIONS':
+#         return '', 200
         
-    try:
-        data = request.json
-        question = data.get('question')
-        selected_states = data.get('selected_states', [])
-        dataset = data.get('dataset', 'ppl_densit')
+#     try:
+#         data = request.json
+#         question = data.get('question')
+#         selected_states = data.get('selected_states', [])
+#         dataset = data.get('dataset', 'ppl_densit')
         
-        if not question:
-            return jsonify({'error': 'No question provided'}), 400
+#         if not question:
+#             return jsonify({'error': 'No question provided'}), 400
             
-        analysis = analyze_state_data(question, selected_states, dataset)
+#         analysis = analyze_state_data(question, selected_states, dataset)
         
-        if analysis is None:
-            return jsonify({'result': None}), 200
+#         if analysis is None:
+#             return jsonify({'result': None}), 200
             
-        return jsonify({'result': analysis}), 200
+#         return jsonify({'result': analysis}), 200
         
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
 
 @api.route('/analyze-question', methods=['POST', 'OPTIONS'])
 def analyze_question():
