@@ -1,7 +1,7 @@
 # routes/api.py
 
 from flask import Blueprint, jsonify, request, make_response
-from services.data_service import fetch_density_data, analyze_state_data, analyze_spatial_question
+from services.data_service import fetch_data, analyze_state_data, answer_question
 from services.semantic_service import SemanticService
 import openai
 from config import DevelopmentConfig
@@ -57,7 +57,7 @@ def get_geojson(dataset):
         
     try:
         accuracy = request.args.get("accuracy", default=0.01, type=float)
-        return fetch_density_data('state', accuracy, dataset)
+        return fetch_data('state', accuracy, dataset)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -106,7 +106,7 @@ def analyze_question():
         print(f"Processing question: {question} for dataset: {current_dataset}")
         
         # Try spatial analysis first
-        analysis = analyze_spatial_question(question, current_dataset)
+        analysis = answer_question(question, current_dataset)
         print(f"Analysis result: {analysis}")
         
         if analysis:
@@ -153,7 +153,7 @@ def get_counties(state_name):
         print(f"Fetching counties for state: {state_name}")  # Debug log
         accuracy = request.args.get("accuracy", default=0.01, type=float)
         # Changed 'dataset' to 'value_column' to match the function signature
-        result = fetch_density_data('county', accuracy, value_column='ppl_densit', state_filter=state_name)
+        result = fetch_data('county', accuracy, value_column='ppl_densit', state_filter=state_name)
         print(f"Result type: {type(result)}")  # Debug log
         return result
     except Exception as e:
