@@ -11,6 +11,7 @@ from esda import Moran_Local, Moran
 import openai
 from config import DevelopmentConfig
 from services.semantic_service import SemanticService
+import traceback
 
 # Initialize DuckDB connection
 con = duckdb.connect('database/spatial-db.db', read_only=True)
@@ -20,8 +21,14 @@ con.execute("LOAD 'spatial';")
 # Initialize the semantic service
 semantic_service = SemanticService()
 
-def fetch_density_data(table_name, accuracy, value_column='ppl_densit'):
+def fetch_density_data(table_name, accuracy, value_column='ppl_densit', state_filter=None):
     try:
+        # Add state filter to query if provided
+        where_clause = f"WHERE LOWER(state_name) = LOWER('{state_filter}')" if state_filter else ""
+        
+        # Adjust columns based on table type
+        county_column = "county_nam as county_name," if table_name == 'county' else ""
+        
         query = f"""
         SELECT GEOID, state_name, 
                CASE 
@@ -29,16 +36,23 @@ def fetch_density_data(table_name, accuracy, value_column='ppl_densit'):
                    THEN COALESCE({value_column}, 0) * 100  -- Multiply percentages by 100
                    ELSE COALESCE({value_column}, 0)
                END as value,
+               {county_column}
                ST_X(ST_Centroid(geom)) as c_lon,
                ST_Y(ST_Centroid(geom)) as c_lat,
                ST_AsText(ST_Simplify(geom, {accuracy})) AS geom_wkt
         FROM {table_name}
+        {where_clause}
         """
         print(f"Executing query: {query}")  # Debug log
+        
         query_result = con.execute(query).fetchdf()
+        print(f"Query result shape: {query_result.shape}")  # Debug log
         print(f"Query result columns: {query_result.columns}")  # Debug log
         print(f"First few rows: {query_result.head()}")  # Debug log
         
+        if query_result.empty:
+            raise ValueError(f"No data found for state: {state_filter}")
+            
         gdf = gpd.GeoDataFrame(query_result, geometry=gpd.GeoSeries.from_wkt(query_result['geom_wkt']))
         
         # Add LISA classifications
@@ -56,20 +70,25 @@ def fetch_density_data(table_name, accuracy, value_column='ppl_densit'):
             
             gdf['lisa_class'] = gdf['state_name'].map(lisa_mapping)
         
-        # Keep the centroid coordinates in the properties
+        # Keep the centroid coordinates and county name in the properties
         gdf['c_lon'] = query_result['c_lon']
         gdf['c_lat'] = query_result['c_lat']
+        if 'county_name' in query_result.columns:
+            gdf['county_name'] = query_result['county_name']
         
         gdf.drop(columns=['geom_wkt'], inplace=True)
         geojson_data = json.loads(gdf.to_json())
         
         # Debug log
-        print(f"GeoJSON properties for first feature: {geojson_data['features'][0]['properties']}")
+        print(f"GeoJSON features count: {len(geojson_data['features'])}")
+        if geojson_data['features']:
+            print(f"Sample feature properties: {geojson_data['features'][0]['properties']}")
         
         return jsonify(geojson_data)
     except Exception as e:
         print(f"Error in fetch_density_data: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        print(f"Full traceback: {traceback.format_exc()}")
+        raise  # Re-raise the exception to be caught by the route handler
 
 #Question and answering functions
 
