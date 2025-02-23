@@ -160,9 +160,3 @@ def get_counties(state_name):
         print(f"Error fetching counties: {str(e)}")
         print(f"Full traceback: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
-
-# Comment out other routes temporarily
-# @api.route('/geojson/<value_column>', methods=['GET'])
-# def get_density_data(value_column):
-#     accuracy = 0.01
-#     return fetch_density_data('states', accuracy, value_column)

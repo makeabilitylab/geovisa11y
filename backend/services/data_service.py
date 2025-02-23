@@ -91,7 +91,6 @@ def fetch_density_data(table_name, accuracy, value_column='ppl_densit', state_fi
         raise  # Re-raise the exception to be caught by the route handler
 
 #Question and answering functions
-
 def execute_query(query):
     """Execute a DuckDB query and return results as a list of dictionaries"""
     try:
