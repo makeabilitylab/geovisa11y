@@ -146,6 +146,21 @@ def test_cors():
         return '', 200
     return jsonify({"status": "CORS is working"}), 200
 
+@api.route('/counties/<state_name>', methods=['GET'])
+def get_counties(state_name):
+    """Get GeoJSON data for all counties in a state"""
+    try:
+        print(f"Fetching counties for state: {state_name}")  # Debug log
+        accuracy = request.args.get("accuracy", default=0.01, type=float)
+        # Changed 'dataset' to 'value_column' to match the function signature
+        result = fetch_density_data('county', accuracy, value_column='ppl_densit', state_filter=state_name)
+        print(f"Result type: {type(result)}")  # Debug log
+        return result
+    except Exception as e:
+        print(f"Error fetching counties: {str(e)}")
+        print(f"Full traceback: {traceback.format_exc()}")
+        return jsonify({'error': str(e)}), 500
+
 # Comment out other routes temporarily
 # @api.route('/geojson/<value_column>', methods=['GET'])
 # def get_density_data(value_column):
