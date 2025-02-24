@@ -128,8 +128,8 @@ def answer_question(question, current_dataset):
     try:
         # Get the question type first
         question_type = semantic_service.identify_question_type(question, current_dataset)
-        print(f"Debug - Question type identified in answer_question: {question_type}")  # Add this debug print
-        
+        print(f"Debug - Question type identified in answer_question: {question_type}")
+
         # Handle pattern questions before metric check
         if question_type == 'is_pattern':
             result = get_moran_i(current_dataset)
@@ -154,9 +154,25 @@ def answer_question(question, current_dataset):
         if semantic_service.is_different_metric(question, metric_name):
             return None
 
-        # Handle other question types...
-
         if question_type == 'retrieve':
+            # Check if this is a county question
+            if 'County' in question:
+                # Extract county and state names from the question
+                parts = question.split('County,')
+                if len(parts) == 2:
+                    county_name = parts[0].strip().split()[-1]  # Get last word before "County"
+                    state_name = parts[1].strip().strip('[]\'\"')  # Clean up state name
+                    result = retrieve_value(county_name, current_dataset, is_county=True)
+                    if result:
+                        return {
+                            'result': result['result'],
+                            'county': county_name,
+                            'state': state_name,
+                            'dataset': current_dataset,
+                            'question_type': 'retrieve'
+                        }
+            
+            # Handle state-level questions
             states = semantic_service.extract_states(question)
             if not states:
                 return None
