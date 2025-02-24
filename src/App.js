@@ -43,16 +43,19 @@ function App() {
   };
 
   const handleStateFocus = (stateName) => {
-    // Normalize the state name to handle arrays
-    const normalizedStateName = Array.isArray(stateName) ? stateName[0] : stateName;
-    const currentNormalizedState = Array.isArray(focusedState) ? focusedState[0] : focusedState;
+    // // Normalize the state name to handle arrays
+    // const normalizedStateName = Array.isArray(stateName) ? stateName[0] : stateName;
+    // const currentNormalizedState = Array.isArray(focusedState) ? focusedState[0] : focusedState;
 
-    // Only update if the value is actually different
-    if (normalizedStateName !== currentNormalizedState) {
-      console.log('Setting focus via map:', normalizedStateName);
-      setFocusedState(normalizedStateName);
-      setFocusedCounty(null);
-    }
+    // // Only update if the value is actually different
+    // if (normalizedStateName !== currentNormalizedState) {
+    //   console.log('Setting focus via map:', normalizedStateName);
+    //   setFocusedState(normalizedStateName);
+    //   setFocusedCounty(null);
+    // }
+    console.log('Setting focus via map:', stateName);
+    setFocusedState(stateName);
+    setFocusedCounty(null);
   };
 
   return (
