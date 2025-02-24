@@ -824,8 +824,22 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [currentFocusedState, layersInitialized]);
 
-    // Helper function to focus the map on a state (move this up)
+    // Add effect to clear county focus when state changes
+    useEffect(() => {
+        if (focusedState) {
+            setCurrentFocusedCounty(null);
+            onFocusedCountyChange(null);
+        }
+    }, [focusedState, onFocusedCountyChange]);
+
+    // Update focusStateOnMap to clear county focus
     const focusStateOnMap = useCallback((stateName) => {
+        if (!map.current || !geoData) return;
+
+        // Clear county focus
+        setCurrentFocusedCounty(null);
+        onFocusedCountyChange(null);
+
         const feature = geoData?.features.find(f => 
             f.properties.state_name.toLowerCase() === stateName.toLowerCase()
         );
@@ -1168,24 +1182,29 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         };
     }, [handleKeyNavigation]);
 
-    // Add effect to sync with parent's state
+    // Update effect to sync with parent's state
     useEffect(() => {
-        if (focusedState !== currentFocusedState) {
-            setCurrentFocusedState(focusedState);
-        }
-    }, [focusedState]);
+        // Only update if the values are actually different
+        const currentStateNormalized = Array.isArray(currentFocusedState) 
+            ? currentFocusedState[0] 
+            : currentFocusedState;
+        const focusedStateNormalized = Array.isArray(focusedState) 
+            ? focusedState[0] 
+            : focusedState;
 
-    // Add effect to sync back to parent
-    useEffect(() => {
-        if (currentFocusedState !== focusedState) {
-            onStateFocus(currentFocusedState);
+        if (currentStateNormalized !== focusedStateNormalized) {
+            setCurrentFocusedState(focusedState);
+            // Focus the map on the new state
+            if (focusedState) {
+                focusStateOnMap(focusedStateNormalized);
+            }
         }
-    }, [currentFocusedState, onStateFocus]);
+    }, [focusedState, focusStateOnMap]);
 
     return (
-        <div className="relative h-full" aria-hidden="true">
+        <div className="relative h-full">
             <div ref={mapContainer} className="h-full" 
-                aria-hidden={!isMapInteractive} 
+                // aria-hidden={!isMapInteractive} 
                 role="application"
                 aria-label="Interactive map of United States"
             />

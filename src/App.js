@@ -31,6 +31,28 @@ function App() {
   const handleStateQuestion = (stateName) => {
     console.log('Setting focused state:', stateName);
     setFocusedState(stateName);
+    setFocusedCounty(null);
+  };
+
+  const handleChatbotFocus = (stateName) => {
+    console.log('Setting focus via Chatbot:', stateName);
+    // Clear county focus first
+    setFocusedCounty(null);
+    // Then set state focus
+    setFocusedState(stateName);
+  };
+
+  const handleStateFocus = (stateName) => {
+    // Normalize the state name to handle arrays
+    const normalizedStateName = Array.isArray(stateName) ? stateName[0] : stateName;
+    const currentNormalizedState = Array.isArray(focusedState) ? focusedState[0] : focusedState;
+
+    // Only update if the value is actually different
+    if (normalizedStateName !== currentNormalizedState) {
+      console.log('Setting focus via map:', normalizedStateName);
+      setFocusedState(normalizedStateName);
+      setFocusedCounty(null);
+    }
   };
 
   return (
@@ -43,7 +65,7 @@ function App() {
           onDatasetChange={handleDatasetChange}
           focusedState={focusedState}
           onFocusedCountyChange={setFocusedCounty}
-          onStateFocus={setFocusedState}
+          onStateFocus={handleStateFocus}
           apiUrl={API_URL}
         />
       </div>
@@ -52,10 +74,7 @@ function App() {
           dataset={currentDataset}
           onPatternQuestion={handlePatternQuestion}
           onStateQuestion={handleStateQuestion}
-          onStateFocus={(stateName) => {
-            console.log('Setting focus via Chatbot:', stateName);
-            setFocusedState(stateName);
-          }}
+          onStateFocus={handleChatbotFocus}
           currentFocusedState={focusedState}
           currentFocusedCounty={focusedCounty}
           apiUrl={API_URL}
