@@ -1163,10 +1163,12 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         onStateFocus
     ]);
 
-    // Handle Shift+M to toggle map interaction
+    // Add this to the existing useEffect for keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (e) => {
+            // Ctrl+M for map interaction
             if (e.ctrlKey && e.key.toLowerCase() === 'm') {
+                e.preventDefault(); // Prevent default browser behavior
                 setIsMapInteractive(prev => !prev);
                 setStateAnnouncement(prev => 
                     !isMapInteractive 

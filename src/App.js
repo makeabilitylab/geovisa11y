@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import ChoroplethMap from './components/ChoroplethMap';
 import Chatbot from './components/Chatbot';
@@ -8,6 +8,7 @@ function App() {
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
   const [focusedState, setFocusedState] = useState(null);
   const [focusedCounty, setFocusedCounty] = useState(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   const API_URL = process.env.NODE_ENV === 'production'
     ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
@@ -58,6 +59,17 @@ function App() {
     setFocusedCounty(null);
   };
 
+  useEffect(() => {
+    const globalHandler = (e) => {
+        if (e.ctrlKey && e.key.toLowerCase() === 't') {
+            console.log('Global Ctrl+T caught');
+        }
+    };
+    
+    window.addEventListener('keydown', globalHandler);
+    return () => window.removeEventListener('keydown', globalHandler);
+  }, []);
+
   return (
     <div className="flex h-screen w-screen overflow-hidden">
       <div className="w-2/3 h-full relative">
@@ -70,6 +82,7 @@ function App() {
           onFocusedCountyChange={setFocusedCounty}
           onStateFocus={handleStateFocus}
           apiUrl={API_URL}
+          isDisabled={isInputFocused}
         />
       </div>
       <div className="w-1/3 h-full">
@@ -81,6 +94,7 @@ function App() {
           currentFocusedState={focusedState}
           currentFocusedCounty={focusedCounty}
           apiUrl={API_URL}
+          onInputFocusChange={setIsInputFocused}
         />
       </div>
     </div>
