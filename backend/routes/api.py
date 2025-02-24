@@ -94,67 +94,72 @@ def analyze_question():
         
     try:
         data = request.json
-        question = data.get('question', '')
+        if not data:
+            print("No JSON data received")
+            return jsonify({'error': 'No data provided'}), 400
+            
+        question = data.get('question')
+        if not question:
+            print("No question in request")
+            return jsonify({'error': 'No question provided'}), 400
+            
         current_dataset = data.get('current_dataset', 'ppl_densit')
-
-        # Extract county and state if present in the question
-        county_state_match = re.search(r'of\s+([A-Za-z\s]+?)(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)', question)
-        is_county = 'county' in question.lower() or county_state_match
+        print(f"Processing question: {question} for dataset: {current_dataset}")
 
         # Get the question type
         question_type = semantic_service.identify_question_type(question)
         
-        if question_type == 'retrieve':
-            if is_county:
-                if county_state_match:
-                    county_name = county_state_match.group(1).strip()
-                    state_name = county_state_match.group(2).strip()
-                else:
-                    # Try to extract just county name
-                    county_match = re.search(r'of\s+([A-Za-z\s]+?)\s+County', question)
-                    if county_match:
-                        county_name = county_match.group(1).strip()
-                    else:
-                        return jsonify({
-                            'result': 'Could not understand which county you are asking about.',
-                            'question_type': 'other'
-                        }), 200
-
-                result = retrieve_value(county_name, current_dataset, is_county=True)
-                if result:
-                    return jsonify({
-                        'result': result['result'],
-                        'question_type': question_type,
-                        'county': county_name
-                    }), 200
-                else:
-                    return jsonify({
-                        'result': f"Could not find data for {county_name} County.",
-                        'question_type': 'other'
-                    }), 200
+        # Handle county-level questions
+        county_state_match = re.search(r'of\s+([A-Za-z\s]+?)(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)', question)
+        is_county = 'county' in question.lower() or county_state_match
+        
+        if question_type == 'retrieve' and is_county:
+            if county_state_match:
+                county_name = county_state_match.group(1).strip()
+                state_name = county_state_match.group(2).strip()
             else:
-                # Existing state-level logic
-                analysis = answer_question(question, current_dataset)
-                if analysis:
-                    return jsonify(analysis), 200
+                county_match = re.search(r'of\s+([A-Za-z\s]+?)\s+County', question)
+                if county_match:
+                    county_name = county_match.group(1).strip()
                 else:
-                    # Fall back to OpenAI
-                    openai_response = get_openai_response(question)
-                    gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>"
                     return jsonify({
-                        'result': gpt_response,
-                        'dataset': current_dataset,
+                        'result': 'Could not understand which county you are asking about.',
                         'question_type': 'other'
                     }), 200
+
+            result = retrieve_value(county_name, current_dataset, is_county=True)
+            if result:
+                return jsonify({
+                    'result': result['result'],
+                    'question_type': question_type,
+                    'county': county_name
+                }), 200
+            else:
+                return jsonify({
+                    'result': f"Could not find data for {county_name} County.",
+                    'question_type': 'other'
+                }), 200
+        
+        # Handle all other questions (state-level, patterns, etc.)
+        analysis = answer_question(question, current_dataset)
+        if analysis:
+            return jsonify(analysis), 200
+        
+        # Fall back to OpenAI for conceptual questions
+        openai_response = get_openai_response(question)
+        gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>"
+        return jsonify({
+            'result': gpt_response,
+            'dataset': current_dataset,
+            'question_type': 'other'
+        }), 200
             
     except Exception as e:
         print(f"Error in analyze_question: {str(e)}")
         print(f"Full traceback: {traceback.format_exc()}")
         return jsonify({
-            'result': f"I encountered an error processing your question: {str(e)}",
-            'dataset': current_dataset,
-            'question_type': 'other'
-        }), 200
+            'error': str(e)
+        }), 500  # Changed to return 500 for server errors
 
 @api.route('/test', methods=['GET'])
 def test():
