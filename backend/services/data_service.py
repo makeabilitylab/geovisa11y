@@ -122,16 +122,20 @@ def check_location_exists(location):
 # Answering Queries
 #######################################
 
-# def analyze_spatial_question(question, current_dataset='ppl_densit'):
+
 def answer_question(question, current_dataset):
     """Answer any question for any dataset based on query type"""
     try:
-        question_type = semantic_service.identify_question_type(question, current_dataset)
-        # print(f"\nDebug - Identified question type: {question_type}")
-        
-        # Get metric details
+        # Get metric details for current dataset
         metric_name = semantic_service.dataset_terms[current_dataset]['metric']
         unit = semantic_service.dataset_terms[current_dataset]['unit']
+        
+        # Check if question is about a different metric and return None
+        if semantic_service.is_different_metric(question, metric_name):
+            return None
+
+        question_type = semantic_service.identify_question_type(question, current_dataset)
+        # print(f"\nDebug - Identified question type: {question_type}")
         
         if question_type == 'retrieve':
             states = semantic_service.extract_states(question)
