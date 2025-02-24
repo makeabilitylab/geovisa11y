@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import * as turf from '@turf/turf';
 
-const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, apiUrl }) => {
+const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, onFocusedCountyChange, onStateFocus, apiUrl }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
@@ -717,10 +717,21 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [map.current]);
 
-    // Function to find adjacent states using geometric relationships
+    // Add this helper function at the top level of the component
+    const normalizeStateName = (state) => {
+        if (Array.isArray(state)) {
+            return state[0];  // Take first state if array
+        }
+        return state;
+    };
+
+    // Update findAdjacentStates to handle array input
     const findAdjacentStates = useCallback((stateName) => {
         if (!geoData) return null;
 
+        // Normalize state name input
+        stateName = normalizeStateName(stateName);
+        
         const currentState = geoData.features.find(
             f => f.properties.state_name.toLowerCase() === stateName.toLowerCase()
         );
@@ -832,10 +843,13 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [geoData]);
 
-    // Add function to fetch county data
+    // Update fetchCountyData to handle array input
     const fetchCountyData = async (stateName) => {
         try {
             setIsLoading(true);
+            // Normalize state name input
+            stateName = normalizeStateName(stateName);
+
             const response = await fetch(`${apiUrl}/api/counties/${stateName}`, {
                 method: 'GET',
                 headers: {
@@ -1017,7 +1031,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [countyData]);
 
-    // Update keyboard navigation to handle county focus
+    // Update handleKeyNavigation to handle array input
     const handleKeyNavigation = useCallback((e) => {
         if (!isMapInteractive || !geoData) return;
 
@@ -1033,6 +1047,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 const firstCounty = countyData?.features[0]?.properties.county_name;
                 if (firstCounty) {
                     setCurrentFocusedCounty(firstCounty);
+                    onFocusedCountyChange(firstCounty);
                     setStateAnnouncement(`Now focused on ${firstCounty} county`);
                     focusCountyOnMap(firstCounty);
                 }
@@ -1043,8 +1058,9 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
             e.preventDefault();
             
-            // Disable arrow keys when no state is focused or when showing counties but no county is focused
-            if (!currentFocusedState || (showingCounties && !currentFocusedCounty)) {
+            // Normalize state name before checking
+            const normalizedState = normalizeStateName(currentFocusedState);
+            if (!normalizedState || (showingCounties && !currentFocusedCounty)) {
                 setStateAnnouncement('Press Tab to focus on a state before using arrow keys');
                 return;
             }
@@ -1063,6 +1079,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
                 if (nextCounty) {
                     setCurrentFocusedCounty(nextCounty);
+                    onFocusedCountyChange(nextCounty);
                     setStateAnnouncement(`Now focused on ${nextCounty} county`);
                     focusCountyOnMap(nextCounty);
                 } else {
@@ -1072,7 +1089,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }
             } else {
                 // State-level navigation
-                const adjacentStates = findAdjacentStates(currentFocusedState);
+                const adjacentStates = findAdjacentStates(normalizedState);
                 const nextState = adjacentStates?.[direction];
 
                 if (nextState) {
@@ -1081,7 +1098,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     focusStateOnMap(nextState);
                 } else {
                     setStateAnnouncement(
-                        `There is no state ${direction} of ${currentFocusedState}`
+                        `There is no state ${direction} of ${normalizedState}`
                     );
                 }
             }
@@ -1125,7 +1142,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         findAdjacentStates,
         findAdjacentCounties,
         focusStateOnMap,
-        focusCountyOnMap
+        focusCountyOnMap,
+        onFocusedCountyChange
     ]);
 
     // Handle Shift+M to toggle map interaction
@@ -1149,6 +1167,20 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             window.removeEventListener('keydown', handleKeyNavigation);
         };
     }, [handleKeyNavigation]);
+
+    // Add effect to sync with parent's state
+    useEffect(() => {
+        if (focusedState !== currentFocusedState) {
+            setCurrentFocusedState(focusedState);
+        }
+    }, [focusedState]);
+
+    // Add effect to sync back to parent
+    useEffect(() => {
+        if (currentFocusedState !== focusedState) {
+            onStateFocus(currentFocusedState);
+        }
+    }, [currentFocusedState, onStateFocus]);
 
     return (
         <div className="relative h-full" aria-hidden="true">

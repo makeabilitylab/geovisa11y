@@ -1,5 +1,4 @@
 # services/data_service.py
-
 import duckdb
 import geopandas as gpd
 import json
@@ -257,39 +256,70 @@ def answer_question(question, current_dataset):
 #######################################
 
 #00_retrieve
-def retrieve_value(state_name, dataset):
-    """Get the exact value for a state and dataset"""
+def retrieve_value(state_or_county_name, dataset, is_county=False):
+    """Get the exact value for a state/county and dataset"""
     try:
-        query = f"""
-            SELECT state_name,
-                   CASE 
-                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                       THEN {dataset} * 100
-                       ELSE {dataset}
-                   END as value
-            FROM state
-            WHERE LOWER(state_name) = LOWER(?)
-        """
+        if is_county:
+            query = f"""
+                SELECT county_nam as county_name, state_name,
+                       CASE 
+                           WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
+                           THEN {dataset} * 100
+                           ELSE {dataset}
+                       END as value
+                FROM county
+                WHERE LOWER(county_nam) LIKE LOWER(?) || '%'
+            """
+        else:
+            query = f"""
+                SELECT state_name,
+                       CASE 
+                           WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
+                           THEN {dataset} * 100
+                           ELSE {dataset}
+                       END as value
+                FROM state
+                WHERE LOWER(state_name) = LOWER(?)
+            """
         
-        result = con.execute(query, [state_name]).fetchone()
+        result = con.execute(query, [state_or_county_name]).fetchone()
         if not result:
             return None
             
-        state, value = result
-        metric_name = semantic_service.dataset_terms[dataset]['metric']
-        unit = semantic_service.dataset_terms[dataset]['unit']
-        
-        if dataset == 'ppl_densit':
-            return {
-                'result': f"{state} has {value:.2f} {unit}.",
-                'state': state
-            }
+        if is_county:
+            county, state, value = result
+            metric_name = semantic_service.dataset_terms[dataset]['metric']
+            unit = semantic_service.dataset_terms[dataset]['unit']
+            
+            if dataset == 'ppl_densit':
+                return {
+                    'result': f"{county} County in {state} has {value:.2f} {unit}.",
+                    'county': county,
+                    'state': state
+                }
+            else:
+                verb = 'walk' if dataset == 'walk_to_wo' else 'take public transit'
+                return {
+                    'result': f"{county} County in {state} has {value:.2f}{unit} of people who {verb} to work.",
+                    'county': county,
+                    'state': state
+                }
         else:
-            verb = 'walk' if dataset == 'walk_to_wo' else 'take public transit'
-            return {
-                'result': f"{state} has {value:.2f}{unit} of people who {verb} to work.",
-                'state': state
-            }
+            state, value = result
+            metric_name = semantic_service.dataset_terms[dataset]['metric']
+            unit = semantic_service.dataset_terms[dataset]['unit']
+            
+            if dataset == 'ppl_densit':
+                return {
+                    'result': f"{state} has {value:.2f} {unit}.",
+                    'state': state
+                }
+            else:
+                verb = 'walk' if dataset == 'walk_to_wo' else 'take public transit'
+                return {
+                    'result': f"{state} has {value:.2f}{unit} of people who {verb} to work.",
+                    'state': state
+                }
             
     except Exception as e:
         print(f"Error retrieving value: {str(e)}")

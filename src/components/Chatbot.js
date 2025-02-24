@@ -9,7 +9,7 @@ import {
 } from '@material-tailwind/react';
 
 
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, apiUrl }) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -257,13 +257,58 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, ap
     //     }
     // };
 
-    // Modify handleQuestionSubmit to preserve speech mode
+    // Add state for tracking previous answer
+    const [previousAnswer, setPreviousAnswer] = useState(null);
+
     const handleQuestionSubmit = async (question, useSpeech = false) => {
         try {
             setIsLoading(true);
 
+            // Create focus object that includes both state and county
+            const currentFocus = currentFocusedCounty 
+                ? `${currentFocusedCounty} County, ${currentFocusedState}`
+                : currentFocusedState;
+
+            const ambiguityResponse = await fetch(`${apiUrl}/api/check-ambiguity`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Origin': window.location.origin
+                },
+                credentials: 'include',
+                mode: 'cors',
+                body: JSON.stringify({
+                    question: question,
+                    previous_answer: previousAnswer,
+                    current_focus: currentFocus
+                }),
+            });
+
+            console.log('Sending ambiguity check with:', {
+                question,
+                previous_answer: previousAnswer,
+                current_focus: currentFocus,
+                raw_state: currentFocusedState,
+                raw_county: currentFocusedCounty
+            });
+
+            const ambiguityData = await ambiguityResponse.json();
+            console.log('Ambiguity response:', ambiguityData);
+            
+            // If ambiguous but can't resolve, ask for clarification
+            if (ambiguityData.is_ambiguous && !ambiguityData.resolved_question) {
+                setMessages(prev => [...prev, { 
+                    text: "Could you please specify which state or location you're referring to?", 
+                    sender: 'bot' 
+                }]);
+                return;
+            }
+
+            // Use resolved question if available
+            const finalQuestion = ambiguityData.resolved_question || question;
+
             // Clean up the question text
-            const cleanQuestion = question.replace(/[.,!?]+$/, '').trim();
+            const cleanQuestion = finalQuestion.replace(/[.,!?]+$/, '').trim();
 
             // Check for focus/navigation commands with more flexible matching
             const focusMatch = cleanQuestion.match(/^(?:focus\s+on|go\s+to)\s+(.+)$/i);
@@ -293,7 +338,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, ap
                 credentials: 'include',
                 mode: 'cors', // Explicitly set CORS mode
                 body: JSON.stringify({
-                    question: question,
+                    question: finalQuestion,
                     current_dataset: dataset
                 }),
             });
@@ -303,10 +348,11 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, ap
             }
 
             const data = await response.json();
-            console.log('Question:', question);
+            console.log('Question:', finalQuestion);
             console.log('Question Type:', data.question_type);
 
             if (data.result) {
+                setPreviousAnswer(data.result); // Store the answer for context
                 setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
                 // Only speak if in voice mode
                 // if (useSpeech || preserveSpeech) {
@@ -333,7 +379,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, ap
                 throw new Error('No result in response');
             }
         } catch (error) {
-            console.error('Error details:', error);
+            console.error('Error:', error);
             setMessages(prev => [...prev, { 
                 text: 'Sorry, I encountered an error. Please try again.',
                 sender: 'bot'
@@ -463,6 +509,14 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, ap
 
         requestMicrophonePermission();
     }, []); // Empty dependency array means this runs once on mount
+
+    // Add useEffect to monitor focused state changes
+    useEffect(() => {
+        console.log('Focus state updated:', {
+            currentFocusedState,
+            currentFocusedCounty
+        });
+    }, [currentFocusedState, currentFocusedCounty]);
 
     return (
         <CardBody className="flex flex-col h-full p-2">

@@ -20,6 +20,12 @@ class SemanticService:
             }
         }
 
+        self.ambiguous_patterns = {
+            'that_state': r'(?:that|the|this)\s+state',
+            'here': r'\b(?:here|in this state|in this county)\b',
+            'outliers_pattern': r'(?:pattern|distribution)\s+(?:of|in|among)\s+(?:the\s+)?outliers'
+        }
+
     def identify_question_type(self, question, current_dataset='ppl_densit'):
         """Identify the type of question being asked using GPT"""
         try:
@@ -94,3 +100,98 @@ class SemanticService:
         except Exception as e:
             print(f"Error extracting states: {str(e)}")
             return []
+
+    def is_ambiguous_question(self, question, previous_answer=None, current_focus=None):
+        """
+        Check if a question is ambiguous and needs context resolution
+        Returns: (is_ambiguous: bool, ambiguity_type: str, context_needed: dict)
+        """
+        # Normalize current_focus to handle both string and list inputs
+        if isinstance(current_focus, list):
+            current_focus = current_focus[0] if current_focus else None
+
+        # Parse county and state from current_focus if it contains both
+        current_county = None
+        current_state = None
+        if current_focus and isinstance(current_focus, str):
+            if ',' in current_focus:
+                # Format: "County County, State"
+                parts = current_focus.split(',')
+                current_county = parts[0].strip()
+                current_state = parts[1].strip()
+            elif ' County' in current_focus:
+                current_county = current_focus
+            else:
+                current_state = current_focus
+
+        question = question.lower()
+        
+        # Case 1: Reference to "that state"
+        if re.search(self.ambiguous_patterns['that_state'], question):
+            if previous_answer:
+                # Extract state name from previous answer
+                state_match = re.search(r'(?i)(?:in|for|of|is)\s+([A-Za-z\s]+?)(?:\s+(?:has|with|state|is|shows|and|,|\.))', previous_answer)
+                if state_match:
+                    return True, 'that_state', {'state': state_match.group(1).strip()}
+            return True, 'that_state', None
+
+        # Case 2: Reference to "here" or "this state/county"
+        if re.search(self.ambiguous_patterns['here'], question):
+            if current_county:
+                return True, 'here', {'location': current_county, 'type': 'county'}
+            elif current_state:
+                return True, 'here', {'location': current_state, 'type': 'state'}
+            return True, 'here', None
+
+        # Case 3: Reference to outliers pattern
+        if re.search(self.ambiguous_patterns['outliers_pattern'], question):
+            if previous_answer and 'outlier' in previous_answer.lower():
+                # Extract states mentioned as outliers
+                states = self.extract_states(previous_answer)
+                if states:
+                    return True, 'outliers', {'states': states}
+            return True, 'outliers', None
+        
+        return False, None, None
+
+    def resolve_ambiguous_question(self, question, ambiguity_type, context):
+        """
+        Resolve ambiguous questions using provided context
+        Returns: resolved question or None if can't resolve
+        """
+        if not context:
+            return None
+
+        question = question.lower()
+        
+        if ambiguity_type == 'that_state':
+            state_name = context.get('state')
+            if state_name:
+                return re.sub(
+                    self.ambiguous_patterns['that_state'], 
+                    state_name, 
+                    question, 
+                    flags=re.IGNORECASE
+                )
+
+        elif ambiguity_type == 'here':
+            location = context.get('location')
+            location_type = context.get('type')
+            if location:
+                if location_type == 'county':
+                    return f"What is the population density of {location}?"
+                else:
+                    return re.sub(
+                        self.ambiguous_patterns['here'], 
+                        location, 
+                        question, 
+                        flags=re.IGNORECASE
+                    )
+
+        elif ambiguity_type == 'outliers':
+            states = context.get('states', [])
+            if states:
+                states_str = ', '.join(states)
+                return f"Describe the pattern of outlier states: {states_str}"
+
+        return None
