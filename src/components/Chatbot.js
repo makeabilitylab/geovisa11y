@@ -20,6 +20,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     const audioChunksRef = useRef([]);
     const audioRef = useRef(new Audio());
     // const [useSpeech, setUseSpeech] = useState(false);
+    const [isInputFocused, setIsInputFocused] = useState(false);
+    const inputRef = useRef(null);
+    const wrapperRef = useRef(null);
 
     // List of US states
     const states = [
@@ -406,32 +409,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         handleQuestionSubmit(userMessage, false);  // Explicitly pass false to disable speech
     };
 
-    // Add keydown and keyup handlers for spacebar
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            // Only start recording if space is pressed and we're not already recording
-            if (e.code === 'Space' && !isRecording && !e.repeat) {
-                e.preventDefault(); // Prevent space from scrolling the page
-                startRecording();
-            }
-        };
-
-        const handleKeyUp = (e) => {
-            if (e.code === 'Space' && isRecording) {
-                e.preventDefault();
-                stopRecording();
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
-        };
-    }, [isRecording]); // Add isRecording to dependency array
-
     // Modify handleKeyDown for text input to ignore spacebar
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
@@ -442,6 +419,67 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             e.stopPropagation();
         }
     };
+
+    // Add Ctrl+T handler as a separate effect
+    useEffect(() => {
+        const handleCtrlT = (e) => {
+            if (e.ctrlKey && e.key.toLowerCase() === 't') {
+                e.preventDefault();
+                console.log('Ctrl+T pressed');
+                
+                // Toggle input focus
+                if (isInputFocused) {
+                    // If input is focused, blur it
+                    if (wrapperRef.current) {
+                        const input = wrapperRef.current.querySelector('input');
+                        if (input) {
+                            input.blur();
+                            setIsInputFocused(false);
+                            console.log('Input blurred');
+                        }
+                    }
+                } else {
+                    // If input is not focused, focus it
+                    if (wrapperRef.current) {
+                        const input = wrapperRef.current.querySelector('input');
+                        if (input) {
+                            input.focus();
+                            setIsInputFocused(true);
+                            console.log('Input focused');
+                        }
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleCtrlT);
+        return () => window.removeEventListener('keydown', handleCtrlT);
+    }, [isInputFocused]); // Add isInputFocused to dependencies
+
+    // Add spacebar handler for recording as a separate effect
+    useEffect(() => {
+        const handleSpacebarRecord = (e) => {
+            if (e.code === 'Space' && !isRecording && !e.repeat && !isInputFocused) {
+                e.preventDefault();
+                startRecording();
+            }
+        };
+
+        const handleSpacebarStop = (e) => {
+            if (e.code === 'Space' && isRecording && !isInputFocused) {
+                e.preventDefault();
+                stopRecording();
+            }
+        };
+
+        window.addEventListener('keydown', handleSpacebarRecord);
+        window.addEventListener('keyup', handleSpacebarStop);
+
+        return () => {
+            window.removeEventListener('keydown', handleSpacebarRecord);
+            window.removeEventListener('keyup', handleSpacebarStop);
+        };
+    }, [isRecording, isInputFocused]);
 
     // Function to get map description based on dataset
     const getMapDescription = () => {
@@ -584,7 +622,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     ))}
                 </div>
                 <Typography variant="small" color="gray" className="mt-2 text-xs">
-                    Press and hold the spacebar to speak.
+                    Press Ctrl+M to toggle map interaction. Press Ctrl+T to focus on text input.
+                    {!isInputFocused && "Press and hold the spacebar to speak."}
                 </Typography>
             </div>
             </div>
@@ -636,20 +675,31 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                aria-hidden="true"
                tabIndex="-1">
                 <div className="flex-grow">
-                    <Input
-                        type="text"
-                        label="Ask MappieTalkie"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="font-['Roboto']"
-                        labelProps={{
-                            className: "!text-teal-500"
-                        }}
-                        color="teal"
-                        aria-label="Type your question here"
-                        aria-description="Press Enter to submit your question"
-                    />
+                    <div ref={wrapperRef}>
+                        <Input
+                            type="text"
+                            label="Ask MappieTalkie"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            onFocus={() => {
+                                console.log('Input focused');
+                                setIsInputFocused(true);
+                            }}
+                            onBlur={() => {
+                                console.log('Input blurred');
+                                setIsInputFocused(false);
+                            }}
+                            className="font-['Roboto']"
+                            labelProps={{
+                                className: "!text-teal-500"
+                            }}
+                            color="teal"
+                            aria-label="Type your question here"
+                            aria-description="Press Enter to submit your question"
+                            containerProps={{ ref: inputRef }}
+                        />
+                    </div>
                 </div>
                 <Button 
                     onClick={isRecording ? stopRecording : startRecording}
