@@ -1,11 +1,12 @@
 # routes/api.py
 
 from flask import Blueprint, jsonify, request, make_response
-from services.data_service import fetch_data, answer_question
+from services.data_service import fetch_data, answer_question, retrieve_value
 from services.semantic_service import SemanticService
 import openai
 from config import DevelopmentConfig
 import traceback
+import re
 
 api = Blueprint('api', __name__)
 
@@ -93,42 +94,62 @@ def analyze_question():
         
     try:
         data = request.json
-        if not data:
-            print("No JSON data received")
-            return jsonify({'error': 'No data provided'}), 400
-            
-        question = data.get('question')
-        if not question:
-            print("No question in request")
-            return jsonify({'error': 'No question provided'}), 400
-            
+        question = data.get('question', '')
         current_dataset = data.get('current_dataset', 'ppl_densit')
-        print(f"Processing question: {question} for dataset: {current_dataset}")
+
+        # Extract county and state if present in the question
+        county_state_match = re.search(r'of\s+([A-Za-z\s]+?)(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)', question)
+        is_county = 'county' in question.lower() or county_state_match
+
+        # Get the question type
+        question_type = semantic_service.identify_question_type(question)
         
-        # Try spatial analysis first
-        analysis = answer_question(question, current_dataset)
-        print(f"Analysis result: {analysis}")
-        
-        if analysis:
-            return jsonify(analysis), 200
-        else:
-            # Fall back to OpenAI for unrecognized queries
-            openai_response = get_openai_response(question)
-            print(f"OpenAI response: {openai_response}")
-            # Add disclaimer to GPT response with HTML styling
-            # gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'>
-            # (Answer provided by GPT-4, may not be entirely accurate.)
-            # </span>"
-            gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>"
-            return jsonify({
-                'result': gpt_response,
-                'dataset': current_dataset,
-                'question_type': 'other'
-            }), 200
+        if question_type == 'retrieve':
+            if is_county:
+                if county_state_match:
+                    county_name = county_state_match.group(1).strip()
+                    state_name = county_state_match.group(2).strip()
+                else:
+                    # Try to extract just county name
+                    county_match = re.search(r'of\s+([A-Za-z\s]+?)\s+County', question)
+                    if county_match:
+                        county_name = county_match.group(1).strip()
+                    else:
+                        return jsonify({
+                            'result': 'Could not understand which county you are asking about.',
+                            'question_type': 'other'
+                        }), 200
+
+                result = retrieve_value(county_name, current_dataset, is_county=True)
+                if result:
+                    return jsonify({
+                        'result': result['result'],
+                        'question_type': question_type,
+                        'county': county_name
+                    }), 200
+                else:
+                    return jsonify({
+                        'result': f"Could not find data for {county_name} County.",
+                        'question_type': 'other'
+                    }), 200
+            else:
+                # Existing state-level logic
+                analysis = answer_question(question, current_dataset)
+                if analysis:
+                    return jsonify(analysis), 200
+                else:
+                    # Fall back to OpenAI
+                    openai_response = get_openai_response(question)
+                    gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>"
+                    return jsonify({
+                        'result': gpt_response,
+                        'dataset': current_dataset,
+                        'question_type': 'other'
+                    }), 200
             
     except Exception as e:
         print(f"Error in analyze_question: {str(e)}")
-        traceback.print_exc()
+        print(f"Full traceback: {traceback.format_exc()}")
         return jsonify({
             'result': f"I encountered an error processing your question: {str(e)}",
             'dataset': current_dataset,
@@ -152,11 +173,75 @@ def get_counties(state_name):
     try:
         print(f"Fetching counties for state: {state_name}")  # Debug log
         accuracy = request.args.get("accuracy", default=0.01, type=float)
-        # Changed 'dataset' to 'value_column' to match the function signature
+        
+        # Handle array input
+        if isinstance(state_name, list):
+            state_name = state_name[0]
+            
+        # Clean up state name
+        state_name = state_name.strip()
+        
+        print(f"Normalized state name: {state_name}")  # Debug log
+        
         result = fetch_data('county', accuracy, value_column='ppl_densit', state_filter=state_name)
         print(f"Result type: {type(result)}")  # Debug log
         return result
     except Exception as e:
         print(f"Error fetching counties: {str(e)}")
         print(f"Full traceback: {traceback.format_exc()}")
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/check-ambiguity', methods=['POST', 'OPTIONS'])
+def check_ambiguity():
+    """Check if a question is ambiguous and resolve if possible"""
+    if request.method == 'OPTIONS':
+        # Handle preflight request
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response
+
+    try:
+        data = request.json
+        print("Received ambiguity check data:", data)  # Add this debug log
+        
+        question = data.get('question')
+        previous_answer = data.get('previous_answer')
+        current_focus = data.get('current_focus')
+
+        print("Processing ambiguity check:", {  # Add this debug log
+            'question': question,
+            'previous_answer': previous_answer,
+            'current_focus': current_focus
+        })
+
+        if not question:
+            return jsonify({'error': 'No question provided'}), 400
+
+        is_ambiguous, ambiguity_type, context = semantic_service.is_ambiguous_question(
+            question, 
+            previous_answer, 
+            current_focus
+        )
+
+        if is_ambiguous:
+            resolved_question = semantic_service.resolve_ambiguous_question(
+                question, 
+                ambiguity_type, 
+                context
+            )
+            return jsonify({
+                'is_ambiguous': True,
+                'resolved_question': resolved_question
+            })
+
+        return jsonify({
+            'is_ambiguous': False,
+            'resolved_question': question
+        })
+
+    except Exception as e:
+        print(f"Error checking ambiguity: {str(e)}")
         return jsonify({'error': str(e)}), 500
