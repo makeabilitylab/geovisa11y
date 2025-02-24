@@ -126,17 +126,36 @@ def check_location_exists(location):
 def answer_question(question, current_dataset):
     """Answer any question for any dataset based on query type"""
     try:
-        # Get metric details for current dataset
+        # Get the question type first
+        question_type = semantic_service.identify_question_type(question, current_dataset)
+        print(f"Debug - Question type identified in answer_question: {question_type}")  # Add this debug print
+        
+        # Handle pattern questions before metric check
+        if question_type == 'is_pattern':
+            result = get_moran_i(current_dataset)
+            return {
+                'result': result['description'],
+                'dataset': current_dataset,
+                'question_type': 'is_pattern'
+            }
+            
+        elif question_type == 'describe_pattern':
+            result = get_lisa_clusters(current_dataset)
+            return {
+                'result': get_gpt_spatial_pattern_summary(result, current_dataset),
+                'dataset': current_dataset,
+                'question_type': 'describe_pattern'
+            }
+
+        # Get metric details and check for different metrics
         metric_name = semantic_service.dataset_terms[current_dataset]['metric']
         unit = semantic_service.dataset_terms[current_dataset]['unit']
         
-        # Check if question is about a different metric and return None
         if semantic_service.is_different_metric(question, metric_name):
             return None
 
-        question_type = semantic_service.identify_question_type(question, current_dataset)
-        # print(f"\nDebug - Identified question type: {question_type}")
-        
+        # Handle other question types...
+
         if question_type == 'retrieve':
             states = semantic_service.extract_states(question)
             if not states:
@@ -214,22 +233,6 @@ def answer_question(question, current_dataset):
                 'question_type': 'cluster'
             }
             
-        elif question_type == 'is_pattern':
-            result = get_moran_i(current_dataset)
-            return {
-                'result': result['description'],
-                'dataset': current_dataset,
-                'question_type': 'is_pattern'
-            }
-            
-        elif question_type == 'describe_pattern':
-            result = get_lisa_clusters(current_dataset)
-            return {
-                'result': get_gpt_spatial_pattern_summary(result, current_dataset),
-                'dataset': current_dataset,
-                'question_type': 'describe_pattern'
-            }
-            
         elif question_type == 'find_outliers':
             result = get_lisa_clusters(current_dataset)
             outliers = find_outliers(result, current_dataset)
@@ -251,7 +254,7 @@ def answer_question(question, current_dataset):
         return None
 
     except Exception as e:
-        print(f"Error analyzing spatial question: {str(e)}")
+        print(f"Error in answer_question: {str(e)}")
         return None
 
 

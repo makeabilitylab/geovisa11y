@@ -106,14 +106,26 @@ def analyze_question():
         current_dataset = data.get('current_dataset', 'ppl_densit')
         print(f"Processing question: {question} for dataset: {current_dataset}")
 
-        # Get the question type
+        # Get the question type first
         question_type = semantic_service.identify_question_type(question)
         
+        # Skip metric check for pattern-related questions
+        if question_type not in ['is_pattern', 'describe_pattern', 'find_outliers']:
+            metric_name = semantic_service.dataset_terms[current_dataset]['metric']
+            if semantic_service.is_different_metric(question, metric_name):
+                openai_response = get_openai_response(question)
+                gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>"
+                return jsonify({
+                    'result': gpt_response,
+                    'dataset': current_dataset,
+                    'question_type': 'others'
+                }), 200
+
         # Update county detection regex to handle more formats
         county_patterns = [
-            r'of\s+([A-Za-z\s]+?)(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',  # "of County X in State Y"
-            r'(?:of\s+)?([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',  # "(of) County X in State Y"
-            r'(?:of\s+)?([A-Za-z\s]+?)\s+County(?:\s*,\s*)([A-Za-z\s]+)',  # "(of) County X, State Y"
+            r'in\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',  # "in County X in/,State Y"
+            r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',  # "of/in County X in/,State Y"
+            r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*)([A-Za-z\s]+)',  # "of/in County X, State Y"
         ]
         
         is_county = False
@@ -237,15 +249,23 @@ def check_ambiguity():
         question = data.get('question')
         previous_answer = data.get('previous_answer')
         current_focus = data.get('current_focus')
+        raw_county = data.get('raw_county')  # Get the raw county name
+        raw_state = data.get('raw_state')    # Get the raw state name
 
-        # Handle the new structured current_focus format
-        if isinstance(current_focus, dict):
-            if current_focus.get('county') and current_focus.get('state'):
-                context = f"{current_focus['county']} County, {current_focus['state']}"
-            else:
-                context = current_focus.get('state') or current_focus.get('full')
+        # Handle the context based on county and state information
+        if raw_county and raw_state:
+            # If we have both county and state, format it properly
+            state_name = raw_state[0] if isinstance(raw_state, list) else raw_state
+            context = f"{raw_county} County, {state_name}"
         else:
-            context = current_focus
+            # Fall back to the current_focus handling
+            if isinstance(current_focus, dict):
+                if current_focus.get('county') and current_focus.get('state'):
+                    context = f"{current_focus['county']} County, {current_focus['state']}"
+                else:
+                    context = current_focus.get('state') or current_focus.get('full')
+            else:
+                context = current_focus
 
         print("Processing ambiguity check:", {
             'question': question,
