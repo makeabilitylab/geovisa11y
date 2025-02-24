@@ -109,37 +109,59 @@ def analyze_question():
         # Get the question type
         question_type = semantic_service.identify_question_type(question)
         
-        # Handle county-level questions
-        county_state_match = re.search(r'of\s+([A-Za-z\s]+?)(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)', question)
-        is_county = 'county' in question.lower() or county_state_match
+        # Update county detection regex to handle more formats
+        county_patterns = [
+            r'of\s+([A-Za-z\s]+?)(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',  # "of County X in State Y"
+            r'(?:of\s+)?([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',  # "(of) County X in State Y"
+            r'(?:of\s+)?([A-Za-z\s]+?)\s+County(?:\s*,\s*)([A-Za-z\s]+)',  # "(of) County X, State Y"
+        ]
         
-        if question_type == 'retrieve' and is_county:
-            if county_state_match:
-                county_name = county_state_match.group(1).strip()
-                state_name = county_state_match.group(2).strip()
-            else:
-                county_match = re.search(r'of\s+([A-Za-z\s]+?)\s+County', question)
-                if county_match:
-                    county_name = county_match.group(1).strip()
+        is_county = False
+        county_name = None
+        state_name = None
+        
+        # Clean up the question first
+        clean_question = question.replace("What's", "").replace("what's", "").strip()
+        clean_question = re.sub(r'^the\s+|^of\s+', '', clean_question)
+        clean_question = clean_question.strip()
+        
+        # First try to extract from patterns
+        for pattern in county_patterns:
+            match = re.search(pattern, clean_question, re.IGNORECASE)
+            if match:
+                is_county = True
+                county_name = match.group(1).strip()
+                state_name = match.group(2).strip()
+                break
+        
+        # If no match found, check if the question was resolved from "here"
+        if not is_county and "County" in clean_question:
+            parts = clean_question.split("County,")
+            if len(parts) == 2:
+                county_name = parts[0].strip()
+                state_name = parts[1].strip()
+                is_county = True
+
+        # Handle county-level questions
+        if question_type == 'retrieve' or is_county:
+            if county_name and state_name:
+                # Remove "County" from county name if present
+                county_name = county_name.replace(" County", "")
+                print(f"Querying for county: {county_name} in state: {state_name}")  # Debug log
+                result = retrieve_value(county_name, current_dataset, is_county=True)
+                if result:
+                    return jsonify({
+                        'result': result['result'],
+                        'question_type': 'retrieve',
+                        'county': county_name,
+                        'state': state_name
+                    }), 200
                 else:
                     return jsonify({
-                        'result': 'Could not understand which county you are asking about.',
-                        'question_type': 'other'
+                        'result': f"Could not find data for {county_name} County in {state_name}.",
+                        'question_type': 'retrieve'
                     }), 200
 
-            result = retrieve_value(county_name, current_dataset, is_county=True)
-            if result:
-                return jsonify({
-                    'result': result['result'],
-                    'question_type': question_type,
-                    'county': county_name
-                }), 200
-            else:
-                return jsonify({
-                    'result': f"Could not find data for {county_name} County.",
-                    'question_type': 'other'
-                }), 200
-        
         # Handle all other questions (state-level, patterns, etc.)
         analysis = answer_question(question, current_dataset)
         if analysis:
@@ -210,25 +232,43 @@ def check_ambiguity():
 
     try:
         data = request.json
-        print("Received ambiguity check data:", data)  # Add this debug log
+        print("Received ambiguity check data:", data)
         
         question = data.get('question')
         previous_answer = data.get('previous_answer')
         current_focus = data.get('current_focus')
 
-        print("Processing ambiguity check:", {  # Add this debug log
+        # Handle the new structured current_focus format
+        if isinstance(current_focus, dict):
+            if current_focus.get('county') and current_focus.get('state'):
+                context = f"{current_focus['county']} County, {current_focus['state']}"
+            else:
+                context = current_focus.get('state') or current_focus.get('full')
+        else:
+            context = current_focus
+
+        print("Processing ambiguity check:", {
             'question': question,
             'previous_answer': previous_answer,
-            'current_focus': current_focus
+            'context': context  # Log the processed context
         })
 
         if not question:
             return jsonify({'error': 'No question provided'}), 400
 
+        # If question contains "here" and we have context, automatically resolve it
+        if 'here' in question.lower() and context:
+            # Make sure we maintain proper capitalization and formatting
+            resolved_question = f"What's the population density of {context}?"
+            return jsonify({
+                'is_ambiguous': True,
+                'resolved_question': resolved_question
+            })
+
         is_ambiguous, ambiguity_type, context = semantic_service.is_ambiguous_question(
             question, 
             previous_answer, 
-            current_focus
+            context  # Pass the processed context
         )
 
         if is_ambiguous:

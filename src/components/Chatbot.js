@@ -266,8 +266,15 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
             // Create focus object that includes both state and county
             const currentFocus = currentFocusedCounty 
-                ? `${currentFocusedCounty} County, ${currentFocusedState}`
-                : currentFocusedState;
+                ? {
+                    county: currentFocusedCounty,
+                    state: currentFocusedState,
+                    full: `${currentFocusedCounty} County, ${currentFocusedState}`
+                  }
+                : {
+                    state: currentFocusedState,
+                    full: currentFocusedState
+                  };
 
             const ambiguityResponse = await fetch(`${apiUrl}/api/check-ambiguity`, {
                 method: 'POST',
@@ -354,25 +361,24 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             if (data.result) {
                 setPreviousAnswer(data.result); // Store the answer for context
                 setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
-                // Only speak if in voice mode
-                // if (useSpeech || preserveSpeech) {
-                //     await speakResponse(data.result.replace(/<[^>]*>/g, '')); // Remove HTML tags
-                // }
-                
-                // Reset map for average, pattern existence, and pattern description questions
-                if (['aggregate', 'is_pattern', 'describe_pattern'].includes(data.question_type)) {
-                    onStateQuestion(null);  // Reset the map view
-                    if (data.question_type === 'describe_pattern') {
-                        onPatternQuestion(true);
-                    }
-                } else {
-                    // Handle state focusing for other question types
-                    if (data.question_type === 'retrieve' && data.state) {
-                        onStateQuestion([data.state]);
-                    } else if (data.question_type === 'compare' && data.states) {
-                        onStateQuestion(data.states);
-                    } else if (data.question_type === 'find_extremum' && data.state) {
-                        onStateQuestion([data.state]);
+
+                // Only handle state focusing if it's not a county-level question
+                if (!data.county) {
+                    // Reset map for average, pattern existence, and pattern description questions
+                    if (['aggregate', 'is_pattern', 'describe_pattern'].includes(data.question_type)) {
+                        onStateQuestion(null);  // Reset the map view
+                        if (data.question_type === 'describe_pattern') {
+                            onPatternQuestion(true);
+                        }
+                    } else {
+                        // Handle state focusing for other question types
+                        if (data.question_type === 'retrieve' && data.state) {
+                            onStateQuestion([data.state]);
+                        } else if (data.question_type === 'compare' && data.states) {
+                            onStateQuestion(data.states);
+                        } else if (data.question_type === 'find_extremum' && data.state) {
+                            onStateQuestion([data.state]);
+                        }
                     }
                 }
             } else {
