@@ -281,17 +281,24 @@ class SemanticService:
 
     def is_different_metric(self, question, current_metric):
         """Check if question is asking about a different metric than what's currently displayed"""
+        # Check for region-related terms
+        region_terms = ['region', 'regions', 'area', 'areas', 'part', 'parts', 'northeast', 'northwest', 
+                       'southeast', 'southwest', 'midwest', 'east coast', 'west coast']
+        
+        question_lower = question.lower()
+        # If question is about regions, treat it as a different metric
+        if any(term in question_lower for term in region_terms):
+            return True
+        
         # Get terms for the current dataset's metric
         current_metric_terms = []
         for dataset_info in self.dataset_terms.values():
             if dataset_info['metric'] == current_metric:
-                # Add metric name and unit as terms
-                current_metric_terms.extend(dataset_info['metric'].lower().split())
+                current_metric_terms.extend(current_metric.lower().split())
                 current_metric_terms.extend(dataset_info['unit'].lower().split())
                 break
         
         # Check if question contains any terms from current metric
-        question_lower = question.lower()
         question_words = question_lower.split()
         
         # If none of the current metric terms are in the question, it might be about a different metric
