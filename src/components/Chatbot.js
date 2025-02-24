@@ -266,7 +266,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     const handleQuestionSubmit = async (question, useSpeech = false) => {
         try {
             setIsLoading(true);
-
+            
             // Create focus object that includes both state and county
             const currentFocus = currentFocusedCounty 
                 ? {
@@ -279,6 +279,14 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     full: currentFocusedState
                   };
 
+            console.log('Sending ambiguity check with:', {
+                question,
+                previous_answer: previousAnswer,
+                current_focus: currentFocus,
+                raw_state: currentFocusedState,
+                raw_county: currentFocusedCounty
+            });
+
             const ambiguityResponse = await fetch(`${apiUrl}/api/check-ambiguity`, {
                 method: 'POST',
                 headers: {
@@ -288,18 +296,12 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 credentials: 'include',
                 mode: 'cors',
                 body: JSON.stringify({
-                    question: question,
+                    question,
                     previous_answer: previousAnswer,
-                    current_focus: currentFocus
-                }),
-            });
-
-            console.log('Sending ambiguity check with:', {
-                question,
-                previous_answer: previousAnswer,
-                current_focus: currentFocus,
-                raw_state: currentFocusedState,
-                raw_county: currentFocusedCounty
+                    current_focus: currentFocus,
+                    raw_state: currentFocusedState,
+                    raw_county: currentFocusedCounty
+                })
             });
 
             const ambiguityData = await ambiguityResponse.json();

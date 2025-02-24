@@ -1121,7 +1121,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
 
         // Handle zoom in/out
-        if ((e.key === '=') && currentFocusedState) {
+        if ((e.key === '=' || e.key === '+') && currentFocusedState) {
             e.preventDefault();
             if (!showingCounties) {
                 fetchCountyData(currentFocusedState);
