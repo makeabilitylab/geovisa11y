@@ -228,7 +228,7 @@ def check_ambiguity():
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
         response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
         response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response
+        return make_response()  
 
     try:
         data = request.json
@@ -256,10 +256,10 @@ def check_ambiguity():
         if not question:
             return jsonify({'error': 'No question provided'}), 400
 
-        # If question contains "here" and we have context, automatically resolve it
+        # If question contains "here" and we have context, resolve it while preserving the original question
         if 'here' in question.lower() and context:
-            # Make sure we maintain proper capitalization and formatting
-            resolved_question = f"What's the population density of {context}?"
+            # Replace "here" with the context while keeping the rest of the question intact
+            resolved_question = question.lower().replace('here', f"in {context}")
             return jsonify({
                 'is_ambiguous': True,
                 'resolved_question': resolved_question
@@ -268,7 +268,7 @@ def check_ambiguity():
         is_ambiguous, ambiguity_type, context = semantic_service.is_ambiguous_question(
             question, 
             previous_answer, 
-            context  # Pass the processed context
+            context
         )
 
         if is_ambiguous:
