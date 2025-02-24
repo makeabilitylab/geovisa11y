@@ -1054,6 +1054,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             e.preventDefault();
             if (!currentFocusedState && !showingCounties) {
                 setCurrentFocusedState('Kansas');
+                onStateFocus('Kansas');
                 setStateAnnouncement('Now focused on Kansas state');
                 focusStateOnMap('Kansas');
             } else if (showingCounties && !currentFocusedCounty) {
@@ -1108,6 +1109,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
                 if (nextState) {
                     setCurrentFocusedState(nextState);
+                    onStateFocus(nextState);
                     setStateAnnouncement(`Now focused on ${nextState} state`);
                     focusStateOnMap(nextState);
                 } else {
@@ -1157,7 +1159,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         findAdjacentCounties,
         focusStateOnMap,
         focusCountyOnMap,
-        onFocusedCountyChange
+        onFocusedCountyChange,
+        onStateFocus
     ]);
 
     // Handle Shift+M to toggle map interaction
