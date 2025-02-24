@@ -115,6 +115,8 @@ def analyze_question():
             if semantic_service.is_different_metric(question, metric_name):
                 openai_response = get_openai_response(question)
                 gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>"
+                # (Answer provided by GPT-4, may not be entirely accurate.)
+                # </span>"
                 return jsonify({
                     'result': gpt_response,
                     'dataset': current_dataset,
