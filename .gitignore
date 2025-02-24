@@ -206,3 +206,4 @@ backend/database
 backend/notebooks/data/
 backend/database/spatial-db.db
 /backend/database
+backend/database/spatial-db.db
