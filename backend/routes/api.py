@@ -62,29 +62,6 @@ def get_geojson(dataset):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# @api.route('/analyze-density', methods=['POST', 'OPTIONS'])
-# def analyze_density():
-#     if request.method == 'OPTIONS':
-#         return '', 200
-        
-#     try:
-#         data = request.json
-#         question = data.get('question')
-#         selected_states = data.get('selected_states', [])
-#         dataset = data.get('dataset', 'ppl_densit')
-        
-#         if not question:
-#             return jsonify({'error': 'No question provided'}), 400
-            
-#         analysis = analyze_state_data(question, selected_states, dataset)
-        
-#         if analysis is None:
-#             return jsonify({'result': None}), 200
-            
-#         return jsonify({'result': analysis}), 200
-        
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
 
 @api.route('/analyze-question', methods=['POST', 'OPTIONS'])
 def analyze_question():
@@ -106,13 +83,14 @@ def analyze_question():
         current_dataset = data.get('current_dataset', 'ppl_densit')
         print(f"Processing question: {question} for dataset: {current_dataset}")
 
-        # Get the question type first
+        # 1. Get the question type
         question_type = semantic_service.identify_question_type(question)
         
-        # Skip metric check for pattern-related questions
+        # 2. Skip metric check for pattern-related questions
         if question_type not in ['is_pattern', 'describe_pattern', 'find_outliers']:
             metric_name = semantic_service.dataset_terms[current_dataset]['metric']
-            if semantic_service.is_different_metric(question, metric_name):
+            # 3. Determine if the question is out of scope
+            if semantic_service.is_out_of_scope(question, metric_name):
                 openai_response = get_openai_response(question)
                 gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>"
                 # (Answer provided by GPT-4, may not be entirely accurate.)
@@ -195,7 +173,7 @@ def analyze_question():
         print(f"Full traceback: {traceback.format_exc()}")
         return jsonify({
             'error': str(e)
-        }), 500  # Changed to return 500 for server errors
+        }), 500 
 
 @api.route('/test', methods=['GET'])
 def test():

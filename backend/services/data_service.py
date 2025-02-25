@@ -151,7 +151,7 @@ def answer_question(question, current_dataset):
         metric_name = semantic_service.dataset_terms[current_dataset]['metric']
         unit = semantic_service.dataset_terms[current_dataset]['unit']
         
-        if semantic_service.is_different_metric(question, metric_name):
+        if semantic_service.is_out_of_scope(question, metric_name):
             return None
 
         if question_type == 'retrieve':
