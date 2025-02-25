@@ -89,6 +89,7 @@ def analyze_question():
         # 2. Skip metric check for pattern-related questions
         if question_type not in ['is_pattern', 'describe_pattern', 'find_outliers']:
             metric_name = semantic_service.dataset_terms[current_dataset]['metric']
+            
             # 3. Determine if the question is out of scope
             if semantic_service.is_out_of_scope(question, metric_name):
                 openai_response = get_openai_response(question)
