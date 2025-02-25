@@ -1,6 +1,7 @@
 from config import DevelopmentConfig
 import openai
 import re
+import json
 
 class SemanticService:
     def __init__(self):
@@ -18,14 +19,6 @@ class SemanticService:
                 'metric': 'public transit usage',
                 'unit': 'percent'
             }
-        }
-
-        self.ambiguous_patterns = {
-            'that_state': r'(?:that|the|this)\s+state',
-            'here': r'\b(?:here|in this state|in this county)\b',
-            'this_state_county': r'(?:this|the current)\s+(?:state|county)',
-            'it': r'\bit\b',
-            'outliers_pattern': r'(?:pattern|distribution)\s+(?:of|in|among)\s+(?:the\s+)?outliers'
         }
 
     def identify_question_type(self, question, current_dataset='ppl_densit'):
@@ -103,9 +96,73 @@ class SemanticService:
             print(f"Error extracting states: {str(e)}")
             return []
 
+    def is_out_of_scope(self, question, current_dataset):
+        """
+        Check if question is out of scope for the current dataset using GPT.
+        Must be checked BEFORE ambiguity resolution.
+        Returns: bool - True if question should be handled by GPT directly
+        """
+        try:
+            current_metric = self.dataset_terms[current_dataset]['metric']
+            current_unit = self.dataset_terms[current_dataset]['unit']
+
+            system_prompt = """You are an expert at analyzing geographic data questions.
+            Determine if this question can be answered using the current dataset.
+            
+            Send to GPT (return true) if the question:
+            1. Asks about a DIFFERENT metric than the current dataset
+               Example: When viewing population density data:
+               - "What's the income level in Texas?" -> true (different metric)
+               - "What's the population density in Texas?" -> false (same metric)
+            2. Asks about geographic units not available in the dataset
+               Example: "How do cities compare?" -> true (only state/county data available)
+            3. Asks conceptual questions about geography or the metric
+               Example: "Why do some areas have higher density?" -> true
+
+            Important: Check the metric FIRST, before considering location references.
+            - "What's the income level here?" -> true (different metric, ignore the "here")
+            - "What's the population density here?" -> false (correct metric, location can be resolved)
+
+            Return ONLY true or false.
+            """
+
+            user_prompt = f"""Question: {question}
+            Current dataset information:
+            - Metric: {current_metric}
+            - Unit: {current_unit}
+            - Geographic levels available: state and county only"""
+
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0
+            )
+
+            result = response.choices[0].message.content.strip().lower() == 'true'
+            return result
+
+        except Exception as e:
+            print(f"Error in out of scope check: {str(e)}")
+            # Fallback to basic check if API fails
+            question_lower = question.lower()
+            # Check for non-dataset metrics first
+            metric_terms = ['income', 'poverty', 'education', 'unemployment', 'gdp', 'crime']
+            if any(term in question_lower for term in metric_terms):
+                return True
+            # Then check for non-supported geographic units
+            geo_terms = ['region', 'city', 'town', 'metropolitan', 'urban', 'rural']
+            if any(term in question_lower for term in geo_terms):
+                return True
+            # Finally check for conceptual questions
+            concept_terms = ['why', 'how come', 'what causes', 'explain', 'theory', 'reason']
+            return any(term in question_lower for term in concept_terms)
+
     def is_ambiguous_question(self, question, previous_answer=None, current_focus=None):
         """
-        Check if a question is ambiguous and needs context resolution
+        Check if a question is ambiguous and needs context resolution using GPT
         Returns: (is_ambiguous: bool, ambiguity_type: str, context_needed: dict)
         """
         # Normalize current_focus to handle different input formats
@@ -138,169 +195,97 @@ class SemanticService:
                 else:
                     current_state = current_focus
 
-        question = question.lower()
-        
-        # Case 1: Reference to "that state"
-        # if re.search(self.ambiguous_patterns['that_state'], question):
-        #     if previous_answer:
-        #         # Extract state name from previous answer
-        #         state_match = re.search(r'(?i)(?:in|for|of|is)\s+([A-Za-z\s]+?)(?:\s+(?:has|with|state|is|shows|and|,|\.))', previous_answer)
-        #         if state_match:
-        #             return True, 'that_state', {'state': state_match.group(1).strip()}
-        #     return True, 'that_state', None
+        try:
+            system_prompt = """You are an expert at analyzing geographic questions for ambiguity.
+            Analyze if the question contains any ambiguous references that require context to resolve.
+            Look for ONLY these specific cases:
+            1. Use of "here" (e.g., "What's the population density here?")
+            2. Use of "this/that state/county" without naming it (e.g., "What's the population of this state?")
+            3. Use of "it" referring to a location (e.g., "What does it look like?")
 
-        # Case 2: Reference to "here" or "this state/county"
-        if re.search(self.ambiguous_patterns['here'], question) or re.search(self.ambiguous_patterns['this_state_county'], question):
-            if current_county:
-                return True, 'location_reference', {'location': current_county, 'type': 'county'}
-            elif current_state:
-                return True, 'location_reference', {'location': current_state, 'type': 'state'}
-            return True, 'location_reference', None
+            Important: If the question directly mentions a specific state or location name, it is NOT ambiguous.
+            Example: "What's the population density of Alabama?" is NOT ambiguous.
 
-        # Case 3: Check for "it" references
-        if re.search(self.ambiguous_patterns['it'], question):
-            try:
-                system_prompt = """You are an expert at analyzing geographic questions. 
-                Determine if the word "it" in the question refers to a geographic location (state/county).
-                Return ONLY "yes" or "no".
-                Examples:
-                - "What does it look like?" (when asking about a state) -> "yes"
-                - "How big is it?" (when asking about a state) -> "yes"
-                - "Why is it important?" (when asking about a concept) -> "no"
-                """
+            Return a JSON object with this structure:
+            {
+                "is_ambiguous": true/false,
+                "ambiguity_type": "location_reference" or null,
+                "needs_context": {
+                    "location": string or null,
+                    "type": "state" or "county" or null
+                }
+            }
+            """
 
-                user_prompt = f"Context: Currently discussing the state of {current_state if current_state else 'unknown'}\nQuestion: {question}\nDoes 'it' refer to the state?"
+            context = {
+                "current_state": current_state,
+                "current_county": current_county
+            }
 
-                response = openai.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt}
-                    ],
-                    temperature=0,
-                    max_tokens=10
-                )
+            user_prompt = f"Question: {question}\nContext: {context}"
 
-                is_location_reference = response.choices[0].message.content.strip().lower() == "yes"
-                
-                if is_location_reference:
-                    if current_county:
-                        return True, 'location_reference', {'location': current_county, 'type': 'county'}
-                    elif current_state:
-                        return True, 'location_reference', {'location': current_state, 'type': 'state'}
-                    return True, 'location_reference', None
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0,
+                response_format={ "type": "json" }
+            )
 
-            except Exception as e:
-                print(f"Error checking 'it' reference: {str(e)}")
-                # Fall back to basic pattern matching if API fails
-                if current_state or current_county:
-                    return True, 'location_reference', {
-                        'location': current_county or current_state,
-                        'type': 'county' if current_county else 'state'
-                    }
+            result = json.loads(response.choices[0].message.content)
+            
+            return (
+                result["is_ambiguous"],
+                result["ambiguity_type"],
+                result["needs_context"]
+            )
 
-        # Case 4: Reference to outliers pattern
-        if re.search(self.ambiguous_patterns['outliers_pattern'], question):
-            if previous_answer and 'outlier' in previous_answer.lower():
-                # Extract states mentioned as outliers
-                states = self.extract_states(previous_answer)
-                if states:
-                    return True, 'outliers', {'states': states}
-            return True, 'outliers', None
-        
-        return False, None, None
+        except Exception as e:
+            print(f"Error in ambiguity check: {str(e)}")
+            # Fallback to basic location reference check if API fails
+            if current_state or current_county:
+                return True, 'location_reference', {
+                    'location': current_county or current_state,
+                    'type': 'county' if current_county else 'state'
+                }
+            return False, None, None
 
     def resolve_ambiguous_question(self, question, ambiguity_type, context):
         """
-        Resolve ambiguous questions using provided context
+        Resolve ambiguous questions using provided context and GPT
         Returns: resolved question or None if can't resolve
         """
-        if not context:
+        if not context or ambiguity_type != 'location_reference':
             return None
 
-        question = question.lower()
-        
-        if ambiguity_type == 'that_state':
-            state_name = context.get('state')
-            if state_name:
-                return re.sub(
-                    self.ambiguous_patterns['that_state'], 
-                    state_name, 
-                    question, 
-                    flags=re.IGNORECASE
-                )
+        try:
+            system_prompt = """You are an expert at resolving ambiguous geographic questions.
+            Given a question with ambiguous references and the context, rewrite the question 
+            to be explicit and unambiguous. Replace pronouns and location references with 
+            the specific location names.
 
-        elif ambiguity_type == 'location_reference':
-            location = context.get('location')
-            location_type = context.get('type')
-            if not location:
-                return None
+            Example:
+            Question: "What's the population density here?"
+            Context: {"location": "California", "type": "state"}
+            Resolved: "What's the population density in California?"
+            """
 
-            # Replace "here" patterns
-            question = re.sub(
-                self.ambiguous_patterns['here'],
-                f"in {location}",
-                question,
-                flags=re.IGNORECASE
+            user_prompt = f"Question: {question}\nContext: {context}"
+
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0
             )
 
-            # Replace "this state/county" patterns
-            question = re.sub(
-                self.ambiguous_patterns['this_state_county'],
-                location,
-                question,
-                flags=re.IGNORECASE
-            )
+            resolved_question = response.choices[0].message.content.strip()
+            return resolved_question
 
-            # Replace "it" with appropriate reference
-            if re.search(self.ambiguous_patterns['it'], question):
-                if location_type == 'state':
-                    question = re.sub(
-                        self.ambiguous_patterns['it'],
-                        f"the state of {location}",
-                        question,
-                        flags=re.IGNORECASE
-                    )
-                else:
-                    question = re.sub(
-                        self.ambiguous_patterns['it'],
-                        location,
-                        question,
-                        flags=re.IGNORECASE
-                    )
-
-            return question
-
-        elif ambiguity_type == 'outliers':
-            states = context.get('states', [])
-            if states:
-                states_str = ', '.join(states)
-                return f"Describe the pattern of outlier states: {states_str}"
-
-        return None
-
-    def is_different_metric(self, question, current_metric):
-        """Check if question is asking about a different metric than what's currently displayed"""
-        # Check for region-related terms
-        region_terms = ['region', 'regions', 'area', 'areas', 'part', 'parts', 'northeast', 'northwest', 
-                       'southeast', 'southwest', 'midwest', 'east coast', 'west coast']
-        
-        question_lower = question.lower()
-        # If question is about regions, treat it as a different metric
-        if any(term in question_lower for term in region_terms):
-            return True
-        
-        # Get terms for the current dataset's metric
-        current_metric_terms = []
-        for dataset_info in self.dataset_terms.values():
-            if dataset_info['metric'] == current_metric:
-                current_metric_terms.extend(current_metric.lower().split())
-                current_metric_terms.extend(dataset_info['unit'].lower().split())
-                break
-        
-        # Check if question contains any terms from current metric
-        question_words = question_lower.split()
-        
-        # If none of the current metric terms are in the question, it might be about a different metric
-        metric_related = any(term in question_words for term in current_metric_terms)
-        return not metric_related
+        except Exception as e:
+            print(f"Error resolving ambiguous question: {str(e)}")
+            return None
