@@ -401,7 +401,14 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // input = input.trim();
         if (!input.trim()) return;
+
+        // log 
+        const log = {
+            input: input,
+        }
+        // console.log('Log:', log);
 
         const userMessage = input;
         setInput('');

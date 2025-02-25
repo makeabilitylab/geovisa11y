@@ -194,22 +194,16 @@ class SemanticService:
                     current_county = current_focus
                 else:
                     current_state = current_focus
-
+# Sending ambiguity check with: Objectcurrent_focus: {state: Array(1), full: Array(1)}previous_answer: "Washington has 115.69 people per square mile."question: "Go to Oregon"raw_county: nullraw_state: ['Washington'][[Prototype]]: Object
+# Chatbot.js:307 Ambiguity response: 
         try:
             system_prompt = """You are an expert at analyzing geographic questions for ambiguity.
-            Analyze if the question contains any ambiguous references that require context to resolve.
-            Look for ONLY these specific cases:
-            1. Use of "here" (e.g., "What's the population density here?")
-            2. Use of "this/that state/county" without naming it (e.g., "What's the population of this state?")
-            3. Use of "it" referring to a location (e.g., "What does it look like?")
+            Analyze if the question contains any ambiguous "references" that require context to resolve.
+            A question is ambiguous only in these specific cases:
+            1. The input includes "here" (e.g., "What's the population density here?")
+            2. The input includes "this/that state/county" without naming it (e.g., "What's the population of this state?")
+            3. The input includes "it" referring to a location (e.g., "What does it look like?")
 
-            Important: 
-            - If the question directly mentions a specific state or location name, it is NOT ambiguous.
-            - Example: "What's the population density of Alabama?" is NOT ambiguous.
-            - When multiple states are being compared, only consider the question ambiguous if it uses "here", "this/that", or "it".
-            - Example: "What's the population density?" when comparing states IS ambiguous.
-            - Example: "What's the population density of Idaho?" when comparing states is NOT ambiguous.
-            
             Return a JSON object with this structure:
             {
                 "is_ambiguous": true/false,
