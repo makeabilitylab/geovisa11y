@@ -8,7 +8,7 @@ function App() {
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
   const [focusedState, setFocusedState] = useState(null);
   const [focusedCounty, setFocusedCounty] = useState(null);
-  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [interactionFocus, setInteractionFocus] = useState('none'); // 'none', 'map', or 'chat'
 
   const API_URL = process.env.NODE_ENV === 'production'
     ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
@@ -44,16 +44,16 @@ function App() {
   };
 
   const handleStateFocus = (stateName) => {
-    // // Normalize the state name to handle arrays
-    // const normalizedStateName = Array.isArray(stateName) ? stateName[0] : stateName;
-    // const currentNormalizedState = Array.isArray(focusedState) ? focusedState[0] : focusedState;
+    // Normalize the state name to handle arrays
+    const normalizedStateName = Array.isArray(stateName) ? stateName[0] : stateName;
+    const currentNormalizedState = Array.isArray(focusedState) ? focusedState[0] : focusedState;
 
-    // // Only update if the value is actually different
-    // if (normalizedStateName !== currentNormalizedState) {
-    //   console.log('Setting focus via map:', normalizedStateName);
-    //   setFocusedState(normalizedStateName);
-    //   setFocusedCounty(null);
-    // }
+    // Only update if the value is actually different
+    if (normalizedStateName !== currentNormalizedState) {
+      console.log('Setting focus via map:', normalizedStateName);
+      setFocusedState(normalizedStateName);
+      setFocusedCounty(null);
+    }
     console.log('Setting focus via map:', stateName);
     setFocusedState(stateName);
     setFocusedCounty(null);
@@ -61,9 +61,18 @@ function App() {
 
   useEffect(() => {
     const globalHandler = (e) => {
-        if (e.ctrlKey && e.key.toLowerCase() === 't') {
-            console.log('Global Ctrl+T caught');
-        }
+      // Handle Ctrl+T for chat focus
+      if (e.ctrlKey && e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        console.log('Global Ctrl+T caught');
+        setInteractionFocus(prev => prev === 'chat' ? 'none' : 'chat');
+      }
+      // Handle Ctrl+M for map focus
+      if (e.ctrlKey && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        console.log('Global Ctrl+M caught');
+        setInteractionFocus(prev => prev === 'map' ? 'none' : 'map');
+      }
     };
     
     window.addEventListener('keydown', globalHandler);
@@ -82,7 +91,7 @@ function App() {
           onFocusedCountyChange={setFocusedCounty}
           onStateFocus={handleStateFocus}
           apiUrl={API_URL}
-          isDisabled={isInputFocused}
+          isMapInteractive={interactionFocus === 'map'}
         />
       </div>
       <div className="w-1/3 h-full">
@@ -94,7 +103,7 @@ function App() {
           currentFocusedState={focusedState}
           currentFocusedCounty={focusedCounty}
           apiUrl={API_URL}
-          onInputFocusChange={setIsInputFocused}
+          isInputFocused={interactionFocus === 'chat'}
         />
       </div>
     </div>

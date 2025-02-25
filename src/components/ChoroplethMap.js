@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import * as turf from '@turf/turf';
 
-const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, onFocusedCountyChange, onStateFocus, apiUrl }) => {
+const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
@@ -13,7 +13,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const [lisaLayer, setLisaLayer] = useState(null);
     const [lisaLegend, setLisaLegend] = useState(null);
     const [layersInitialized, setLayersInitialized] = useState(false);
-    const [isMapInteractive, setIsMapInteractive] = useState(false);
     const [currentFocusedState, setCurrentFocusedState] = useState(null);
     const [stateAnnouncement, setStateAnnouncement] = useState('');
     const announcementRef = useRef(null);
@@ -187,40 +186,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     closeOnClick: false
                 });
             }
-
-            // Testing Layers
-            // map.current.addSource('test-source', {
-            //     type: 'geojson',
-            //     data: {
-            //         type: 'FeatureCollection',
-            //         features: [{
-            //             type: 'Feature',
-            //             geometry: {
-            //                 type: 'Polygon',
-            //                 coordinates: [[
-            //                     [-100, 40],
-            //                     [-90, 40],
-            //                     [-90, 35],
-            //                     [-100, 35],
-            //                     [-100, 40]
-            //                 ]]
-            //             },
-            //             properties: {
-            //                 name: 'Test Rectangle'
-            //             }
-            //         }]
-            //     }
-            // });
-
-            // map.current.addLayer({
-            //     id: 'test-layer',
-            //     type: 'fill',
-            //     source: 'test-source',
-            //     paint: {
-            //         'fill-color': '#ff0000',
-            //         'fill-opacity': 0.7
-            //     }
-            // });
 
             // Add the population source
             map.current.addSource('population', {
@@ -1045,40 +1010,49 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [countyData]);
 
-    // Update handleKeyNavigation to handle array input
-    const handleKeyNavigation = useCallback((e) => {
-        if (!isMapInteractive || !geoData) return;
+    // Remove the local Ctrl+M handler useEffect and instead add an effect to announce map interaction changes
+    useEffect(() => {
+        // Announce map interaction state changes
+        setStateAnnouncement(
+            isMapInteractive 
+                ? 'Map interaction enabled. Press Tab to focus on a state.' 
+                : 'Map interaction disabled.'
+        );
+    }, [isMapInteractive]);
 
-        // Handle initial focus
-        if (e.key === 'Tab') {
-            e.preventDefault();
-            if (!currentFocusedState && !showingCounties) {
-                setCurrentFocusedState('Kansas');
-                onStateFocus('Kansas');
-                setStateAnnouncement('Now focused on Kansas state');
-                focusStateOnMap('Kansas');
-            } else if (showingCounties && !currentFocusedCounty) {
-                // Focus on the first county in the list
-                const firstCounty = countyData?.features[0]?.properties.county_name;
-                if (firstCounty) {
-                    setCurrentFocusedCounty(firstCounty);
-                    onFocusedCountyChange(firstCounty);
-                    setStateAnnouncement(`Now focused on ${firstCounty} county`);
-                    focusCountyOnMap(firstCounty);
+    // Keep the keyboard navigation effect
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (!isMapInteractive) return;
+
+            // Handle initial focus
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                if (!currentFocusedState && !showingCounties) {
+                    setCurrentFocusedState('Kansas');
+                    onStateFocus('Kansas');
+                    setStateAnnouncement('Now focused on Kansas state');
+                    focusStateOnMap('Kansas');
+                } else if (showingCounties && !currentFocusedCounty) {
+                    const firstCounty = countyData?.features[0]?.properties.county_name;
+                    if (firstCounty) {
+                        setCurrentFocusedCounty(firstCounty);
+                        onFocusedCountyChange(firstCounty);
+                        setStateAnnouncement(`Now focused on ${firstCounty} county`);
+                        focusCountyOnMap(firstCounty);
+                    }
                 }
             }
-        }
 
-        // Handle arrow key navigation - only if we have a focused state or county
-        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-            e.preventDefault();
-            
-            // Normalize state name before checking
-            const normalizedState = normalizeStateName(currentFocusedState);
-            if (!normalizedState || (showingCounties && !currentFocusedCounty)) {
-                setStateAnnouncement('Press Tab to focus on a state before using arrow keys');
-                return;
-            }
+            // Handle arrow key navigation
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+                
+                const normalizedState = normalizeStateName(currentFocusedState);
+                if (!normalizedState || (showingCounties && !currentFocusedCounty)) {
+                    setStateAnnouncement('Press Tab to focus on a state before using arrow keys');
+                    return;
+                }
 
             const direction = {
                 'ArrowUp': 'north',
@@ -1120,15 +1094,15 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             }
         }
 
-        // Handle zoom in/out
-        if ((e.key === '=' || e.key === '+') && currentFocusedState) {
-            e.preventDefault();
-            if (!showingCounties) {
-                fetchCountyData(currentFocusedState);
-                setStateAnnouncement(`Showing counties in ${currentFocusedState}. Press Tab to focus on a county.`);
-                setCurrentFocusedCounty(null); // Reset county focus when zooming in
+            // Handle zoom in/out
+            if ((e.key === '=' || e.key === '+') && currentFocusedState) {
+                e.preventDefault();
+                if (!showingCounties) {
+                    fetchCountyData(currentFocusedState);
+                    setStateAnnouncement(`Showing counties in ${currentFocusedState}. Press Tab to focus on a county.`);
+                    setCurrentFocusedCounty(null);
+                }
             }
-        }
 
         if (e.key === '-' && showingCounties) {
             e.preventDefault();
@@ -1149,43 +1123,25 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             focusStateOnMap(currentFocusedState);
             setStateAnnouncement(`Returned to state view of ${currentFocusedState}`);
         }
-    }, [
-        isMapInteractive, 
-        currentFocusedState, 
-        currentFocusedCounty,
-        showingCounties, 
-        countyData,
-        findAdjacentStates,
-        findAdjacentCounties,
-        focusStateOnMap,
-        focusCountyOnMap,
-        onFocusedCountyChange,
-        onStateFocus
-    ]);
+    };
 
-    // Add this to the existing useEffect for keyboard shortcuts
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            // Ctrl+M for map interaction
-            if (e.ctrlKey && e.key.toLowerCase() === 'm') {
-                e.preventDefault(); // Prevent default browser behavior
-                setIsMapInteractive(prev => !prev);
-                setStateAnnouncement(prev => 
-                    !isMapInteractive 
-                        ? 'Map interaction enabled. Press Tab to focus on a state.' 
-                        : 'Map interaction disabled.'
-                );
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keydown', handleKeyNavigation);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keydown', handleKeyNavigation);
-        };
-    }, [handleKeyNavigation]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+}, [
+    isMapInteractive,
+    currentFocusedState,
+    currentFocusedCounty,
+    showingCounties,
+    countyData,
+    findAdjacentStates,
+    findAdjacentCounties,
+    focusStateOnMap,
+    focusCountyOnMap,
+    onFocusedCountyChange,
+    onStateFocus,
+    normalizeStateName,
+    fetchCountyData
+]);
 
     // Update effect to sync with parent's state
     useEffect(() => {
