@@ -686,7 +686,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
             {/* Input, Microphone, and Send Button */}
             <div className="flex gap-2 items-center"
-               aria-hidden="true"
+            //    aria-hidden="true"
                tabIndex="-1">
                 <div className="flex-grow">
                     <div ref={wrapperRef}>
