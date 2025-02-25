@@ -564,11 +564,23 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         });
     }, [currentFocusedState, currentFocusedCounty]);
 
+    useEffect(() => {
+        // Focus the welcome section on component mount
+        const welcomeSection = document.getElementById('welcome');
+        if (welcomeSection) {
+            welcomeSection.focus();
+        }
+    }, []);
+
     return (
-        <CardBody className="flex flex-col h-full p-2">
+        <CardBody 
+        className="flex flex-col h-full p-2"
+        role= "main"
+        aria-label= "MappieTalkie chat interface"
+        >
             
-            <div id = "welcome"  aria-live="polite" role="application" tabIndex="0">
-            <Typography variant="h1" color="blue-gray" className="mb-2">
+        {/* <div id = "welcome"  aria-live="polite" role="application" tabIndex="0"> */}
+            <Typography variant="h6" color="blue-gray" className="mb-2">
                 MappieTalkie
             </Typography>
 
@@ -628,7 +640,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     {!isInputFocused && "Press and hold the spacebar to speak."}
                 </Typography>
             </div>
-            </div>
+        {/* </div> */}
             <div 
                 ref={chatContainerRef}
                 className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md"
