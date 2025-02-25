@@ -203,9 +203,13 @@ class SemanticService:
             2. Use of "this/that state/county" without naming it (e.g., "What's the population of this state?")
             3. Use of "it" referring to a location (e.g., "What does it look like?")
 
-            Important: If the question directly mentions a specific state or location name, it is NOT ambiguous.
-            Example: "What's the population density of Alabama?" is NOT ambiguous.
-
+            Important: 
+            - If the question directly mentions a specific state or location name, it is NOT ambiguous.
+            - Example: "What's the population density of Alabama?" is NOT ambiguous.
+            - When multiple states are being compared, only consider the question ambiguous if it uses "here", "this/that", or "it".
+            - Example: "What's the population density?" when comparing states IS ambiguous.
+            - Example: "What's the population density of Idaho?" when comparing states is NOT ambiguous.
+            
             Return a JSON object with this structure:
             {
                 "is_ambiguous": true/false,
