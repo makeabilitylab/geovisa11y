@@ -9,7 +9,7 @@ import {
 } from '@material-tailwind/react';
 
 
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl }) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +20,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     const audioChunksRef = useRef([]);
     const audioRef = useRef(new Audio());
     // const [useSpeech, setUseSpeech] = useState(false);
-    const [isInputFocused, setIsInputFocused] = useState(false);
     const inputRef = useRef(null);
     const wrapperRef = useRef(null);
 
@@ -422,42 +421,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         }
     };
 
-    // Add Ctrl+T handler as a separate effect
-    useEffect(() => {
-        const handleCtrlT = (e) => {
-            if (e.ctrlKey && e.key.toLowerCase() === 't') {
-                e.preventDefault();
-                console.log('Ctrl+T pressed');
-                
-                // Toggle input focus
-                if (isInputFocused) {
-                    // If input is focused, blur it
-                    if (wrapperRef.current) {
-                        const input = wrapperRef.current.querySelector('input');
-                        if (input) {
-                            input.blur();
-                            setIsInputFocused(false);
-                            console.log('Input blurred');
-                        }
-                    }
-                } else {
-                    // If input is not focused, focus it
-                    if (wrapperRef.current) {
-                        const input = wrapperRef.current.querySelector('input');
-                        if (input) {
-                            input.focus();
-                            setIsInputFocused(true);
-                            console.log('Input focused');
-                        }
-                    }
-                }
-            }
-        };
-
-        window.addEventListener('keydown', handleCtrlT);
-        return () => window.removeEventListener('keydown', handleCtrlT);
-    }, [isInputFocused]); // Add isInputFocused to dependencies
-
     // Add spacebar handler for recording as a separate effect
     useEffect(() => {
         const handleSpacebarRecord = (e) => {
@@ -571,6 +534,16 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             welcomeSection.focus();
         }
     }, []);
+
+    // Update input ref focus when isInputFocused changes
+    useEffect(() => {
+        if (isInputFocused && wrapperRef.current) {
+            const input = wrapperRef.current.querySelector('input');
+            if (input) {
+                input.focus();
+            }
+        }
+    }, [isInputFocused]);
 
     return (
         <CardBody 
@@ -698,11 +671,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                             onKeyDown={handleKeyDown}
                             onFocus={() => {
                                 console.log('Input focused');
-                                setIsInputFocused(true);
                             }}
                             onBlur={() => {
                                 console.log('Input blurred');
-                                setIsInputFocused(false);
                             }}
                             className="font-['Roboto']"
                             labelProps={{
