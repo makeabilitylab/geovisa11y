@@ -198,3 +198,7 @@ yarn-error.log*
 
 
 *.geojson
+
+
+/backend/notebooks/data
+*.db
