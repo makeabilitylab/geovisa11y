@@ -1197,11 +1197,12 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     }, [focusedState, focusStateOnMap]);
 
     return (
-        <div className="relative h-full">
+        <div className="relative h-full ">
             <div ref={mapContainer} className="h-full" 
                 // aria-hidden={!isMapInteractive} 
                 role="application"
                 aria-label="Interactive map of United States"
+                tabIndex="1"
             />
 
             {/* Live region for announcements */}

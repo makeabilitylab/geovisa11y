@@ -68,11 +68,11 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         } else {  // ppl_densit
             return [
                 `What's the population density of ${state1}?`,
-                `Which state has higher population density, ${state2} or ${state3}?`,
+                // `Which state has higher population density, ${state2} or ${state3}?`,
                 `Which state has the ${extrema} population density?`,
-                "What's the average population density in this map?",
+                // "What's the average population density in this map?",
                 "Is there a pattern in this map?",
-                "Can you describe the pattern?",
+                // "Can you describe the pattern?",
             ];
         }
     };
@@ -423,7 +423,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             case 'transit_to':
                 return "This is a choropleth map of the United States showing the percentage of people who use public transit in each state. Darker shades indicate higher percentages of public transit usage.";
             default: // ppl_densit
-                return "This is a choropleth map of the United States showing population density for each state. Darker shades indicate higher population density.";
+                // return "This is a choropleth map of the United States showing population density for each state. Darker shades indicate higher population density.";
+                return "This is an interactive choropleth map of the United States showing population density, optimized for screen reader users.";
         }
     };
 
@@ -517,7 +518,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     return (
         <CardBody 
             className="flex flex-col h-full p-2"
-            role="complementary"
+            role="region"
             aria-label="MappieTalkie chat interface"
         >
             <div 
@@ -528,13 +529,13 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 aria-label="Welcome to MappieTalkie"
             > 
                 <Typography variant="h6" color="blue-gray" className="mb-2">
-                    MappieTalkie
+                    Welcome to MappieTalkie
                 </Typography>
 
                 {/* Map Description and Example Questions Intro */}
                 <Typography variant="small" color="gray" className="mb-4 text-xs">
                     <span className="italic">{getMapDescription()}</span>
-                    {' You can ask me questions like:'}
+                    {' You can ask me questions about the map visualization:'}
                 </Typography>
 
                 {/* Dataset-specific Questions Section */}
@@ -559,8 +560,106 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     </div>
                 </div>
 
+                {/* Navigation Instructions */}
+                <Typography variant="small" color="gray" className="mb-2 text-xs">
+                    <span className="font-bold">Keyboard Shortcuts:</span>
+                    <ul className="space-y-2">
+                        <li>Press Ctrl + / to focus on the input box and type your question.</li>
+                        <li>Press and hold the spacebar to use voice mode.</li>
+                        <li>Press Ctrl + M to toggle map interaction, then use arrow keys to navigate between states.</li>
+                        <li>Press + to zoom in to county level within a state. Press - to zoom back out to state level.</li>
+                    </ul>
+                </Typography>
+                    
+                {/* Quick Commands:*/}
+                <Typography variant="small" color="gray" className="mb-2 text-xs">
+                    <span className="font-bold">Quick Commands:</span>
+                    <ul className="mb-2 space-y-3">
+                        <li>
+                            {"Simply type or say "}
+                            <span
+                                onClick={() => handleExampleClick("Go to Washington")}
+                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
+                                role="text"
+                                tabIndex="0"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        handleExampleClick("Go to Florida!");
+                                    }
+                                }}
+                            >
+                                Go to Washington.
+                            </span>
+                            {" to focus on Washington or any other state."}
+                        </li>
+                        <li>
+                            {"When focused on a state or county, you can ask specific questions like: "}
+                            <span
+                                onClick={() => handleExampleClick("What's the population density here?")}
+                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
+                                role="text"
+                                tabIndex="0"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        handleExampleClick("What's the population density here?");
+                                    }
+                                }}
+                            >
+                                What's the population density here?
+                            </span>
+                            {" or "}
+                            <span
+                                onClick={() => handleExampleClick("How does this compare to neighboring states?")}
+                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
+                                role="text"
+                                tabIndex="0"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        handleExampleClick("How does this compare to neighboring states?");
+                                    }
+                                }}
+                            >
+                                How does this compare to neighboring states?
+                            </span>
+                        </li>
+                        <li>
+                            {"For general information, try asking: "}
+                            <span
+                                onClick={() => handleExampleClick("What is a choropleth map?")}
+                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
+                                role="text"
+                                tabIndex="0"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        handleExampleClick("What is a choropleth map?");
+                                    }
+                                }}
+                            >
+                                What is a choropleth map?
+                            </span>
+                        </li>
+                        <li>
+                            {"Ask"}
+                            <span
+                                onClick={() => handleExampleClick("What else can you do?")}
+                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
+                                role="text"
+                                tabIndex="0"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        handleExampleClick("What else can you do?");
+                                    }
+                                }}
+                            >
+                                What else can you do?
+                            </span>
+                            {" to hear a list of all the things I can do."}
+                        </li>
+                    </ul>
+                </Typography>
+
                 {/* General Knowledge Questions Section */}
-                <div className="mb-4">
+                {/* <div className="mb-4">
                     <Typography variant="small" color="gray" className="mb-2 text-xs">
                         Or ask me about:
                     </Typography>
@@ -586,7 +685,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                         Press Ctrl+M to toggle map interaction. Press Ctrl+/ to focus on text input.
                         {!isInputFocused && " Press and hold the spacebar to speak."}
                     </Typography>
-                </div>
+                </div> */}
             </div>
             <div 
                 ref={chatContainerRef}
