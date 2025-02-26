@@ -128,7 +128,7 @@ def answer_question(question, current_dataset):
     try:
         # Get the question type first
         question_type = semantic_service.identify_question_type(question, current_dataset)
-        print(f"Debug - Question type identified in answer_question: {question_type}")
+        #print(f"Debug - Question type identified in answer_question: {question_type}")
 
         # Handle pattern questions before metric check
         if question_type == 'is_pattern':
@@ -146,13 +146,6 @@ def answer_question(question, current_dataset):
                 'dataset': current_dataset,
                 'question_type': 'describe_pattern'
             }
-
-        # Get metric details and check for different metrics
-        metric_name = semantic_service.dataset_terms[current_dataset]['metric']
-        unit = semantic_service.dataset_terms[current_dataset]['unit']
-        
-        if semantic_service.is_out_of_scope(question, metric_name):
-            return None
 
         if question_type == 'retrieve':
             # Check if this is a county question
@@ -363,7 +356,7 @@ def compare_states(state1, state2, dataset):
             WHERE LOWER(state_name) IN (LOWER(?), LOWER(?))
         """
         results = con.execute(query, [state1, state2]).fetchall()
-        print(f"Debug - Compare states results: {results}")
+        # print(f"Debug - Compare states results: {results}")
         if len(results) != 2:
             return None
             

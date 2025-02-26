@@ -262,7 +262,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     // Add state for tracking previous answer
     const [previousAnswer, setPreviousAnswer] = useState(null);
 
-    const handleQuestionSubmit = async (question, useSpeech = false) => {
+    const handleQuestionSubmit = async (input, useSpeech = false) => {
         try {
             setIsLoading(true);
             
@@ -278,15 +278,15 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     full: currentFocusedState
                   };
 
-            console.log('Sending ambiguity check with:', {
-                question,
+            console.log('Sending input to analyze:', {
+                input,
                 previous_answer: previousAnswer,
                 current_focus: currentFocus,
                 raw_state: currentFocusedState,
                 raw_county: currentFocusedCounty
             });
 
-            const ambiguityResponse = await fetch(`${apiUrl}/api/check-ambiguity`, {
+            const response = await fetch(`${apiUrl}/api/analyze-input`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -295,63 +295,13 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 credentials: 'include',
                 mode: 'cors',
                 body: JSON.stringify({
-                    question,
+                    input,
                     previous_answer: previousAnswer,
                     current_focus: currentFocus,
                     raw_state: currentFocusedState,
-                    raw_county: currentFocusedCounty
-                })
-            });
-
-            const ambiguityData = await ambiguityResponse.json();
-            console.log('Ambiguity response:', ambiguityData);
-            
-            // If ambiguous but can't resolve, ask for clarification
-            if (ambiguityData.is_ambiguous && !ambiguityData.resolved_question) {
-                setMessages(prev => [...prev, { 
-                    text: "Could you please specify which state or location you're referring to?", 
-                    sender: 'bot' 
-                }]);
-                return;
-            }
-
-            // Use resolved question if available
-            const finalQuestion = ambiguityData.resolved_question || question;
-
-            // Clean up the question text
-            const cleanQuestion = finalQuestion.replace(/[.,!?]+$/, '').trim();
-
-            // Check for focus/navigation commands with more flexible matching
-            const focusMatch = cleanQuestion.match(/^(?:focus\s+on|go\s+to)\s+(.+)$/i);
-            if (focusMatch) {
-                const stateName = focusMatch[1].trim();
-                const validState = states.find(
-                    state => state.toLowerCase() === stateName.toLowerCase()
-                );
-                
-                if (validState) {
-                    // Reset county view before focusing on new state
-                    onStateQuestion(null); // This will trigger cleanup
-                    onStateFocus(validState);
-                    setMessages(prev => [...prev, 
-                        { text: `Focusing on ${validState}.`, sender: 'bot' }
-                    ]);
-                    return;
-                }
-            }
-
-            const response = await fetch(`${apiUrl}/api/analyze-question`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Origin': window.location.origin
-                },
-                credentials: 'include',
-                mode: 'cors', // Explicitly set CORS mode
-                body: JSON.stringify({
-                    question: finalQuestion,
+                    raw_county: currentFocusedCounty,
                     current_dataset: dataset
-                }),
+                })
             });
 
             if (!response.ok) {
@@ -359,35 +309,47 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             }
 
             const data = await response.json();
-            console.log('Question:', finalQuestion);
-            console.log('Question Type:', data.question_type);
+            console.log('Response:', data);
 
+            // Handle action responses
+            if (data.is_action) {
+                if (data.action_type === 'focus' && data.state) {
+                    onStateFocus(data.state);
+                    setMessages(prev => [...prev, { 
+                        text: `Focusing on ${data.state}.`, 
+                        sender: 'bot' 
+                    }]);
+                    return;
+                }
+            }
+
+            // Handle question responses
             if (data.result) {
                 setPreviousAnswer(data.result); // Store the answer for context
-                setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
 
-                // Only handle state focusing if it's not a county-level question
-                if (!data.county) {
-                    // Reset map for average, pattern existence, and pattern description questions
-                    if (['aggregate', 'is_pattern', 'describe_pattern'].includes(data.question_type)) {
-                        onStateQuestion(null);  // Reset the map view
-                        if (data.question_type === 'describe_pattern') {
-                            onPatternQuestion(true);
-                        }
-                    } else {
-                        // Handle state focusing for other question types
-                        if (data.question_type === 'retrieve' && data.state) {
-                            onStateQuestion([data.state]);
-                        } else if (data.question_type === 'compare' && data.states) {
-                            onStateQuestion(data.states);
-                        } else if (data.question_type === 'find_extremum' && data.state) {
-                            onStateQuestion([data.state]);
-                        }
-                    }
+                // Update map for pattern questions
+                if (data.question_type === 'describe_pattern') {
+                    onPatternQuestion(true);
+                } else if (data.question_type === 'is_pattern') {
+                    onPatternQuestion(false);
                 }
-            } else {
-                throw new Error('No result in response');
+
+                // Handle state/county focusing for relevant question types
+                if (data.question_type === 'retrieve') {
+                    if (data.county) {
+                        // Don't update focus for county-level responses
+                    } else if (data.state) {
+                        onStateQuestion([data.state]);
+                    }
+                } else if (data.states && data.question_type === 'compare') {
+                    onStateQuestion(data.states);
+                } else if (data.question_type === 'find_extremum') {
+                    onStateQuestion([data.state]);
+                }
+
+                setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
             }
+
         } catch (error) {
             console.error('Error:', error);
             setMessages(prev => [...prev, { 
