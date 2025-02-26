@@ -61,11 +61,11 @@ function App() {
 
   useEffect(() => {
     const globalHandler = (e) => {
-      // Handle Ctrl+T for chat focus
-      if (e.ctrlKey && e.key.toLowerCase() === 't') {
+      // We also confirm if the key pressed is "/" (the slash)
+      if (e.ctrlKey && e.key === '/') {
         e.preventDefault();
-        console.log('Global Ctrl+T caught');
-        setInteractionFocus(prev => prev === 'chat' ? 'none' : 'chat');
+        console.log('Toggle focus via slash shortcut');
+        setInteractionFocus((prev) => (prev === 'chat' ? 'none' : 'chat'));
       }
       // Handle Ctrl+M for map focus
       if (e.ctrlKey && e.key.toLowerCase() === 'm') {
