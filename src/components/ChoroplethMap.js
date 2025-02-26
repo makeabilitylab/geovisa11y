@@ -801,24 +801,50 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const focusStateOnMap = useCallback((stateName) => {
         if (!map.current || !geoData) return;
 
-        // Clear county focus
-        setCurrentFocusedCounty(null);
-        onFocusedCountyChange(null);
+        // If stateName is an array, fit the view to include all states
+        if (Array.isArray(stateName)) {
+            // Get features for all states
+            const features = stateName.map(state => {
+                return map.current.querySourceFeatures('population', {
+                    sourceLayer: 'state',
+                    filter: ['==', ['to-string', ['get', 'state_name']], state]
+                })[0];
+            }).filter(Boolean); // Remove any undefined features
 
-        const feature = geoData?.features.find(f => 
-            f.properties.state_name.toLowerCase() === stateName.toLowerCase()
-        );
-        if (feature && map.current) {
-            const bounds = new mapboxgl.LngLatBounds();
-            const coordinates = feature.geometry.type === 'Polygon' 
-                ? feature.geometry.coordinates[0]
-                : feature.geometry.coordinates.flat(1);
-            coordinates.forEach(coord => bounds.extend(coord));
-            
-            map.current.fitBounds(bounds, {
-                padding: 200,
-                duration: 1000
+            if (features.length > 0) {
+                // Calculate bounds that include all states
+                const bounds = new mapboxgl.LngLatBounds();
+                features.forEach(feature => {
+                    if (feature.geometry) {
+                        const coordinates = feature.geometry.coordinates[0];
+                        coordinates.forEach(coord => bounds.extend(coord));
+                    }
+                });
+
+                // Fit map to bounds with padding
+                map.current.fitBounds(bounds, {
+                    padding: 50,
+                    duration: 1000
+                });
+            }
+        } else {
+            // Original single-state focus logic
+            const features = map.current.querySourceFeatures('population', {
+                sourceLayer: 'state',
+                filter: ['==', ['to-string', ['get', 'state_name']], stateName]
             });
+
+            if (features.length > 0) {
+                const coordinates = features[0].geometry.coordinates[0];
+                const bounds = coordinates.reduce((bounds, coord) => {
+                    return bounds.extend(coord);
+                }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                map.current.fitBounds(bounds, {
+                    padding: 50,
+                    duration: 1000
+                });
+            }
         }
     }, [geoData]);
 
@@ -1120,8 +1146,13 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     map.current.removeSource('counties');
                 }
             }
-            focusStateOnMap(currentFocusedState);
-            setStateAnnouncement(`Returned to state view of ${currentFocusedState}`);
+            // Normalize currentFocusedState before using it
+            const stateName = Array.isArray(currentFocusedState) 
+                ? currentFocusedState[0] 
+                : currentFocusedState;
+            
+            focusStateOnMap(stateName);
+            setStateAnnouncement(`Returned to state view of ${stateName}`);
         }
     };
 

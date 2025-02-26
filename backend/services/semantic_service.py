@@ -58,7 +58,7 @@ class SemanticService:
             )
 
             question_type = response.choices[0].message.content.strip().lower()
-            print(f"Debug - Identified question type: {question_type}")
+            # print(f"Debug - Identified question type: {question_type}")
             return question_type
 
         except Exception as e:
@@ -98,18 +98,18 @@ class SemanticService:
 
     def is_out_of_scope(self, question, current_dataset):
         """
-        Check if question is out of scope for the current dataset using GPT.
-        Must be checked BEFORE ambiguity resolution.
+        Check if question is out of scope for the current dataset using GPT
         Returns: bool - True if question should be handled by GPT directly
         """
         try:
-            current_metric = self.dataset_terms[current_dataset]['metric']
-            current_unit = self.dataset_terms[current_dataset]['unit']
+            # Get the correct metric name from dataset_terms
+            metric_name = self.dataset_terms[current_dataset]['metric']
+            unit = self.dataset_terms[current_dataset]['unit']
 
             system_prompt = """You are an expert at analyzing geographic data questions.
             Determine if this question can be answered using the current dataset.
             
-            Send to GPT (return true) if the question:
+            Return 'true' if the question:
             1. Asks about a DIFFERENT metric than the current dataset
                Example: When viewing population density data:
                - "What's the income level in Texas?" -> true (different metric)
@@ -119,21 +119,17 @@ class SemanticService:
             3. Asks conceptual questions about geography or the metric
                Example: "Why do some areas have higher density?" -> true
 
-            Important: Check the metric FIRST, before considering location references.
-            - "What's the income level here?" -> true (different metric, ignore the "here")
-            - "What's the population density here?" -> false (correct metric, location can be resolved)
-
-            Return ONLY true or false.
+            IMPORTANT: Return ONLY 'true' or 'false' as a single word.
             """
 
             user_prompt = f"""Question: {question}
             Current dataset information:
-            - Metric: {current_metric}
-            - Unit: {current_unit}
+            - Metric: {metric_name}
+            - Unit: {unit}
             - Geographic levels available: state and county only"""
 
             response = openai.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
@@ -142,21 +138,22 @@ class SemanticService:
             )
 
             result = response.choices[0].message.content.strip().lower() == 'true'
+            print(f"Out of scope check: {result}")
             return result
 
         except Exception as e:
             print(f"Error in out of scope check: {str(e)}")
-            # Fallback to basic check if API fails
+            # Fallback to basic check
             question_lower = question.lower()
-            # Check for non-dataset metrics first
+            # Check for non-dataset metrics
             metric_terms = ['income', 'poverty', 'education', 'unemployment', 'gdp', 'crime']
             if any(term in question_lower for term in metric_terms):
                 return True
-            # Then check for non-supported geographic units
+            # Check for non-supported geographic units
             geo_terms = ['region', 'city', 'town', 'metropolitan', 'urban', 'rural']
             if any(term in question_lower for term in geo_terms):
                 return True
-            # Finally check for conceptual questions
+            # Check for conceptual questions
             concept_terms = ['why', 'how come', 'what causes', 'explain', 'theory', 'reason']
             return any(term in question_lower for term in concept_terms)
 
@@ -165,37 +162,6 @@ class SemanticService:
         Check if a question is ambiguous and needs context resolution using GPT
         Returns: (is_ambiguous: bool, ambiguity_type: str, context_needed: dict)
         """
-        # Normalize current_focus to handle different input formats
-        current_county = None
-        current_state = None
-
-        if current_focus:
-            if isinstance(current_focus, dict):
-                current_state = current_focus.get('state')
-                if 'county' in current_focus:
-                    current_county = current_focus['county']
-            elif isinstance(current_focus, list):
-                current_focus = current_focus[0] if current_focus else None
-                if isinstance(current_focus, str):
-                    if ',' in current_focus:
-                        parts = current_focus.split(',')
-                        current_county = parts[0].strip()
-                        current_state = parts[1].strip()
-                    elif ' County' in current_focus:
-                        current_county = current_focus
-                    else:
-                        current_state = current_focus
-            elif isinstance(current_focus, str):
-                if ',' in current_focus:
-                    parts = current_focus.split(',')
-                    current_county = parts[0].strip()
-                    current_state = parts[1].strip()
-                elif ' County' in current_focus:
-                    current_county = current_focus
-                else:
-                    current_state = current_focus
-# Sending ambiguity check with: Objectcurrent_focus: {state: Array(1), full: Array(1)}previous_answer: "Washington has 115.69 people per square mile."question: "Go to Oregon"raw_county: nullraw_state: ['Washington'][[Prototype]]: Object
-# Chatbot.js:307 Ambiguity response: 
         try:
             system_prompt = """You are an expert at analyzing geographic questions for ambiguity.
             Analyze if the question contains any ambiguous "references" that require context to resolve.
@@ -204,36 +170,42 @@ class SemanticService:
             2. The input includes "this/that state/county" without naming it (e.g., "What's the population of this state?")
             3. The input includes "it" referring to a location (e.g., "What does it look like?")
 
-            Return a JSON object with this structure:
-            {
-                "is_ambiguous": true/false,
-                "ambiguity_type": "location_reference" or null,
-                "needs_context": {
-                    "location": string or null,
-                    "type": "state" or "county" or null
-                }
-            }
+            Respond with ONLY a JSON string in this exact format:
+            {"is_ambiguous": true/false, "ambiguity_type": "location_reference" or null, "needs_context": {"location": string or null, "type": "state" or "county" or null}}
             """
 
+            # Simplified context normalization
+            if isinstance(current_focus, dict) and current_focus.get('county'):
+                location = f"{current_focus['county']} County, {current_focus['state']}"
+                context_type = "county"
+            else:
+                location = current_focus.get('state') if isinstance(current_focus, dict) else current_focus
+                context_type = "state"
+
             context = {
-                "current_state": current_state,
-                "current_county": current_county
+                "current_state": location,
+                "type": context_type
             }
 
             user_prompt = f"Question: {question}\nContext: {context}"
 
             response = openai.chat.completions.create(
-                model="gpt-4",
+                model="4",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
-                temperature=0,
-                response_format={ "type": "json" }
+                temperature=0
             )
 
-            result = json.loads(response.choices[0].message.content)
+            result = json.loads(response.choices[0].message.content.strip())
+            print(f"Ambiguity check: {result}")
             
+            # If ambiguous and we have context, provide it
+            if result["is_ambiguous"] and location:
+                result["needs_context"]["location"] = location
+                result["needs_context"]["type"] = context_type
+
             return (
                 result["is_ambiguous"],
                 result["ambiguity_type"],
@@ -242,11 +214,11 @@ class SemanticService:
 
         except Exception as e:
             print(f"Error in ambiguity check: {str(e)}")
-            # Fallback to basic location reference check if API fails
-            if current_state or current_county:
+            # Fallback to basic check
+            if any(word in question.lower() for word in ['here', 'this state', 'that state', 'it']):
                 return True, 'location_reference', {
-                    'location': current_county or current_state,
-                    'type': 'county' if current_county else 'state'
+                    'location': location,
+                    'type': context_type
                 }
             return False, None, None
 
@@ -273,7 +245,7 @@ class SemanticService:
             user_prompt = f"Question: {question}\nContext: {context}"
 
             response = openai.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}

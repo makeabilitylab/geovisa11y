@@ -63,9 +63,9 @@ def get_geojson(dataset):
         return jsonify({'error': str(e)}), 500
 
 
-@api.route('/analyze-question', methods=['POST', 'OPTIONS'])
-def analyze_question():
-    """Analyze a user question using semantic search"""
+@api.route('/analyze-input', methods=['POST', 'OPTIONS'])
+def analyze_input():
+    """Analyze and handle user input - either action or question"""
     if request.method == 'OPTIONS':
         return '', 200
         
@@ -75,106 +75,134 @@ def analyze_question():
             print("No JSON data received")
             return jsonify({'error': 'No data provided'}), 400
             
-        question = data.get('question')
-        if not question:
-            print("No question in request")
-            return jsonify({'error': 'No question provided'}), 400
+        user_input = data.get('input')
+        if not user_input:
+            print("No input in request")
+            return jsonify({'error': 'No input provided'}), 400
             
         current_dataset = data.get('current_dataset', 'ppl_densit')
-        print(f"Processing question: {question} for dataset: {current_dataset}")
+        current_focus = data.get('current_focus')
+        previous_answer = data.get('previous_answer')
+        raw_county = data.get('raw_county')
+        raw_state = data.get('raw_state')
 
-        # 1. Get the question type
-        question_type = semantic_service.identify_question_type(question)
-        
-        # 2. Skip metric check for pattern-related questions
-        if question_type not in ['is_pattern', 'describe_pattern', 'find_outliers']:
-            metric_name = semantic_service.dataset_terms[current_dataset]['metric']
-            
-            # 3. Determine if the question is out of scope
-            if semantic_service.is_out_of_scope(question, metric_name):
-                openai_response = get_openai_response(question)
-                gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>"
-                # (Answer provided by GPT-4, may not be entirely accurate.)
-                # </span>"
+        print(f"Processing input: {user_input} for dataset: {current_dataset}")
+
+        # 1. Check if input is an action
+        action_match = re.match(r'^(?:focus\s+on|go\s+to)\s+(.+)$', user_input, re.IGNORECASE)
+        if action_match:
+            state_name = action_match.group(1).strip()
+            return jsonify({
+                'is_action': True,
+                'action_type': 'focus',
+                'state': state_name
+            }), 200
+
+        # 2. If not action, treat as question and get question type
+        question_type = semantic_service.identify_question_type(user_input)
+        print(f"Question type identified: {question_type}")
+
+        # 3. Handle pattern-related questions directly
+        if question_type in ['is_pattern', 'describe_pattern', 'find_outliers']:
+            analysis = answer_question(user_input, current_dataset)
+            if analysis:
+                return jsonify(analysis), 200
+
+        # 4. For other questions, check ambiguity first
+        # Process context for ambiguity check
+        if raw_county and raw_state:
+            state_name = raw_state[0] if isinstance(raw_state, list) else raw_state
+            context = f"{raw_county} County, {state_name}"
+        else:
+            if isinstance(current_focus, dict):
+                if current_focus.get('county') and current_focus.get('state'):
+                    context = f"{current_focus['county']} County, {current_focus['state']}"
+                else:
+                    context = current_focus.get('state') or current_focus.get('full')
+            else:
+                context = current_focus
+
+        is_ambiguous, ambiguity_type, ambiguity_context = semantic_service.is_ambiguous_question(
+            user_input, previous_answer, context
+        )
+
+        if is_ambiguous:
+            resolved_question = semantic_service.resolve_ambiguous_question(
+                user_input, ambiguity_type, ambiguity_context
+            )
+            if not resolved_question:
                 return jsonify({
-                    'result': gpt_response,
-                    'dataset': current_dataset,
-                    'question_type': 'others'
+                    'result': "Could you please specify which state or location you're referring to?",
+                    'question_type': 'clarification_needed'
+                }), 200
+            user_input = resolved_question
+
+        # 5. Check if question is out of scope
+        if semantic_service.is_out_of_scope(user_input, current_dataset):
+            openai_response = get_openai_response(user_input)
+            return jsonify({
+                'result': f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>",
+                'dataset': current_dataset,
+                'question_type': 'others'
+            }), 200
+
+        # 6. Handle county-specific questions
+        county_info = extract_county_info(user_input)
+        if county_info:
+            county_name, state_name = county_info
+            result = retrieve_value(county_name, current_dataset, is_county=True)
+            if result:
+                return jsonify({
+                    'result': result['result'],
+                    'question_type': 'retrieve',
+                    'county': county_name,
+                    'state': state_name
                 }), 200
 
-        # Update county detection regex to handle more formats
-        county_patterns = [
-            r'in\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',  # "in County X in/,State Y"
-            r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',  # "of/in County X in/,State Y"
-            r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*)([A-Za-z\s]+)',  # "of/in County X, State Y"
-        ]
-        
-        is_county = False
-        county_name = None
-        state_name = None
-        
-        # Clean up the question first
-        clean_question = question.replace("What's", "").replace("what's", "").strip()
-        clean_question = re.sub(r'^the\s+|^of\s+', '', clean_question)
-        clean_question = clean_question.strip()
-        
-        # First try to extract from patterns
-        for pattern in county_patterns:
-            match = re.search(pattern, clean_question, re.IGNORECASE)
-            if match:
-                is_county = True
-                county_name = match.group(1).strip()
-                state_name = match.group(2).strip()
-                break
-        
-        # If no match found, check if the question was resolved from "here"
-        if not is_county and "County" in clean_question:
-            parts = clean_question.split("County,")
-            if len(parts) == 2:
-                county_name = parts[0].strip()
-                state_name = parts[1].strip()
-                is_county = True
-
-        # Handle county-level questions
-        if question_type == 'retrieve' or is_county:
-            if county_name and state_name:
-                # Remove "County" from county name if present
-                county_name = county_name.replace(" County", "")
-                print(f"Querying for county: {county_name} in state: {state_name}")  # Debug log
-                result = retrieve_value(county_name, current_dataset, is_county=True)
-                if result:
-                    return jsonify({
-                        'result': result['result'],
-                        'question_type': 'retrieve',
-                        'county': county_name,
-                        'state': state_name
-                    }), 200
-                else:
-                    return jsonify({
-                        'result': f"Could not find data for {county_name} County in {state_name}.",
-                        'question_type': 'retrieve'
-                    }), 200
-
-        # Handle all other questions (state-level, patterns, etc.)
-        analysis = answer_question(question, current_dataset)
+        # 7. Handle all other questions
+        analysis = answer_question(user_input, current_dataset)
         if analysis:
             return jsonify(analysis), 200
-        
-        # Fall back to OpenAI for conceptual questions
-        openai_response = get_openai_response(question)
-        gpt_response = f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>"
+
+        # 8. Fallback to GPT
+        openai_response = get_openai_response(user_input)
         return jsonify({
-            'result': gpt_response,
+            'result': f"{openai_response}\n<br/><span style='font-size: 0.8em; font-style: italic;'></span>",
             'dataset': current_dataset,
             'question_type': 'other'
         }), 200
-            
+
     except Exception as e:
-        print(f"Error in analyze_question: {str(e)}")
+        print(f"Error in analyze_input: {str(e)}")
         print(f"Full traceback: {traceback.format_exc()}")
-        return jsonify({
-            'error': str(e)
-        }), 500 
+        return jsonify({'error': str(e)}), 500
+
+def extract_county_info(input_text):
+    """Extract county and state information from input text"""
+    county_patterns = [
+        r'in\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',
+        r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',
+        r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*)([A-Za-z\s]+)',
+    ]
+
+    # Clean up the input first
+    clean_input = input_text.replace("What's", "").replace("what's", "").strip()
+    clean_input = re.sub(r'^the\s+|^of\s+', '', clean_input)
+    clean_input = clean_input.strip()
+
+    # Try to extract from patterns
+    for pattern in county_patterns:
+        match = re.search(pattern, clean_input, re.IGNORECASE)
+        if match:
+            return (match.group(1).strip().replace(" County", ""), match.group(2).strip())
+
+    # Check if the input was resolved from "here"
+    if "County" in clean_input:
+        parts = clean_input.split("County,")
+        if len(parts) == 2:
+            return (parts[0].strip(), parts[1].strip())
+
+    return None
 
 @api.route('/test', methods=['GET'])
 def test():
