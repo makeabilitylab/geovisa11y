@@ -1261,7 +1261,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
             {/* Dataset Selector and Legend Container */}
             <div className="absolute top-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90" 
-                aria-hidden="true"
                 tabIndex="-1">
                 {/* Dataset Selector */}
                 <div className="mb-4">
