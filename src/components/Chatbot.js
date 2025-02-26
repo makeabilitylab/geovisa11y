@@ -516,85 +516,92 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
     return (
         <CardBody 
-        className="flex flex-col h-full p-2"
-        role= "main"
-        aria-label= "MappieTalkie chat interface"
+            className="flex flex-col h-full p-2"
+            role="complementary"
+            aria-label="MappieTalkie chat interface"
         >
-            
-        {/* <div id = "welcome"  aria-live="polite" role="application" tabIndex="0"> */}
-            <Typography variant="h6" color="blue-gray" className="mb-2">
-                MappieTalkie
-            </Typography>
+            <div 
+                id="welcome"  
+                aria-live="polite" 
+                role="region"
+                tabIndex="0"
+                aria-label="Welcome to MappieTalkie"
+            > 
+                <Typography variant="h6" color="blue-gray" className="mb-2">
+                    MappieTalkie
+                </Typography>
 
-            {/* Map Description and Example Questions Intro */}
-            <Typography variant="small" color="gray" className="mb-4 text-xs">
-                <span className="italic">{getMapDescription()}</span>
-                {' You can ask me questions like:'}
-            </Typography>
+                {/* Map Description and Example Questions Intro */}
+                <Typography variant="small" color="gray" className="mb-4 text-xs">
+                    <span className="italic">{getMapDescription()}</span>
+                    {' You can ask me questions like:'}
+                </Typography>
 
-            {/* Dataset-specific Questions Section */}
-            <div className="mb-2">
-                <div className="flex flex-wrap gap-2">
-                    {exampleQuestions.map((question, index) => (
-                        <span
-                            key={index}
-                            onClick={() => handleExampleClick(question)}
-                            className="px-3 py-1 bg-light-green-50 hover:bg-light-green-100 rounded-full text-xs text-green-900 transition-colors text-left cursor-pointer"
-                            role="text"
-                            tabIndex="0"
-                            onKeyPress={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    handleExampleClick(question);
-                                }
-                            }}
-                        >
-                            {question}
-                        </span>
-                    ))}
+                {/* Dataset-specific Questions Section */}
+                <div className="mb-2">
+                    <div className="flex flex-wrap gap-2">
+                        {exampleQuestions.map((question, index) => (
+                            <span
+                                key={index}
+                                onClick={() => handleExampleClick(question)}
+                                className="px-3 py-1 bg-light-green-50 hover:bg-light-green-100 rounded-full text-xs text-green-900 transition-colors text-left cursor-pointer"
+                                role="text"
+                                tabIndex="0"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        handleExampleClick(question);
+                                    }
+                                }}
+                            >
+                                {question}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                {/* General Knowledge Questions Section */}
+                <div className="mb-4">
+                    <Typography variant="small" color="gray" className="mb-2 text-xs">
+                        Or ask me about:
+                    </Typography>
+                    <div className="flex flex-wrap gap-2">
+                        {generalQuestions.map((question, index) => (
+                            <span
+                                key={index}
+                                onClick={() => handleExampleClick(question)}
+                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer"
+                                role="text"
+                                tabIndex="0"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        handleExampleClick(question);
+                                    }
+                                }}
+                            >
+                                {question}
+                            </span>
+                        ))}
+                    </div>
+                    <Typography variant="small" color="gray" className="mt-2 text-xs">
+                        Press Ctrl+M to toggle map interaction. Press Ctrl+T to focus on text input.
+                        {!isInputFocused && "Press and hold the spacebar to speak."}
+                    </Typography>
                 </div>
             </div>
-
-            {/* General Knowledge Questions Section */}
-            <div className="mb-4">
-                <Typography variant="small" color="gray" className="mb-2 text-xs">
-                    Or ask me about:
-                </Typography>
-                <div className="flex flex-wrap gap-2">
-                    {generalQuestions.map((question, index) => (
-                        <span
-                            key={index}
-                            onClick={() => handleExampleClick(question)}
-                            className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer"
-                            role="text"
-                            tabIndex="0"
-                            onKeyPress={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    handleExampleClick(question);
-                                }
-                            }}
-                        >
-                            {question}
-                        </span>
-                    ))}
-                </div>
-                <Typography variant="small" color="gray" className="mt-2 text-xs">
-                    Press Ctrl+M to toggle map interaction. Press Ctrl+T to focus on text input.
-                    {!isInputFocused && "Press and hold the spacebar to speak."}
-                </Typography>
-            </div>
-        {/* </div> */}
             <div 
                 ref={chatContainerRef}
                 className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md"
-                // aria-hidden="true"
-                // tabIndex="-1"
+                role="log"
+                aria-label="Chat messages"
+                aria-live="polite"
             >
-                <div aria-live="polite" role="log">
+                <div role="log">
                     {messages.map((msg, index) => (
                         <div
                             key={index}
                             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
-                            tabIndex="-1"
+                            role={msg.sender === 'user' ? 'note' : 'article'}
+                            aria-label={`${msg.sender === 'user' ? 'You' : 'MappieTalkie'} said`}
                         >
                             <div
                                 className={`py-2 px-4 rounded-md max-w-[80%] font-['Roboto'] ${
@@ -627,9 +634,11 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             </div>
 
             {/* Input, Microphone, and Send Button */}
-            <div className="flex gap-2 items-center"
-            //    aria-hidden="true"
-               tabIndex="-1">
+            <div 
+                className="flex gap-2 items-center"
+                role="form"
+                aria-label="Message input"
+            >
                 <div className="flex-grow">
                     <div ref={wrapperRef}>
                         <Input

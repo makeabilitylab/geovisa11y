@@ -944,7 +944,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             map.current.fitBounds(bounds, {
                 padding: 100,
                 duration: 1000,
-                maxZoom: 5
+                maxZoom: 7
             });
 
             setShowingCounties(true);
@@ -1208,7 +1208,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             <div
                 ref={announcementRef}
                 role="status"
-                aria-live="polite"
+                aria-live="assertive"
+                aria-atomic="true"
                 className="sr-only"
             >
                 {stateAnnouncement}
@@ -1216,10 +1217,12 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
             {/* Current focused state display and announcements */}
             {(currentFocusedState || stateAnnouncement) && (
-                <div id="map-interaction-announcement"
+                <div 
+                    id="map-interaction-announcement"
                     className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg"
                     role="status"
                     aria-live="polite"
+                    aria-atomic="true"
                 >
                     {stateAnnouncement || `Now focused on ${currentFocusedState} state`}
                 </div>
