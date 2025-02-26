@@ -285,6 +285,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 raw_state: currentFocusedState,
                 raw_county: currentFocusedCounty
             });
+            // ROCK log input
 
             const response = await fetch(`${apiUrl}/api/analyze-input`, {
                 method: 'POST',
@@ -310,7 +311,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
             const data = await response.json();
             console.log('Response:', data);
-
+            // ROCK log response
             // Handle action responses
             if (data.is_action) {
                 if (data.action_type === 'focus' && data.state) {
