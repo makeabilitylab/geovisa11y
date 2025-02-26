@@ -823,8 +823,9 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
                 // Fit map to bounds with padding
                 map.current.fitBounds(bounds, {
-                    padding: 50,
-                    duration: 1000
+                    padding: 100,
+                    duration: 1000,
+                    maxZoom: 5
                 });
             }
         } else {
@@ -841,8 +842,9 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
 
                 map.current.fitBounds(bounds, {
-                    padding: 50,
-                    duration: 1000
+                    padding: 100,
+                    duration: 1000,
+                    maxZoom: 5
                 });
             }
         }
@@ -940,8 +942,9 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             });
 
             map.current.fitBounds(bounds, {
-                padding: 50,
-                duration: 1000
+                padding: 100,
+                duration: 1000,
+                maxZoom: 5
             });
 
             setShowingCounties(true);
