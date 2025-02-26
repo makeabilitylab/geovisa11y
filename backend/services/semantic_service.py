@@ -115,7 +115,11 @@ class SemanticService:
                - "What's the income level in Texas?" -> true (different metric)
                - "What's the population density in Texas?" -> false (same metric)
             2. Asks about geographic units not available in the dataset
-               Example: "How do cities compare?" -> true (only state/county data available)
+               Example: 
+               -"What's the population density of Seattle?" -> true (only state/county data available)
+               -"What's the population density of the United States?" -> true (only state/county data available)
+               -"What's the population density of the world?" -> true (only state/county data available)
+               -"What's the population density of the Northeast region?" -> true (only state/county data available)
             3. Asks conceptual questions about geography or the metric
                Example: "Why do some areas have higher density?" -> true
 
@@ -136,7 +140,7 @@ class SemanticService:
                 ],
                 temperature=0
             )
-
+            print(f"Out of scope check raw response: {response.choices[0].message.content.strip().lower()}")
             result = response.choices[0].message.content.strip().lower() == 'true'
             print(f"Out of scope check: {result}")
             return result
@@ -146,9 +150,9 @@ class SemanticService:
             # Fallback to basic check
             question_lower = question.lower()
             # Check for non-dataset metrics
-            metric_terms = ['income', 'poverty', 'education', 'unemployment', 'gdp', 'crime']
-            if any(term in question_lower for term in metric_terms):
-                return True
+            # metric_terms = ['income', 'poverty', 'education', 'unemployment', 'gdp', 'crime']
+            # if any(term in question_lower for term in metric_terms):
+            #     return True
             # Check for non-supported geographic units
             geo_terms = ['region', 'city', 'town', 'metropolitan', 'urban', 'rural']
             if any(term in question_lower for term in geo_terms):
@@ -190,7 +194,7 @@ class SemanticService:
             user_prompt = f"Question: {question}\nContext: {context}"
 
             response = openai.chat.completions.create(
-                model="4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
