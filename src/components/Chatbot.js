@@ -583,8 +583,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                         ))}
                     </div>
                     <Typography variant="small" color="gray" className="mt-2 text-xs">
-                        Press Ctrl+M to toggle map interaction. Press Ctrl+T to focus on text input.
-                        {!isInputFocused && "Press and hold the spacebar to speak."}
+                        Press Ctrl+M to toggle map interaction. Press Ctrl+/ to focus on text input.
+                        {!isInputFocused && " Press and hold the spacebar to speak."}
                     </Typography>
                 </div>
             </div>
@@ -661,6 +661,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                             aria-label="Type your question here"
                             aria-description="Press Enter to submit your question"
                             containerProps={{ ref: inputRef }}
+                            disabled={!isInputFocused}
                         />
                     </div>
                 </div>
@@ -680,10 +681,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 </Button>
                 <Button 
                     onClick={handleSubmit}
-                    className='bg-teal-500 text-white p-2.5 aspect-square'
+                    className={`bg-teal-500 text-white p-2.5 aspect-square ${!isInputFocused ? 'opacity-50 cursor-not-allowed' : ''}`}
                     size="sm"
                     aria-label="Send question"
-                    disabled={!input.trim()}
+                    disabled={!input.trim() || !isInputFocused}
                 >
                     <ArrowRight size={20} weight="bold" />
                 </Button>
