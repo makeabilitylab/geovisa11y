@@ -61,17 +61,22 @@ function App() {
 
   useEffect(() => {
     const globalHandler = (e) => {
-      // We also confirm if the key pressed is "/" (the slash)
-      if (e.ctrlKey && e.key === '/') {
-        e.preventDefault();
-        console.log('Toggle focus via slash shortcut');
-        setInteractionFocus((prev) => (prev === 'chat' ? 'none' : 'chat'));
-      }
       // Handle Ctrl+M for map focus
       if (e.ctrlKey && e.key.toLowerCase() === 'm') {
         e.preventDefault();
         console.log('Global Ctrl+M caught');
+        // First, remove focus from any active element
+        if (document.activeElement) {
+          document.activeElement.blur();
+        }
+        // Then toggle map interaction
         setInteractionFocus(prev => prev === 'map' ? 'none' : 'map');
+      }
+      // Handle Ctrl+/ for chat focus
+      else if (e.ctrlKey && e.key === '/') {
+        e.preventDefault();
+        console.log('Toggle focus via slash shortcut');
+        setInteractionFocus((prev) => (prev === 'chat' ? 'none' : 'chat'));
       }
     };
     
