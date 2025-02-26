@@ -1196,13 +1196,26 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [focusedState, focusStateOnMap]);
 
+    // In ChoroplethMap.js, add a useEffect to handle map interaction focus
+    useEffect(() => {
+        if (isMapInteractive && mapContainer.current) {
+            // Focus on the map container when map interaction is enabled
+            mapContainer.current.focus();
+        } else if (!isMapInteractive && mapContainer.current) {
+            // Remove focus when map interaction is disabled
+            mapContainer.current.blur();
+        }
+    }, [isMapInteractive]);
+
     return (
         <div className="relative h-full ">
-            <div ref={mapContainer} className="h-full" 
-                // aria-hidden={!isMapInteractive} 
+            <div 
+                ref={mapContainer} 
+                className="h-full" 
                 role="application"
                 aria-label="Interactive map of United States"
-                tabIndex="1"
+                tabIndex="0"  // Changed from "1" to "0" to ensure proper focus handling
+                // style={{ outline: 'none' }} //remove focus outline if desired
             />
 
             {/* Live region for announcements */}
