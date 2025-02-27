@@ -9,7 +9,7 @@ import {
 } from '@material-tailwind/react';
 
 
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick }) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -22,6 +22,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     // const [useSpeech, setUseSpeech] = useState(false);
     const inputRef = useRef(null);
     const wrapperRef = useRef(null);
+    const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
 
     // List of US states
     const states = [
@@ -266,8 +267,15 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         try {
             setIsLoading(true);
             
-            // Create focus object that includes both state and county
-            const currentFocus = currentFocusedCounty 
+            // Create focus object that includes state, county, and city
+            const currentFocus = currentFocusedCity 
+                ? {
+                    city: currentFocusedCity.name,
+                    state: currentFocusedCity.state,
+                    coordinates: currentFocusedCity.coordinates,
+                    full: `${currentFocusedCity.name}, ${currentFocusedCity.state}`
+                  }
+                : currentFocusedCounty 
                 ? {
                     county: currentFocusedCounty,
                     state: currentFocusedState,
@@ -314,7 +322,19 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             // ROCK log response
             // Handle action responses
             if (data.is_action) {
-                if (data.action_type === 'focus' && data.state) {
+                if (data.action_type === 'focus_city') {
+                    // Handle city focus
+                    setMessages(prev => [...prev, { 
+                        text: `Focusing on ${data.city_name}, ${data.state}.`, 
+                        sender: 'bot' 
+                    }]);
+                    onCityFocus({
+                        name: data.city_name,
+                        state: data.state,
+                        coordinates: data.coordinates
+                    });
+                    return;
+                } else if (data.action_type === 'focus' && data.state) {
                     onStateFocus(data.state);
                     setMessages(prev => [...prev, { 
                         text: `Focusing on ${data.state}.`, 
