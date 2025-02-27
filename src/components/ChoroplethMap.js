@@ -959,7 +959,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     };
 
-    // Function to find adjacent counties using geometric relationships
+    // Function to find adjacent counties using neighbors data
     const findAdjacentCounties = useCallback((countyName) => {
         if (!countyData) return null;
 
@@ -968,53 +968,26 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         );
         if (!currentCounty) return null;
 
-        // Get current county's centroid
-        const centerX = currentCounty.properties.c_lon;
-        const centerY = currentCounty.properties.c_lat;
+        // Get neighbors from properties
+        const neighbors = currentCounty.properties.neighbors_;
+        if (!Array.isArray(neighbors)) {
+            console.error('Invalid neighbors data for county:', countyName);
+            return {
+                north: null,
+                south: null,
+                west: null,
+                east: null
+            };
+        }
 
-        // Find counties that share a border
+        // Create adjacency object from neighbors array
+        // neighbors_ array is ordered as [north, south, west, east]
         const adjacentCounties = {
-            north: null,
-            south: null,
-            east: null,
-            west: null
+            north: neighbors[0] || null,
+            south: neighbors[1] || null,
+            west: neighbors[2] || null,
+            east: neighbors[3] || null
         };
-
-        // Check each other county for adjacency
-        countyData.features.forEach(feature => {
-            if (feature.properties.county_name === currentCounty.properties.county_name) return;
-
-            const otherPolygon = turf.polygon(
-                feature.geometry.type === 'Polygon'
-                    ? feature.geometry.coordinates
-                    : feature.geometry.coordinates[0]
-            );
-
-            const currentCountyPolygon = turf.polygon(
-                currentCounty.geometry.type === 'Polygon'
-                    ? currentCounty.geometry.coordinates
-                    : currentCounty.geometry.coordinates[0]
-            );
-
-            const intersects = turf.booleanIntersects(currentCountyPolygon, otherPolygon);
-            
-            if (intersects) {
-                const otherX = feature.properties.c_lon;
-                const otherY = feature.properties.c_lat;
-
-                const angle = Math.atan2(otherY - centerY, otherX - centerX) * 180 / Math.PI;
-
-                if (angle >= -45 && angle < 45 && !adjacentCounties.east) {
-                    adjacentCounties.east = feature.properties.county_name;
-                } else if (angle >= 45 && angle < 135 && !adjacentCounties.north) {
-                    adjacentCounties.north = feature.properties.county_name;
-                } else if ((angle >= 135 || angle < -135) && !adjacentCounties.west) {
-                    adjacentCounties.west = feature.properties.county_name;
-                } else if (angle >= -135 && angle < -45 && !adjacentCounties.south) {
-                    adjacentCounties.south = feature.properties.county_name;
-                }
-            }
-        });
 
         return adjacentCounties;
     }, [countyData]);
