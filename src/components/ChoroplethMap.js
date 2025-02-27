@@ -690,7 +690,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         return state;
     };
 
-    // Update findAdjacentStates to handle array input
+    // Replace the existing findAdjacentStates function with this new version
     const findAdjacentStates = useCallback((stateName) => {
         if (!geoData) return null;
 
@@ -702,62 +702,26 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         );
         if (!currentState) return null;
 
-        // Get current state's centroid from properties
-        const centerX = currentState.properties.c_lon;
-        const centerY = currentState.properties.c_lat;
-
-        if (!centerX || !centerY) {
-            console.error('Missing centroid data for', currentState.properties.state_name);
-            return null;
+        // Get neighbors from properties
+        const neighbors = currentState.properties.neighbors_;
+        if (!Array.isArray(neighbors)) {
+            console.error('Invalid neighbors data for', stateName);
+            return {
+                north: null,
+                south: null,
+                west: null,
+                east: null
+            };
         }
 
-        // Find states that share a border
+        // Create adjacency object from neighbors array
+        // neighbors_ array is ordered as [north, south, east, west]
         const adjacentStates = {
-            north: null,
-            south: null,
-            east: null,
-            west: null
+            north: neighbors[0] || null,
+            south: neighbors[1] || null,
+            west: neighbors[2] || null,
+            east: neighbors[3] || null
         };
-
-        // Check each other state for adjacency
-        geoData.features.forEach(feature => {
-            if (feature.properties.state_name === currentState.properties.state_name) return;
-
-            const otherPolygon = turf.polygon(
-                feature.geometry.type === 'Polygon'
-                    ? feature.geometry.coordinates
-                    : feature.geometry.coordinates[0]
-            );
-
-            // Check if states share a border with current state polygon
-            const currentStatePolygon = turf.polygon(
-                currentState.geometry.type === 'Polygon'
-                    ? currentState.geometry.coordinates
-                    : currentState.geometry.coordinates[0]
-            );
-
-            const intersects = turf.booleanIntersects(currentStatePolygon, otherPolygon);
-            
-            if (intersects) {
-                // Get other state's centroid from properties
-                const otherX = feature.properties.c_lon;
-                const otherY = feature.properties.c_lat;
-
-                // Calculate angle between centroids
-                const angle = Math.atan2(otherY - centerY, otherX - centerX) * 180 / Math.PI;
-
-                // Assign state to direction based on angle
-                if (angle >= -45 && angle < 45 && !adjacentStates.east) {
-                    adjacentStates.east = feature.properties.state_name;
-                } else if (angle >= 45 && angle < 135 && !adjacentStates.north) {
-                    adjacentStates.north = feature.properties.state_name;
-                } else if ((angle >= 135 || angle < -135) && !adjacentStates.west) {
-                    adjacentStates.west = feature.properties.state_name;
-                } else if (angle >= -135 && angle < -45 && !adjacentStates.south) {
-                    adjacentStates.south = feature.properties.state_name;
-                }
-            }
-        });
 
         return adjacentStates;
     }, [geoData]);
@@ -805,47 +769,87 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         if (Array.isArray(stateName)) {
             // Get features for all states
             const features = stateName.map(state => {
-                return map.current.querySourceFeatures('population', {
-                    sourceLayer: 'state',
-                    filter: ['==', ['to-string', ['get', 'state_name']], state]
-                })[0];
+                return geoData.features.find(f => 
+                    f.properties.state_name.toLowerCase() === state.toLowerCase()
+                );
             }).filter(Boolean); // Remove any undefined features
 
             if (features.length > 0) {
-                // Calculate bounds that include all states
-                const bounds = new mapboxgl.LngLatBounds();
-                features.forEach(feature => {
-                    if (feature.geometry) {
-                        const coordinates = feature.geometry.coordinates[0];
-                        coordinates.forEach(coord => bounds.extend(coord));
-                    }
-                });
+                try {
+                    // Calculate bounds that include all states
+                    const bounds = new mapboxgl.LngLatBounds();
+                    
+                    features.forEach(feature => {
+                        if (feature.geometry) {
+                            // Handle both Polygon and MultiPolygon
+                            const coordinates = feature.geometry.type === 'Polygon' 
+                                ? [feature.geometry.coordinates[0]] // Wrap in array for consistent handling
+                                : feature.geometry.coordinates;
+                            
+                            coordinates.forEach(polygon => {
+                                // Ensure we're working with valid coordinates
+                                polygon[0].forEach(coord => {
+                                    if (Array.isArray(coord) && coord.length >= 2 && 
+                                        !isNaN(coord[0]) && !isNaN(coord[1])) {
+                                        bounds.extend(coord);
+                                    }
+                                });
+                            });
+                        }
+                    });
 
-                // Fit map to bounds with padding
-                map.current.fitBounds(bounds, {
-                    padding: 100,
-                    duration: 1000,
-                    maxZoom: 5
-                });
+                    // Only fit bounds if we have valid coordinates
+                    if (!bounds.isEmpty()) {
+                        map.current.fitBounds(bounds, {
+                            padding: 100,
+                            duration: 1000,
+                            maxZoom: 5
+                        });
+                    } else {
+                        console.warn('No valid coordinates found for bounds');
+                    }
+                } catch (error) {
+                    console.error('Error setting bounds:', error);
+                }
             }
         } else {
             // Original single-state focus logic
-            const features = map.current.querySourceFeatures('population', {
-                sourceLayer: 'state',
-                filter: ['==', ['to-string', ['get', 'state_name']], stateName]
-            });
+            const feature = geoData.features.find(f => 
+                f.properties.state_name.toLowerCase() === stateName.toLowerCase()
+            );
 
-            if (features.length > 0) {
-                const coordinates = features[0].geometry.coordinates[0];
-                const bounds = coordinates.reduce((bounds, coord) => {
-                    return bounds.extend(coord);
-                }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+            if (feature && feature.geometry) {
+                try {
+                    const bounds = new mapboxgl.LngLatBounds();
+                    
+                    // Handle both Polygon and MultiPolygon
+                    const coordinates = feature.geometry.type === 'Polygon'
+                        ? [feature.geometry.coordinates[0]] // Wrap in array for consistent handling
+                        : feature.geometry.coordinates;
+                        
+                    coordinates.forEach(polygon => {
+                        // Ensure we're working with valid coordinates
+                        polygon[0].forEach(coord => {
+                            if (Array.isArray(coord) && coord.length >= 2 && 
+                                !isNaN(coord[0]) && !isNaN(coord[1])) {
+                                bounds.extend(coord);
+                            }
+                        });
+                    });
 
-                map.current.fitBounds(bounds, {
-                    padding: 100,
-                    duration: 1000,
-                    maxZoom: 5
-                });
+                    // Only fit bounds if we have valid coordinates
+                    if (!bounds.isEmpty()) {
+                        map.current.fitBounds(bounds, {
+                            padding: 100,
+                            duration: 1000,
+                            maxZoom: 5
+                        });
+                    } else {
+                        console.warn('No valid coordinates found for bounds');
+                    }
+                } catch (error) {
+                    console.error('Error setting bounds:', error);
+                }
             }
         }
     }, [geoData]);
