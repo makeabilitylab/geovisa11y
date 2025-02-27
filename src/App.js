@@ -61,7 +61,7 @@ function App() {
 
   useEffect(() => {
     const globalHandler = (e) => {
-      // Handle Ctrl+M for map focus
+      // Handle Ctrl+M to toggle between map and chat focus
       if (e.ctrlKey && e.key.toLowerCase() === 'm') {
         e.preventDefault();
         console.log('Global Ctrl+M caught');
@@ -69,14 +69,12 @@ function App() {
         if (document.activeElement) {
           document.activeElement.blur();
         }
-        // Then toggle map interaction
-        setInteractionFocus(prev => prev === 'map' ? 'none' : 'map');
-      }
-      // Handle Ctrl+/ for chat focus
-      else if (e.ctrlKey && e.key === '/') {
-        e.preventDefault();
-        console.log('Toggle focus via slash shortcut');
-        setInteractionFocus((prev) => (prev === 'chat' ? 'none' : 'chat'));
+        // Toggle between map and chat
+        setInteractionFocus(prev => {
+          if (prev === 'map') return 'chat';
+          if (prev === 'chat') return 'map';
+          return 'map'; // If 'none', default to map
+        });
       }
     };
     
@@ -97,6 +95,7 @@ function App() {
           onStateFocus={handleStateFocus}
           apiUrl={API_URL}
           isMapInteractive={interactionFocus === 'map'}
+          onMapClick={() => setInteractionFocus('map')}
         />
       </div>
       <div className="w-1/3 h-full">
@@ -109,6 +108,7 @@ function App() {
           currentFocusedCounty={focusedCounty}
           apiUrl={API_URL}
           isInputFocused={interactionFocus === 'chat'}
+          onInputClick={() => setInteractionFocus('chat')}
         />
       </div>
     </div>

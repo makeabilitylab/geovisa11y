@@ -9,7 +9,7 @@ import {
 } from '@material-tailwind/react';
 
 
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused }) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -565,10 +565,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 <Typography variant="small" color="gray" className="mb-2 text-xs">
                     <span className="font-bold">Keyboard Shortcuts:</span>
                     <ul className="space-y-2">
-                        <li>Press Ctrl + / to focus on the input box and type your question.</li>
-                        <li>Press and hold the spacebar to use voice mode.</li>
-                        <li>Press Ctrl + M to toggle map interaction, then use arrow keys to navigate between states.</li>
+                        <li>Press Ctrl + M to toggle between map and chat interaction.</li>
+                        <li>When interacting with the map, use arrow keys to navigate between states.</li>
                         <li>Press + to zoom in to county level within a state. Press - to zoom back out to state level.</li>
+                        <li>When using the chat mode, tab to start voice input.</li>
                     </ul>
                 </Typography>
                     
@@ -747,13 +747,19 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={handleKeyDown}
+                            onClick={() => {
+                                // Only change focus if it's not already on chat
+                                if (!isInputFocused) {
+                                    onInputClick();
+                                }
+                            }}
                             onFocus={() => {
                                 console.log('Input focused');
                             }}
                             onBlur={() => {
                                 console.log('Input blurred');
                             }}
-                            className="font-['Roboto']"
+                            className={`font-['Roboto'] ${!isInputFocused ? 'opacity-50' : ''}`}
                             labelProps={{
                                 className: "!text-teal-500"
                             }}
@@ -761,7 +767,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                             aria-label="Type your question here"
                             aria-description="Press Enter to submit your question"
                             containerProps={{ ref: inputRef }}
-                            disabled={!isInputFocused}
                         />
                     </div>
                 </div>

@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import * as turf from '@turf/turf';
 
-const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive }) => {
+const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive, onMapClick }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
@@ -1045,7 +1045,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         setStateAnnouncement(
             isMapInteractive 
                 ? 'Map interaction enabled. Press Tab to focus on a state.' 
-                : 'Map interaction disabled.'
+                : 'Chat interaction enabled. Type a question to ask MappieTalkie.'
         );
     }, [isMapInteractive]);
 
@@ -1214,8 +1214,13 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 className="h-full" 
                 role="application"
                 aria-label="Interactive map of United States"
-                tabIndex="0"  // Changed from "1" to "0" to ensure proper focus handling
-                // style={{ outline: 'none' }} //remove focus outline if desired
+                tabIndex="0"
+                onClick={() => {
+                    // Only change focus if it's not already on map
+                    if (!isMapInteractive) {
+                        onMapClick();
+                    }
+                }}
             />
 
             {/* Live region for announcements */}
