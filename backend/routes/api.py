@@ -88,10 +88,9 @@ def analyze_input():
 
         print(f"Processing input: {user_input} for dataset: {current_dataset}")
 
-        # 1. Check if input is an action
-        action_match = re.match(r'^(?:focus\s+on|go\s+to)\s+(.+)$', user_input, re.IGNORECASE)
-        if action_match:
-            state_name = action_match.group(1).strip()
+        # 1. Check if input is an action using semantic service
+        is_action, state_name = semantic_service.is_navigation_action(user_input)
+        if is_action and state_name:
             return jsonify({
                 'is_action': True,
                 'action_type': 'focus',

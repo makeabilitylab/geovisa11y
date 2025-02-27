@@ -641,7 +641,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                             </span>
                         </li>
                         <li>
-                            {"Ask"}
+                            {"Ask "}
                             <span
                                 onClick={() => handleExampleClick("What else can you do?")}
                                 className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"

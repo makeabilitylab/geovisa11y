@@ -114,6 +114,7 @@ class SemanticService:
                Example: When viewing population density data:
                - "What's the income level in Texas?" -> true (different metric)
                - "What's the population density in Texas?" -> false (same metric)
+               - "What's the population of Illinois?" -> false (different metric)
             2. Asks about geographic units not available in the dataset
                Example: 
                -"What's the population density of Seattle?" -> true (only state/county data available)
@@ -263,3 +264,48 @@ class SemanticService:
         except Exception as e:
             print(f"Error resolving ambiguous question: {str(e)}")
             return None
+
+    def is_navigation_action(self, user_input):
+        """
+        Check if the input is a navigation action (e.g., "go to", "focus on", "zoom to", etc.)
+        Returns (is_action, state_name) tuple
+        """
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """You are a pattern matcher for US state navigation commands.
+                        Identify if the input is asking to navigate/focus/zoom to a specific US state.
+                        Return exactly "None" if it's not a navigation command.
+                        If it is a navigation command, return only the state name.
+                        Examples:
+                        "Take me to California" -> "California"
+                        "What is the population of Texas" -> "None"
+                        "Zoom to NY!" -> "New York"
+                        "Focus on Alaska please" -> "Alaska"
+                        "Go to Washington state" -> "Washington"
+                        """
+                    },
+                    {
+                        "role": "user",
+                        "content": user_input
+                    }
+                ],
+                temperature=0,
+                max_tokens=50
+            )
+            
+            result = response.choices[0].message.content.strip()
+            if result == "None":
+                return False, None
+            return True, result
+
+        except Exception as e:
+            print(f"Error in is_navigation_action: {str(e)}")
+            # Fall back to regex pattern if API fails
+            action_match = re.match(r'^(?:focus\s+on|go\s+to)\s+(.+)$', user_input, re.IGNORECASE)
+            if action_match:
+                return True, action_match.group(1).strip()
+            return False, None
