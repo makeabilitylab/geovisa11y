@@ -518,9 +518,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
     return (
         <CardBody 
-            className="flex flex-col h-full p-2"
+            className="flex flex-col h-full p-2 overflow-y-auto max-h-screen min-w-[300px]"
             role="region"
             aria-label="MappieTalkie chat interface"
+            style={{ maxHeight: '100vh' }}
         >
             <div 
                 id="welcome"  
@@ -694,6 +695,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 role="log"
                 aria-label="Chat messages"
                 aria-live="polite"
+                style={{ minHeight: '400px' }}
             >
                 <div role="log">
                     {messages.map((msg, index) => (
