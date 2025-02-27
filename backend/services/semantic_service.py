@@ -114,7 +114,7 @@ class SemanticService:
                Example: When viewing population density data:
                - "What's the income level in Texas?" -> true (different metric)
                - "What's the population density in Texas?" -> false (same metric)
-               - "What's the population of Illinois?" -> false (different metric)
+               - "What's the population of Illinois?" -> true (different metric, population and population density are different metrics)
             2. Asks about geographic units not available in the dataset
                Example: 
                -"What's the population density of Seattle?" -> true (only state/county data available)
