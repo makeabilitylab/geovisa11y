@@ -519,13 +519,16 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [focusedState, geoData, layersInitialized]);
 
-    // Update tooltip content when dataset changes
+    // Update mousemove handler effect
     useEffect(() => {
         if (map.current && layersInitialized) {
-            // Remove existing mousemove handler
+            // Remove existing mousemove handlers
             map.current.off('mousemove', 'population-density');
+            if (showingCounties) {
+                map.current.off('mousemove', 'county-fills');
+            }
             
-            // Add new mousemove handler with updated dataset
+            // Add mousemove handler for states
             map.current.on('mousemove', 'population-density', (e) => {
                 if (e.features.length > 0) {
                     map.current.getCanvas().style.cursor = 'pointer';
@@ -553,8 +556,53 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         .addTo(map.current);
                 }
             });
+
+            // Add mousemove handler for counties when showing counties
+            if (showingCounties) {
+                map.current.on('mousemove', 'county-fills', (e) => {
+                    if (e.features.length > 0) {
+                        map.current.getCanvas().style.cursor = 'pointer';
+                        
+                        const feature = e.features[0];
+                        const value = feature.properties.value;
+                        const countyName = feature.properties.county_name;
+                        const stateName = feature.properties.state_name;
+                        
+                        // Format value based on current dataset
+                        let formattedValue;
+                        if (dataset === 'ppl_densit') {
+                            formattedValue = `${value.toFixed(2)} people per square mile`;
+                        } else {
+                            formattedValue = `${value.toFixed(2)}%`;
+                        }
+
+                        const coordinates = e.lngLat;
+
+                        popup.current
+                            .setLngLat(coordinates)
+                            .setHTML(`
+                                <div class="text-xs font-semibold">${countyName} County</div>
+                                <div class="text-xs">${stateName}</div>
+                                <div class="text-xs">${formattedValue}</div>
+                            `)
+                            .addTo(map.current);
+                    }
+                });
+
+                // Add mouseleave handler for counties
+                map.current.on('mouseleave', 'county-fills', () => {
+                    map.current.getCanvas().style.cursor = '';
+                    popup.current.remove();
+                });
+            }
+
+            // Add mouseleave handler for states
+            map.current.on('mouseleave', 'population-density', () => {
+                map.current.getCanvas().style.cursor = '';
+                popup.current.remove();
+            });
         }
-    }, [dataset, layersInitialized]);
+    }, [dataset, layersInitialized, showingCounties]);
 
     const removeLisaLayer = () => {
         if (lisaLayer) {
