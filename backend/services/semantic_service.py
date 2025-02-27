@@ -268,7 +268,7 @@ class SemanticService:
     def is_navigation_action(self, user_input):
         """
         Check if the input is a navigation action (e.g., "go to", "focus on", "zoom to", etc.)
-        Returns (is_action, state_name) tuple
+        Returns (is_action, location_info) tuple where location_info can be state name or [city, coordinates]
         """
         try:
             response = openai.chat.completions.create(
@@ -276,16 +276,18 @@ class SemanticService:
                 messages=[
                     {
                         "role": "system",
-                        "content": """You are a pattern matcher for US state navigation commands.
-                        Identify if the input is asking to navigate/focus/zoom to a specific US state.
+                        "content": """You are a pattern matcher for US location navigation commands.
+                        Identify if the input is asking to navigate/focus/zoom to a specific US location.
                         Return exactly "None" if it's not a navigation command.
-                        If it is a navigation command, return only the state name.
+                        If it is a navigation command for a state, return a JSON object with "type": "state" and "name": state_name.
+                        If it is a navigation command for a city, return a JSON object with "type": "city", "city", "state", and "coordinates".
+                        
                         Examples:
-                        "Take me to California" -> "California"
+                        "Take me to California" -> {"type": "state", "name": "California"}
                         "What is the population of Texas" -> "None"
-                        "Zoom to NY!" -> "New York"
-                        "Focus on Alaska please" -> "Alaska"
-                        "Go to Washington state" -> "Washington"
+                        "Zoom to NY!" -> {"type": "state", "name": "New York"}
+                        "Focus on Seattle" -> {"type": "city", "city": "Seattle", "state": "Washington", "coordinates": [-122.3321, 47.6062]}
+                        "Go to Miami please" -> {"type": "city", "city": "Miami", "state": "Florida", "coordinates": [-80.1918, 25.7617]}
                         """
                     },
                     {
@@ -294,18 +296,36 @@ class SemanticService:
                     }
                 ],
                 temperature=0,
-                max_tokens=50
+                max_tokens=100
             )
             
             result = response.choices[0].message.content.strip()
             if result == "None":
                 return False, None
-            return True, result
+            
+            # Try to parse as JSON
+            try:
+                location_info = json.loads(result)
+                if location_info["type"] == "city":
+                    return True, ("city", {
+                        "city": location_info["city"],
+                        "state": location_info["state"],
+                        "coordinates": location_info["coordinates"]
+                    })
+                else:  # state navigation
+                    return True, ("state", location_info["name"])
+            except json.JSONDecodeError:
+                print(f"Error parsing JSON response: {result}")
+                # Fall back to regex pattern
+                action_match = re.match(r'^(?:focus\s+on|go\s+to)\s+(.+)$', user_input, re.IGNORECASE)
+                if action_match:
+                    return True, ("state", action_match.group(1).strip())
+                return False, None
 
         except Exception as e:
             print(f"Error in is_navigation_action: {str(e)}")
             # Fall back to regex pattern if API fails
             action_match = re.match(r'^(?:focus\s+on|go\s+to)\s+(.+)$', user_input, re.IGNORECASE)
             if action_match:
-                return True, action_match.group(1).strip()
+                return True, ("state", action_match.group(1).strip())
             return False, None

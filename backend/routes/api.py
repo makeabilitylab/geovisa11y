@@ -89,13 +89,23 @@ def analyze_input():
         print(f"Processing input: {user_input} for dataset: {current_dataset}")
 
         # 1. Check if input is an action using semantic service
-        is_action, state_name = semantic_service.is_navigation_action(user_input)
-        if is_action and state_name:
-            return jsonify({
-                'is_action': True,
-                'action_type': 'focus',
-                'state': state_name
-            }), 200
+        is_action, location_info = semantic_service.is_navigation_action(user_input)
+        if is_action and location_info:
+            location_type, info = location_info
+            if location_type == "city":
+                return jsonify({
+                    'is_action': True,
+                    'action_type': 'focus_city',
+                    'city_name': info['city'],
+                    'state': info['state'],
+                    'coordinates': info['coordinates']
+                }), 200
+            else:  # state navigation
+                return jsonify({
+                    'is_action': True,
+                    'action_type': 'focus',
+                    'state': info
+                }), 200
 
         # 2. If not action, treat as question and get question type
         question_type = semantic_service.identify_question_type(user_input)
