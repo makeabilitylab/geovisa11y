@@ -32,15 +32,15 @@ function App() {
 
   const handleStateQuestion = (stateName) => {
     console.log('Setting focused state:', stateName);
-    setFocusedCity(null);  // Clear city focus first
-    setFocusedState(stateName);
+    setFocusedCity(null);
     setFocusedCounty(null);
+    setFocusedState(stateName);
   };
 
   const handleChatbotFocus = (stateName) => {
     console.log('Setting focus via Chatbot:', stateName);
     // Clear other focuses
-    setFocusedCity(null);  // Clear city focus
+    setFocusedCity(null); 
     setFocusedCounty(null);
     // Then set state focus
     setFocusedState(stateName);
