@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import * as turf from '@turf/turf';
 
-const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive, onMapClick }) => {
+const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, focusedCity, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive, onMapClick }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
@@ -19,6 +19,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const [showingCounties, setShowingCounties] = useState(false);
     const [countyData, setCountyData] = useState(null);
     const [currentFocusedCounty, setCurrentFocusedCounty] = useState(null);
+    const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
 
     const datasets = {
         ppl_densit: {
@@ -412,8 +413,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     // Update effect to handle focused state(s)
     useEffect(() => {
         if (map.current && layersInitialized && geoData) {
-            if (focusedState === null) {
-                // Reset to default view and clean up counties
+            if (focusedState === null && !focusedCity) {
+                // Reset to default view
                 setShowingCounties(false);
                 setCurrentFocusedCounty(null);
                 setCountyData(null);
@@ -437,8 +438,42 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 
                 // Clear state highlights
                 map.current.setPaintProperty('state-borders', 'line-opacity', 0);
-                setStateAnnouncement(''); // Clear the announcement
-                setCurrentFocusedState(null); // Clear the focused state
+                setStateAnnouncement('');
+                setCurrentFocusedState(null);
+                setCurrentFocusedCity(null);
+            } else if (focusedCity) {
+                // Handle city focus
+                console.log('Focusing on city:', focusedCity);
+                
+                // Clean up any existing county layers
+                if (showingCounties) {
+                    setShowingCounties(false);
+                    setCurrentFocusedCounty(null);
+                    setCountyData(null);
+                    if (map.current.getLayer('county-borders')) {
+                        map.current.removeLayer('county-borders');
+                    }
+                    if (map.current.getLayer('county-fills')) {
+                        map.current.removeLayer('county-fills');
+                    }
+                    if (map.current.getSource('counties')) {
+                        map.current.removeSource('counties');
+                    }
+                }
+
+                // Fly to city coordinates
+                map.current.flyTo({
+                    center: focusedCity.coordinates,
+                    zoom: 10,
+                    duration: 2000
+                });
+
+                // Update announcement
+                setStateAnnouncement(`Now focused on ${focusedCity.name}, ${focusedCity.state}`);
+                
+                // Clear state highlights
+                map.current.setPaintProperty('state-borders', 'line-opacity', 0);
+                setCurrentFocusedState(null);
             } else {
                 console.log('Focusing on states:', focusedState);
                 
@@ -517,7 +552,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }
             }
         }
-    }, [focusedState, geoData, layersInitialized]);
+    }, [focusedState, focusedCity, geoData, layersInitialized]);
 
     // Update mousemove handler effect
     useEffect(() => {
