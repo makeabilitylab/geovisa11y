@@ -267,12 +267,12 @@ def check_ambiguity():
         question = data.get('question')
         previous_answer = data.get('previous_answer')
         current_focus = data.get('current_focus')
-        raw_county = data.get('raw_county')  # Get the raw county name
-        raw_state = data.get('raw_state')    # Get the raw state name
+        raw_county = data.get('raw_county')
+        raw_state = data.get('raw_state')
 
         # Handle the context based on county and state information
         if raw_county and raw_state:
-            # If we have both county and state, format it properly
+            # When we have both county and state
             state_name = raw_state[0] if isinstance(raw_state, list) else raw_state
             context = f"{raw_county} County, {state_name}"
         else:
