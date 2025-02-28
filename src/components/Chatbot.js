@@ -7,6 +7,7 @@ import {
     Input,
     Button,
 } from '@material-tailwind/react';
+import { logAnalysisData } from '../utils/logger'; 
 
 
 const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus }) => {
@@ -310,6 +311,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 raw_county: currentFocusedCounty
             });
             // ROCK log input
+            logAnalysisData(input, previousAnswer, currentFocus, currentFocusedState, currentFocusedCounty);
 
             const response = await fetch(`${apiUrl}/api/analyze-input`, {
                 method: 'POST',
@@ -336,6 +338,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             const data = await response.json();
             console.log('Response:', data);
             // ROCK log response
+            // To CHU: What's the response format?
             // Handle action responses
             if (data.is_action) {
                 if (data.action_type === 'focus_city') {
