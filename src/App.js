@@ -8,6 +8,7 @@ function App() {
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
   const [focusedState, setFocusedState] = useState(null);
   const [focusedCounty, setFocusedCounty] = useState(null);
+  const [focusedCity, setFocusedCity] = useState(null);
   const [interactionFocus, setInteractionFocus] = useState('none'); // 'none', 'map', or 'chat'
 
   const API_URL = process.env.NODE_ENV === 'production'
@@ -31,13 +32,15 @@ function App() {
 
   const handleStateQuestion = (stateName) => {
     console.log('Setting focused state:', stateName);
-    setFocusedState(stateName);
+    setFocusedCity(null);
     setFocusedCounty(null);
+    setFocusedState(stateName);
   };
 
   const handleChatbotFocus = (stateName) => {
     console.log('Setting focus via Chatbot:', stateName);
-    // Clear county focus first
+    // Clear other focuses
+    setFocusedCity(null); 
     setFocusedCounty(null);
     // Then set state focus
     setFocusedState(stateName);
@@ -50,13 +53,19 @@ function App() {
 
     // Only update if the value is actually different
     if (normalizedStateName !== currentNormalizedState) {
-      console.log('Setting focus via map:', normalizedStateName);
-      setFocusedState(normalizedStateName);
-      setFocusedCounty(null);
+        console.log('Setting focus via map:', normalizedStateName);
+        setFocusedCity(null);  // Clear city focus
+        setFocusedState(stateName);
+        setFocusedCounty(null);
     }
-    console.log('Setting focus via map:', stateName);
-    setFocusedState(stateName);
+  };
+
+  const handleCityFocus = (cityInfo) => {
+    // Clear other focuses
+    setFocusedState(null);
     setFocusedCounty(null);
+    // Set city focus
+    setFocusedCity(cityInfo);
   };
 
   useEffect(() => {
@@ -96,6 +105,8 @@ function App() {
           apiUrl={API_URL}
           isMapInteractive={interactionFocus === 'map'}
           onMapClick={() => setInteractionFocus('map')}
+          focusedCity={focusedCity}
+          onCityFocus={setFocusedCity}
         />
       </div>
       <div className="w-1/3 h-full">
@@ -106,9 +117,11 @@ function App() {
           onStateFocus={handleChatbotFocus}
           currentFocusedState={focusedState}
           currentFocusedCounty={focusedCounty}
+          currentFocusedCity={focusedCity}
           apiUrl={API_URL}
           isInputFocused={interactionFocus === 'chat'}
           onInputClick={() => setInteractionFocus('chat')}
+          onCityFocus={handleCityFocus}
         />
       </div>
     </div>
