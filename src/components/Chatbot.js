@@ -267,6 +267,22 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         try {
             setIsLoading(true);
             
+            // Add special case for "What else can you do?"
+            if (input.toLowerCase().trim() === "what else can you do?") {
+                setMessages(prev => [...prev, { 
+                    text: `For the current dataset, I can:<br>
+• Compare and sort data<br>
+• Filter information<br>
+• Find similar values and outliers<br>
+• Describe patterns on the map<br>
+• Describe state shapes<br>
+• Identify neighboring states`, 
+                    sender: 'bot' 
+                }]);
+                setIsLoading(false);
+                return;
+            }
+
             // Create focus object that includes state, county, and city
             const currentFocus = currentFocusedCity 
                 ? {
