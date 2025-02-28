@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from routes.api import api
 from routes.test_routes import test_bp
+from routes.log_routes import log_bp
 from config import DevelopmentConfig, ProductionConfig
 
 # Create the Flask app instance
@@ -59,6 +60,7 @@ def health_check():
 # Register blueprints
 app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(test_bp)
+app.register_blueprint(log_bp)
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))
