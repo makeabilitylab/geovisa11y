@@ -7,7 +7,7 @@ import {
     Input,
     Button,
 } from '@material-tailwind/react';
-import { logAnalysisData } from '../utils/logger'; 
+import { logAnalysisData, logResponseData } from '../utils/logger'; 
 
 
 const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus }) => {
@@ -336,8 +336,13 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             }
 
             const data = await response.json();
-            console.log('Response:', data);
+            console.log('Response:', {
+                "dataset": dataset,
+                "question_type": data.question_type,
+                "result": data.result
+            });
             // ROCK log response
+            logResponseData(dataset, data.question_type, data.result);
             // To CHU: What's the response format?
             // Handle action responses
             if (data.is_action) {

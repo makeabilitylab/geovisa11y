@@ -19,7 +19,23 @@ else:
 # CORS configuration with explicit options
 CORS(app, 
     resources={
-        r"/*": {
+        r"/logs": {  # Specific rule for /logs endpoint
+            "origins": ["http://localhost:3000", "https://mappie-talkie-frontend-245835075814.us-central1.run.app"],
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization", "Origin", "Accept"],
+            "supports_credentials": True,
+            "expose_headers": ["Access-Control-Allow-Credentials"],
+            "send_wildcard": False
+        },
+        r"/api/*": {  # Rule for API endpoints
+            "origins": ["http://localhost:3000", "https://mappie-talkie-frontend-245835075814.us-central1.run.app"],
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization", "Origin", "Accept"],
+            "supports_credentials": True,
+            "expose_headers": ["Access-Control-Allow-Credentials"],
+            "send_wildcard": False
+        },
+        r"/*": {  # Fallback rule for all other routes
             "origins": ["http://localhost:3000", "https://mappie-talkie-frontend-245835075814.us-central1.run.app"],
             "methods": ["GET", "POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization", "Origin", "Accept"],
