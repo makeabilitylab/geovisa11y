@@ -1,13 +1,17 @@
 import axios from 'axios';
 
-const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://mappie-talkie-api-245835075814.us-central1.run.app/api/logs'
-  : 'http://localhost:5000/api/logs';
+// const API_URL = process.env.NODE_ENV === 'production' 
+//   ? 'https://mappie-talkie-api-245835075814.us-central1.run.app/logs'
+//   : 'http://localhost:5000/logs';
+const API_URL = 'http://localhost:5000/logs';
 
 const logToMongoDB = async (logData) => {
   try {
     const response = await axios.post(API_URL, logData, {
-      withCredentials: true
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json',
+      }
     });
     
     console.log('Log successfully sent to MongoDB:', response.data);
@@ -32,4 +36,19 @@ const logAnalysisData = async (input, previousAnswer, currentFocus, currentFocus
   return await logToMongoDB(logData);
 };
 
-export { logToMongoDB, logAnalysisData };
+const logResponseData = async (dataset, question_type, result) => {
+  console.log('hi', {
+    dataset: dataset,
+    question_type: question_type,
+    result: result
+  });
+  const logData = {
+    dataset: dataset,
+    question_type: question_type,
+    result: result
+  };
+  console.log('Sending response to analyze:', logData);
+  return await logToMongoDB(logData);
+};
+
+export { logToMongoDB, logAnalysisData, logResponseData };
