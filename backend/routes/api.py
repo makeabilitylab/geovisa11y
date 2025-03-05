@@ -83,10 +83,12 @@ def analyze_input():
         current_dataset = data.get('current_dataset', 'ppl_densit')
         current_focus = data.get('current_focus')
         previous_answer = data.get('previous_answer')
+        conversation_history = data.get('conversation_history', [])
         raw_county = data.get('raw_county')
         raw_state = data.get('raw_state')
 
         print(f"Processing input: {user_input} for dataset: {current_dataset}")
+        print(f"Conversation history: {conversation_history}")
 
         # 1. Check if input is an action using semantic service
         is_action, location_info = semantic_service.is_navigation_action(user_input)
@@ -132,12 +134,12 @@ def analyze_input():
                 context = current_focus
 
         is_ambiguous, ambiguity_type, ambiguity_context = semantic_service.is_ambiguous_question(
-            user_input, previous_answer, context
+            user_input, previous_answer, context, conversation_history
         )
 
         if is_ambiguous:
             resolved_question = semantic_service.resolve_ambiguous_question(
-                user_input, ambiguity_type, ambiguity_context
+                user_input, ambiguity_type, ambiguity_context, conversation_history
             )
             if not resolved_question:
                 return jsonify({
@@ -192,6 +194,7 @@ def extract_county_info(input_text):
         r'in\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',
         r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',
         r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*)([A-Za-z\s]+)',
+        r'([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)'  # Added more flexible pattern
     ]
 
     # Clean up the input first
@@ -269,6 +272,7 @@ def check_ambiguity():
         current_focus = data.get('current_focus')
         raw_county = data.get('raw_county')
         raw_state = data.get('raw_state')
+        conversation_history = data.get('conversation_history', [])
 
         # Handle the context based on county and state information
         if raw_county and raw_state:
@@ -288,7 +292,8 @@ def check_ambiguity():
         print("Processing ambiguity check:", {
             'question': question,
             'previous_answer': previous_answer,
-            'context': context  # Log the processed context
+            'context': context,  # Log the processed context
+            'conversation_history': conversation_history[:2] + ['...'] if len(conversation_history) > 2 else conversation_history
         })
 
         if not question:
@@ -306,14 +311,16 @@ def check_ambiguity():
         is_ambiguous, ambiguity_type, context = semantic_service.is_ambiguous_question(
             question, 
             previous_answer, 
-            context
+            context,
+            conversation_history
         )
 
         if is_ambiguous:
             resolved_question = semantic_service.resolve_ambiguous_question(
                 question, 
                 ambiguity_type, 
-                context
+                context,
+                conversation_history
             )
             return jsonify({
                 'is_ambiguous': True,

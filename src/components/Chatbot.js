@@ -263,6 +263,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
     // Add state for tracking previous answer
     const [previousAnswer, setPreviousAnswer] = useState(null);
+    const [conversationHistory, setConversationHistory] = useState([]);
 
     const handleQuestionSubmit = async (input, useSpeech = false) => {
         try {
@@ -303,15 +304,20 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     full: currentFocusedState
                   };
 
+            // Build conversation history from messages
+            const messageHistory = messages.map(msg => msg.text);
+
             console.log('Sending input to analyze:', {
                 input,
                 previous_answer: previousAnswer,
                 current_focus: currentFocus,
                 raw_state: currentFocusedState,
-                raw_county: currentFocusedCounty
+                raw_county: currentFocusedCounty,
+                conversation_history: messageHistory
             });
             // ROCK log input
-            logAnalysisData(input, previousAnswer, currentFocus, currentFocusedState, currentFocusedCounty);
+            console.log('Conversation history:', messageHistory);
+            logAnalysisData(input, previousAnswer, currentFocus, currentFocusedState, currentFocusedCounty, messageHistory);
 
             const response = await fetch(`${apiUrl}/api/analyze-input`, {
                 method: 'POST',
@@ -327,7 +333,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     current_focus: currentFocus,
                     raw_state: currentFocusedState,
                     raw_county: currentFocusedCounty,
-                    current_dataset: dataset
+                    current_dataset: dataset,
+                    conversation_history: messageHistory
                 })
             });
 
@@ -343,7 +350,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             });
             // ROCK log response
             logResponseData(dataset, data.question_type, data.result);
-            // To CHU: What's the response format?
+
             // Handle action responses
             if (data.is_action) {
                 if (data.action_type === 'focus_city') {
@@ -371,6 +378,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             // Handle question responses
             if (data.result) {
                 setPreviousAnswer(data.result); // Store the answer for context
+                setConversationHistory(prev => [...prev, input, data.result]); // Update conversation history
 
                 // Update map for pattern questions
                 if (data.question_type === 'describe_pattern') {

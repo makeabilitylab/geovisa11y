@@ -141,9 +141,8 @@ class SemanticService:
                 ],
                 temperature=0
             )
-            print(f"Out of scope check raw response: {response.choices[0].message.content.strip().lower()}")
             result = response.choices[0].message.content.strip().lower() == 'true'
-            print(f"Out of scope check: {result}")
+            print(f"out_of_scope: {result}")
             return result
 
         except Exception as e:
@@ -162,7 +161,7 @@ class SemanticService:
             concept_terms = ['why', 'how come', 'what causes', 'explain', 'theory', 'reason']
             return any(term in question_lower for term in concept_terms)
 
-    def is_ambiguous_question(self, question, previous_answer=None, current_focus=None):
+    def is_ambiguous_question(self, question, previous_answer=None, current_focus=None, conversation_history=None):
         """
         Check if a question is ambiguous and needs context resolution using GPT
         Returns: (is_ambiguous: bool, ambiguity_type: str, context_needed: dict)
@@ -170,26 +169,57 @@ class SemanticService:
         try:
             system_prompt = """You are an expert at analyzing geographic questions for ambiguity.
             Analyze if the question contains any ambiguous "references" that require context to resolve.
-            A question is ambiguous only in these specific cases:
-            1. The input includes "here" (e.g., "What's the population density here?")
-            2. The input includes "this/that state/county" without naming it (e.g., "What's the population of this state?")
-            3. The input includes "it" referring to a location (e.g., "What does it look like?")
-
+            
+            There are two types of ambiguity:
+            
+            1. "location_reference" - when the location is ambiguous:
+               - The input includes "here" (e.g., "What's the population density here?")
+               - The input includes "it/its" referring to a location (e.g., "What does it look like?", "What are its neighbors?")
+               - The input includes "this/that state/county" without naming it (e.g., "What's the population of this state?")
+               - The input includes "the biggest/second largest city" without naming the state context (e.g., "What's the biggest city?")
+            
+            2. "subject_reference" - when the subject is ambiguous:
+               - The input refers to a previous question's subject without specifying it (e.g., "What about Illinois?")
+               - The input uses comparative terms without clear reference (e.g., "How does it compare to California?")
+               - The input uses ordinal references without context (e.g., "What's the third largest?")
+            
+            A question can have both types of ambiguity simultaneously.
+            
             Respond with ONLY a JSON string in this exact format:
-            {"is_ambiguous": true/false, "ambiguity_type": "location_reference" or null, "needs_context": {"location": string or null, "type": "state" or "county" or null}}
+            {
+                "is_ambiguous": true/false,
+                "ambiguity_type": "location_reference" or "subject_reference" or "both" or null,
+                "location_context": {
+                    "location": string or null,
+                    "type": "state" or "county" or "city" or null
+                },
+                "subject_context": string or null
+            }
             """
 
             # Simplified context normalization
             if isinstance(current_focus, dict) and current_focus.get('county'):
                 location = f"{current_focus['county']} County, {current_focus['state']}"
                 context_type = "county"
+            elif isinstance(current_focus, dict) and current_focus.get('city'):
+                location = f"{current_focus['city']}, {current_focus['state']}"
+                context_type = "city"
             else:
                 location = current_focus.get('state') if isinstance(current_focus, dict) else current_focus
                 context_type = "state"
 
+            # Format conversation history for context
+            conversation_context = ""
+            if conversation_history and len(conversation_history) > 0:
+                # Take up to last 3 exchanges for context
+                recent_history = conversation_history[-6:] if len(conversation_history) > 6 else conversation_history
+                conversation_context = "\n".join([f"{'User' if i % 2 == 0 else 'Assistant'}: {msg}" for i, msg in enumerate(recent_history)])
+
             context = {
-                "current_state": location,
-                "type": context_type
+                "current_location": location,
+                "location_type": context_type,
+                "conversation_history": conversation_context,
+                "previous_answer": previous_answer
             }
 
             user_prompt = f"Question: {question}\nContext: {context}"
@@ -204,50 +234,97 @@ class SemanticService:
             )
 
             result = json.loads(response.choices[0].message.content.strip())
-            print(f"Ambiguity check: {result}")
+            print(f"ambiguity_check_result: {result}")
             
             # If ambiguous and we have context, provide it
             if result["is_ambiguous"] and location:
-                result["needs_context"]["location"] = location
-                result["needs_context"]["type"] = context_type
+                if "location_context" in result:
+                    result["location_context"]["location"] = location
+                    result["location_context"]["type"] = context_type
+
+            # Prepare return values based on the new format
+            ambiguity_type = result.get("ambiguity_type")
+            context_needed = {
+                "location": result.get("location_context", {}).get("location"),
+                "type": result.get("location_context", {}).get("type"),
+                "subject": result.get("subject_context")
+            }
 
             return (
                 result["is_ambiguous"],
-                result["ambiguity_type"],
-                result["needs_context"]
+                ambiguity_type,
+                context_needed
             )
 
         except Exception as e:
             print(f"Error in ambiguity check: {str(e)}")
             # Fallback to basic check
-            if any(word in question.lower() for word in ['here', 'this state', 'that state', 'it']):
+            if any(word in question.lower() for word in ['here', 'this state', 'that state', 'it', 'its']):
                 return True, 'location_reference', {
                     'location': location,
-                    'type': context_type
+                    'type': context_type,
+                    'subject': None
+                }
+            if any(word in question.lower() for word in ['what about', 'how about', 'compare', 'largest', 'biggest', 'smallest']):
+                return True, 'subject_reference', {
+                    'location': location,
+                    'type': context_type,
+                    'subject': None
                 }
             return False, None, None
 
-    def resolve_ambiguous_question(self, question, ambiguity_type, context):
+    def resolve_ambiguous_question(self, question, ambiguity_type, context, conversation_history=None):
         """
         Resolve ambiguous questions using provided context and GPT
         Returns: resolved question or None if can't resolve
         """
-        if not context or ambiguity_type != 'location_reference':
+        if not context:
             return None
 
         try:
             system_prompt = """You are an expert at resolving ambiguous geographic questions.
             Given a question with ambiguous references and the context, rewrite the question 
-            to be explicit and unambiguous. Replace pronouns and location references with 
-            the specific location names.
-
-            Example:
+            to be explicit and unambiguous.
+            
+            For location references:
+            - Replace "here" with the specific location name
+            - Replace "it/its" referring to a location with the location name
+            - Replace "this/that state/county" with the specific location name
+            - Add state context to city references when missing
+            
+            For subject references:
+            - Use the conversation history to determine what subject the user is referring to
+            - Replace vague references like "what about" with the specific subject from previous exchanges
+            - For comparative questions, make both the subject and location explicit
+            
+            Examples:
+            
             Question: "What's the population density here?"
             Context: {"location": "California", "type": "state"}
             Resolved: "What's the population density in California?"
+            
+            Question: "What about Illinois?"
+            Context: {"location": "Kansas", "type": "state", "conversation_history": "User: What's the income level of Kansas? Assistant: The median household income in Kansas is $59,597."}
+            Resolved: "What's the income level of Illinois?"
+            
+            Question: "How does it compare to its neighbors?"
+            Context: {"location": "Kansas", "type": "state", "conversation_history": "User: What's the income level of Kansas? Assistant: The median household income in Kansas is $59,597."}
+            Resolved: "How does the income level of Kansas compare to the income levels of Kansas's neighboring states?"
+            
+            Question: "What's the biggest city?"
+            Context: {"location": "New York", "type": "state"}
+            Resolved: "What's the biggest city in New York state?"
             """
 
-            user_prompt = f"Question: {question}\nContext: {context}"
+            # Format conversation history for context if available
+            if conversation_history and len(conversation_history) > 0:
+                # Take up to last 3 exchanges for context
+                recent_history = conversation_history[-6:] if len(conversation_history) > 6 else conversation_history
+                context_history = "\n".join([f"{'User' if i % 2 == 0 else 'Assistant'}: {msg}" for i, msg in enumerate(recent_history)])
+                context["conversation_history"] = context_history
+
+            user_prompt = f"Question: {question}\nContext: {context}\nAmbiguity Type: {ambiguity_type}"
+            print(f"ambiguious_question_resolution_prompt: {user_prompt}")
 
             response = openai.chat.completions.create(
                 model="gpt-4o-mini",
@@ -259,6 +336,7 @@ class SemanticService:
             )
 
             resolved_question = response.choices[0].message.content.strip()
+            print(f"ambiguious_question_resolution_result: {resolved_question}")
             return resolved_question
 
         except Exception as e:
@@ -303,6 +381,7 @@ class SemanticService:
             if result == "None":
                 return False, None
             
+            print(f"navigation_action_result: {result}")
             # Try to parse as JSON
             try:
                 location_info = json.loads(result)

@@ -37,11 +37,6 @@ const logAnalysisData = async (input, previousAnswer, currentFocus, currentFocus
 };
 
 const logResponseData = async (dataset, question_type, result) => {
-  console.log('hi', {
-    dataset: dataset,
-    question_type: question_type,
-    result: result
-  });
   const logData = {
     dataset: dataset,
     question_type: question_type,
