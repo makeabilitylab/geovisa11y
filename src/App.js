@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import ChoroplethMap from './components/ChoroplethMap';
 import Chatbot from './components/Chatbot';
+import { logSessionEnd } from './utils/logger';
 
 function App() {
   const [currentDataset, setCurrentDataset] = useState('ppl_densit');
@@ -89,6 +90,13 @@ function App() {
     
     window.addEventListener('keydown', globalHandler);
     return () => window.removeEventListener('keydown', globalHandler);
+  }, []);
+
+  useEffect(() => {
+    // Log session end when the component unmounts
+    return () => {
+      logSessionEnd();
+    };
   }, []);
 
   return (

@@ -7,7 +7,12 @@ import {
     Input,
     Button,
 } from '@material-tailwind/react';
-import { logAnalysisData, logResponseData } from '../utils/logger'; 
+import { 
+    logQuestionData, 
+    logProcessingData, 
+    logAnswerData, 
+    generateQuestionId 
+} from '../utils/logger';
 
 
 const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus }) => {
@@ -267,6 +272,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
     const handleQuestionSubmit = async (input, useSpeech = false) => {
         try {
+            const startTime = Date.now();
             setIsLoading(true);
             
             // Add special case for "What else can you do?"
@@ -306,6 +312,25 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
             // Build conversation history from messages
             const messageHistory = messages.map(msg => msg.text);
+            
+            // Get map viewport information (you'll need to pass this from the Map component)
+            const mapViewport = {
+                zoom: window.mapZoomLevel || null,
+                center: window.mapCenter || null,
+                bounds: window.mapBounds || null
+            };
+
+            // Log the question data and get a question ID
+            const questionId = await logQuestionData(
+                input, 
+                previousAnswer, 
+                currentFocus, 
+                currentFocusedState, 
+                currentFocusedCounty, 
+                messageHistory,
+                dataset,
+                mapViewport
+            );
 
             console.log('Sending input to analyze:', {
                 input,
@@ -313,11 +338,11 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 current_focus: currentFocus,
                 raw_state: currentFocusedState,
                 raw_county: currentFocusedCounty,
-                conversation_history: messageHistory
+                conversation_history: messageHistory,
+                question_id: questionId
             });
-            // ROCK log input
+            
             console.log('Conversation history:', messageHistory);
-            logAnalysisData(input, previousAnswer, currentFocus, currentFocusedState, currentFocusedCounty, messageHistory);
 
             const response = await fetch(`${apiUrl}/api/analyze-input`, {
                 method: 'POST',
@@ -334,7 +359,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     raw_state: currentFocusedState,
                     raw_county: currentFocusedCounty,
                     current_dataset: dataset,
-                    conversation_history: messageHistory
+                    conversation_history: messageHistory,
+                    question_id: questionId
                 })
             });
 
@@ -343,13 +369,23 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             }
 
             const data = await response.json();
+            const processingTime = Date.now() - startTime;
+            
             console.log('Response:', {
                 "dataset": dataset,
                 "question_type": data.question_type,
-                "result": data.result
+                "result": data.result,
+                "processing_time_ms": processingTime
             });
-            // ROCK log response
-            logResponseData(dataset, data.question_type, data.result);
+            
+            // Log the answer data
+            await logAnswerData(
+                questionId, 
+                data.result, 
+                processingTime, 
+                dataset, 
+                data.question_type
+            );
 
             // Handle action responses
             if (data.is_action) {
