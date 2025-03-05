@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import * as turf from '@turf/turf';
+import { logMapInteraction } from '../utils/logger';
 
 const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, focusedCity, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive, onMapClick }) => {
     const mapContainer = useRef(null);
@@ -1266,6 +1267,107 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             mapContainer.current.blur();
         }
     }, [isMapInteractive]);
+
+    // Add these functions to track map viewport
+    useEffect(() => {
+        if (map.current) {
+            // Store map viewport in window for access by other components
+            window.mapZoomLevel = map.current.getZoom();
+            window.mapCenter = map.current.getCenter();
+            window.mapBounds = map.current.getBounds();
+            
+            // Set up event listeners for map interactions
+            map.current.on('zoomend', () => {
+                try {
+                    window.mapZoomLevel = map.current.getZoom();
+                    window.mapCenter = map.current.getCenter();
+                    window.mapBounds = map.current.getBounds();
+                    
+                    // Log the map interaction
+                    logMapInteraction(
+                        'zoom', 
+                        {
+                            zoom: map.current.getZoom(),
+                            center: map.current.getCenter(),
+                            bounds: map.current.getBounds()
+                        },
+                        currentFocusedState,
+                        currentFocusedCounty,
+                        'map'
+                    ).catch(err => console.error('Failed to log map interaction:', err));
+                } catch (error) {
+                    console.error('Error in zoom event handler:', error);
+                }
+            });
+            
+            map.current.on('moveend', () => {
+                window.mapZoomLevel = map.current.getZoom();
+                window.mapCenter = map.current.getCenter();
+                window.mapBounds = map.current.getBounds();
+                
+                // Log the map interaction if it's not from a zoom
+                if (!map.current._zooming) {
+                    logMapInteraction(
+                        'pan', 
+                        {
+                            zoom: map.current.getZoom(),
+                            center: map.current.getCenter(),
+                            bounds: map.current.getBounds()
+                        },
+                        currentFocusedState,
+                        currentFocusedCounty,
+                        'map'
+                    );
+                }
+            });
+        }
+    }, [map.current]);
+
+    // Update the handleStateClick function
+    const handleStateClick = (e) => {
+        if (!isMapInteractive) return;
+        
+        onMapClick();
+        const clickedState = e.features[0].properties.state_name;
+        
+        // Log the state click interaction
+        logMapInteraction(
+            'state_click', 
+            {
+                zoom: map.current.getZoom(),
+                center: map.current.getCenter(),
+                bounds: map.current.getBounds()
+            },
+            clickedState,
+            null,
+            'map'
+        );
+        
+        // Rest of your existing code...
+    };
+
+    // Update the handleCountyClick function
+    const handleCountyClick = (e) => {
+        if (!isMapInteractive || !showingCounties) return;
+        
+        onMapClick();
+        const clickedCounty = e.features[0].properties.county_name;
+        
+        // Log the county click interaction
+        logMapInteraction(
+            'county_click', 
+            {
+                zoom: map.current.getZoom(),
+                center: map.current.getCenter(),
+                bounds: map.current.getBounds()
+            },
+            currentFocusedState,
+            clickedCounty,
+            'map'
+        );
+        
+        // Rest of your existing code...
+    };
 
     return (
         <div className="relative h-full ">

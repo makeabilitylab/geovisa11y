@@ -19,7 +19,7 @@ else:
 # CORS configuration with explicit options
 CORS(app, 
     resources={
-        r"/logs": {  # Specific rule for /logs endpoint
+        r"/api/logs": {  # Updated path for logs endpoint
             "origins": ["http://localhost:3000", "https://mappie-talkie-frontend-245835075814.us-central1.run.app"],
             "methods": ["GET", "POST", "OPTIONS"],
             "allow_headers": ["Content-Type", "Authorization", "Origin", "Accept"],
@@ -76,7 +76,8 @@ def health_check():
 # Register blueprints
 app.register_blueprint(api, url_prefix='/api')
 app.register_blueprint(test_bp)
-app.register_blueprint(log_bp)
+app.register_blueprint(log_bp, url_prefix='/api')
+# app.register_blueprint(log_bp)
 
 if __name__ == '__main__':
     port = int(os.getenv("PORT", 5000))
