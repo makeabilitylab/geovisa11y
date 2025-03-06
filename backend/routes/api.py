@@ -437,6 +437,10 @@ def get_counties(state_name):
         print(f"Fetching counties for state: {state_name}")  # Debug log
         accuracy = request.args.get("accuracy", default=0.01, type=float)
         
+        # Get the dataset from query parameters, default to population density
+        dataset = request.args.get("dataset", default="ppl_densit", type=str)
+        print(f"Using dataset: {dataset}")  # Debug log
+        
         # Handle array input
         if isinstance(state_name, list):
             state_name = state_name[0]
@@ -446,7 +450,7 @@ def get_counties(state_name):
         
         print(f"Normalized state name: {state_name}")  # Debug log
         
-        result = fetch_data('county', accuracy, value_column='ppl_densit', state_filter=state_name)
+        result = fetch_data('county', accuracy, value_column=dataset, state_filter=state_name)
         print(f"Result type: {type(result)}")  # Debug log
         return result
     except Exception as e:

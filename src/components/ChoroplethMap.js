@@ -1002,7 +1002,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             // Normalize state name input
             stateName = normalizeStateName(stateName);
 
-            const response = await fetch(`${apiUrl}/api/counties/${stateName}`, {
+            // Add the current dataset as a query parameter
+            const response = await fetch(`${apiUrl}/api/counties/${stateName}?dataset=${selectedDataset}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -1023,6 +1024,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             
             if (!map.current || !map.current.isStyleLoaded()) {
                 console.error('Map or style not loaded');
+                setIsLoading(false);
                 return;
             }
 
@@ -1093,9 +1095,9 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             });
 
             setShowingCounties(true);
+            setIsLoading(false);
         } catch (error) {
             console.error('Error fetching county data:', error);
-        } finally {
             setIsLoading(false);
         }
     };
@@ -1555,6 +1557,11 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         };
     }, []);
 
+    // Add this useEffect to sync the local state with the prop
+    useEffect(() => {
+        setSelectedDataset(dataset);
+    }, [dataset]);
+
     return (
         <div className="relative h-full ">
             <div 
@@ -1635,8 +1642,9 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         <select
                             value={selectedDataset}
                             onChange={(e) => {
-                                setSelectedDataset(e.target.value);
-                                onDatasetChange(e.target.value);
+                                const newDataset = e.target.value;
+                                setSelectedDataset(newDataset);
+                                onDatasetChange(newDataset);
                             }}
                             className="block w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
