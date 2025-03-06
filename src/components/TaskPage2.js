@@ -86,6 +86,9 @@ function TaskPage2() {
   }, []);
 
   useEffect(() => {
+    // Set the initial dataset to 'gas' for Task2
+    setCurrentDataset('gas');
+    
     // Log session end when the component unmounts
     return () => {
       logSessionEnd();
