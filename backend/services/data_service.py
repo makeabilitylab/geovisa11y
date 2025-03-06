@@ -20,6 +20,60 @@ con.execute("LOAD 'spatial';")
 # Initialize the semantic service
 semantic_service = SemanticService()
 
+# Define a centralized metric mapping dictionary
+METRIC_MAPPING = {
+    'ppl_densit': {
+        'name': 'population density',
+        'unit': 'people per square mile',
+        'is_percentage': False
+    },
+    'walk_to_wo': {
+        'name': 'percentage of people walking to work',
+        'unit': '%',
+        'is_percentage': True,
+        'verb': 'walk'
+    },
+    'transit_to': {
+        'name': 'percentage of people using public transit',
+        'unit': '%',
+        'is_percentage': True,
+        'verb': 'take public transit'
+    },
+    'pct_tot_co': {
+        'name': 'percentage of priority population',
+        'unit': '%',
+        'is_percentage': True
+    },
+    'pct_no_bb_': {
+        'name': 'percentage of people lacking broadband or computer access',
+        'unit': '%',
+        'is_percentage': True
+    },
+    'gas': {
+        'name': 'number of households with gas heating',
+        'unit': 'households with gas heating',
+        'is_percentage': False
+    },
+    'electricit': {
+        'name': 'number of households with electricity heating',
+        'unit': 'households with electricity heating',
+        'is_percentage': False
+    },
+    'oil': {
+        'name': 'number of households with oil heating',
+        'unit': 'households with oil heating',
+        'is_percentage': False
+    }
+}
+
+def get_metric_info(dataset):
+    """Get metric information for a dataset"""
+    return METRIC_MAPPING.get(dataset, {
+        'name': dataset,
+        'unit': '',
+        'is_percentage': False
+    })
+
 def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=None):
     try:
         # Add state filter to query if provided
@@ -377,40 +431,73 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
         if not result:
             return None
             
+        metric_info = get_metric_info(dataset)
+        
         if is_county:
             county, state, value = result
-            metric_name = semantic_service.dataset_terms[dataset]['metric']
-            unit = semantic_service.dataset_terms[dataset]['unit']
             
-            if dataset == 'ppl_densit':
+            if not metric_info['is_percentage']:
                 return {
-                    'result': f"{county} County in {state} has {value:.2f} {unit}.",
+                    'result': f"{county} County in {state} has {value:.2f} {metric_info['unit']}.",
                     'county': county,
                     'state': state
                 }
             else:
-                verb = 'walk' if dataset == 'walk_to_wo' else 'take public transit'
-                return {
-                    'result': f"{county} County in {state} has {value:.2f}{unit} of people who {verb} to work.",
-                    'county': county,
-                    'state': state
-                }
+                # Handle different percentage datasets
+                if dataset in ['walk_to_wo', 'transit_to']:
+                    return {
+                        'result': f"{county} County in {state} has {value:.2f}{metric_info['unit']} of people who {metric_info.get('verb', 'commute')} to work.",
+                        'county': county,
+                        'state': state
+                    }
+                elif dataset == 'pct_tot_co':
+                    return {
+                        'result': f"{county} County in {state} has {value:.2f}{metric_info['unit']} priority population.",
+                        'county': county,
+                        'state': state
+                    }
+                elif dataset == 'pct_no_bb_':
+                    return {
+                        'result': f"{county} County in {state} has {value:.2f}{metric_info['unit']} of people lacking broadband or computer access.",
+                        'county': county,
+                        'state': state
+                    }
+                else:
+                    return {
+                        'result': f"{county} County in {state} has {value:.2f}{metric_info['unit']} {metric_info['name']}.",
+                        'county': county,
+                        'state': state
+                    }
         else:
             state, value = result
-            metric_name = semantic_service.dataset_terms[dataset]['metric']
-            unit = semantic_service.dataset_terms[dataset]['unit']
             
-            if dataset == 'ppl_densit':
+            if not metric_info['is_percentage']:
                 return {
-                    'result': f"{state} has {value:.2f} {unit}.",
+                    'result': f"{state} has {value:.2f} {metric_info['unit']}.",
                     'state': state
                 }
             else:
-                verb = 'walk' if dataset == 'walk_to_wo' else 'take public transit'
-                return {
-                    'result': f"{state} has {value:.2f}{unit} of people who {verb} to work.",
-                    'state': state
-                }
+                # Handle different percentage datasets
+                if dataset in ['walk_to_wo', 'transit_to']:
+                    return {
+                        'result': f"{state} has {value:.2f}{metric_info['unit']} of people who {metric_info.get('verb', 'commute')} to work.",
+                        'state': state
+                    }
+                elif dataset == 'pct_tot_co':
+                    return {
+                        'result': f"{state} has {value:.2f}{metric_info['unit']} priority population.",
+                        'state': state
+                    }
+                elif dataset == 'pct_no_bb_':
+                    return {
+                        'result': f"{state} has {value:.2f}{metric_info['unit']} of people lacking broadband or computer access.",
+                        'state': state
+                    }
+                else:
+                    return {
+                        'result': f"{state} has {value:.2f}{metric_info['unit']} {metric_info['name']}.",
+                        'state': state
+                    }
             
     except Exception as e:
         print(f"Error retrieving value: {str(e)}")
@@ -442,22 +529,16 @@ def compare_states(state1, state2, dataset):
         state1_data = next(r for r in results if r[0].lower() == state1.lower())
         state2_data = next(r for r in results if r[0].lower() == state2.lower())
         
-        metric_name = {
-            'ppl_densit': 'population density',
-            'walk_to_wo': 'percentage of people walking to work',
-            'transit_to': 'percentage of people using public transit'
-        }[dataset]
-        
-        unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
+        metric_info = get_metric_info(dataset)
         
         # Determine which state has higher value
         higher_state = state1_data[0] if state1_data[1] > state2_data[1] else state2_data[0]
         lower_state = state2_data[0] if state1_data[1] > state2_data[1] else state1_data[0]
         
         return (
-            f"{state1_data[0]} has {state1_data[1]:.2f} {unit} {metric_name} while "
-            f"{state2_data[0]} has {state2_data[1]:.2f} {unit}. "
-            f"{higher_state} has higher {metric_name} than {lower_state}."
+            f"{state1_data[0]} has {state1_data[1]:.2f} {metric_info['unit']} {metric_info['name']} while "
+            f"{state2_data[0]} has {state2_data[1]:.2f} {metric_info['unit']}. "
+            f"{higher_state} has higher {metric_info['name']} than {lower_state}."
         )
     except Exception as e:
         print(f"Error comparing states: {str(e)}")
@@ -485,11 +566,7 @@ def get_extrema(question, dataset):
         if not result:
             return None
             
-        metric_name = {
-            'ppl_densit': 'population density',
-            'walk_to_wo': 'percentage of people walking to work',
-            'transit_to': 'percentage of people using public transit'
-        }[dataset]
+        metric_info = get_metric_info(dataset)
         
         unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
         
@@ -497,7 +574,7 @@ def get_extrema(question, dataset):
         value_str = f"{result[1]:.2f}{unit}" if unit == '%' else f"{result[1]:.2f} {unit}"
         
         return {
-            'result': f"{result[0]} has the {'highest' if is_highest else 'lowest'} {metric_name} of {value_str}.",
+            'result': f"{result[0]} has the {'highest' if is_highest else 'lowest'} {metric_info['name']} of {value_str}.",
             'state': result[0]  # Include the state name in response
         }
     except Exception as e:
@@ -523,15 +600,9 @@ def get_mean(dataset):
         if not result or result[0] is None:
             return None
             
-        metric_name = {
-            'ppl_densit': 'population density',
-            'walk_to_wo': 'percentage of people walking to work',
-            'transit_to': 'percentage of people using public transit'
-        }[dataset]
+        metric_info = get_metric_info(dataset)
         
-        unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
-        
-        return f"The average {metric_name} across all states is {result[0]:.2f} {unit}."
+        return f"The average {metric_info['name']} across all states is {result[0]:.2f} {metric_info['unit']}."
     except Exception as e:
         print(f"Error calculating average: {str(e)}")
         return None
@@ -572,8 +643,8 @@ def filter(question, dataset):
             return f"No states match the condition."
             
         states = [r[0] for r in results]
-        metric_name = semantic_service.dataset_terms[dataset]['metric']
-        return f"States with {metric_name} {operator} {value}: {', '.join(states)}"
+        metric_info = get_metric_info(dataset)
+        return f"States with {metric_info['name']} {operator} {value}: {', '.join(states)}"
         
     except Exception as e:
         print(f"Error in filter_states: {str(e)}")
@@ -607,12 +678,11 @@ def sort(question, dataset):
         """
         
         results = con.execute(query).fetchall()
-        metric_name = semantic_service.dataset_terms[dataset]['metric']
-        unit = semantic_service.dataset_terms[dataset]['unit']
+        metric_info = get_metric_info(dataset)
         
-        formatted_results = [f"{i+1}. {r[0]} ({r[1]:.2f} {unit})" 
+        formatted_results = [f"{i+1}. {r[0]} ({r[1]:.2f} {metric_info['unit']})" 
                            for i, r in enumerate(results)]
-        return f"Top {limit} states by {metric_name}:\n" + "\n".join(formatted_results)
+        return f"Top {limit} states by {metric_info['name']}:\n" + "\n".join(formatted_results)
         
     except Exception as e:
         print(f"Error in sort_states: {str(e)}")
@@ -630,10 +700,10 @@ def get_data_range(dataset):
         """
         
         result = con.execute(query).fetchone()
-        metric_name = semantic_service.dataset_terms[dataset]['metric']
-        unit = semantic_service.dataset_terms[dataset]['unit']
+        metric_info = get_metric_info(dataset)
+        unit = metric_info['unit']
         
-        return (f"The {metric_name} ranges from {result[0]:.2f} to {result[1]:.2f} {unit}, "
+        return (f"The {metric_info['name']} ranges from {result[0]:.2f} to {result[1]:.2f} {unit}, "
                 f"with an average of {result[2]:.2f} {unit}.")
                 
     except Exception as e:
@@ -674,18 +744,17 @@ def find_similar(state, dataset):
         results = con.execute(query, [ref_value - margin, ref_value + margin, 
                                     state, ref_value]).fetchall()
                                     
-        metric_name = semantic_service.dataset_terms[dataset]['metric']
-        unit = semantic_service.dataset_terms[dataset]['unit']
+        metric_info = get_metric_info(dataset)
         
         if not results:
             return {
-                'result': f"No states have similar {metric_name} to {state.title()}.",
+                'result': f"No states have similar {metric_info['name']} to {state.title()}.",
                 'state': state.title()
             }
             
-        similar_states = [f"{r[0].title()} ({r[1]:.2f} {unit})" for r in results]
+        similar_states = [f"{r[0].title()} ({r[1]:.2f} {metric_info['unit']})" for r in results]
         return {
-            'result': f"States with the closest {metric_name} to {state.title()}: " + ", ".join(similar_states),
+            'result': f"States with the closest {metric_info['name']} to {state.title()}: " + ", ".join(similar_states),
             'state': state.title()
         }
         
@@ -800,11 +869,8 @@ def get_lisa_clusters(dataset):
 def get_gpt_spatial_pattern_summary(lisa_clusters, dataset):
     """Get a natural language summary of spatial patterns using GPT"""
     try:
-        metric_name = {
-            'ppl_densit': 'population density',
-            'walk_to_wo': 'walking to work percentage',
-            'transit_to': 'public transit usage'
-        }.get(dataset, 'value')
+        metric_info = get_metric_info(dataset)
+        metric_name = metric_info['name']
 
         # Create description from LISA clusters
         description = []
@@ -856,23 +922,23 @@ def get_gpt_spatial_pattern_summary(lisa_clusters, dataset):
 def find_outliers(lisa_results, dataset):
     """Format outlier results from LISA analysis with natural language description (max 3 examples)"""
     try:
-        metric_name = semantic_service.dataset_terms[dataset]['metric']
+        metric_info = get_metric_info(dataset)
         
         if not (lisa_results['HL'] or lisa_results['LH']):
-            return f"No significant outliers found in {metric_name}."
+            return f"No significant outliers found in {metric_info['name']}."
         
         parts = []
         if lisa_results['HL']:
             states = ', '.join(lisa_results['HL'][:3]) 
             if len(lisa_results['HL']) > 3:
                 states
-            parts.append(f"{states}, where {metric_name} is relatively high compared to its neighbors")
+            parts.append(f"{states}, where {metric_info['name']} is relatively high compared to its neighbors")
             
         if lisa_results['LH']:
             states = ', '.join(lisa_results['LH'][:3])
             if len(lisa_results['LH']) > 3:
                 states 
-            parts.append(f"{states}, where {metric_name} is relatively low compared to its neighbors")
+            parts.append(f"{states}, where {metric_info['name']} is relatively low compared to its neighbors")
         
         if len(parts) == 2:
             return f"Outliers include states like {parts[0]}. There are also {parts[1]}."

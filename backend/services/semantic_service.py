@@ -24,7 +24,7 @@ class SemanticService:
                 'unit': 'percent'
             },
             'pct_no_bb_': {
-                'metric': 'percentage lacking broadband and computer access',
+                'metric': 'percentage of people lacking broadband and computer access',
                 'unit': 'percent'
             },
             'gas': {
