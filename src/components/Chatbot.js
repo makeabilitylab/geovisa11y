@@ -719,8 +719,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                                     }
                                 }}
                             >
-                                Go to Washington.
-                            </span>
+                                Go to Washington</span>
                             {" to focus on Washington or any other state."}
                         </li>
                         <li>
