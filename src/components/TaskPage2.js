@@ -5,7 +5,7 @@ import Chatbot from './Chatbot';
 import { logSessionEnd } from '../utils/logger';
 
 function TaskPage2() {
-  const [currentDataset, setCurrentDataset] = useState('pct_gas');
+  const [currentDataset, setCurrentDataset] = useState('gas');
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
   const [focusedState, setFocusedState] = useState(null);
   const [focusedCounty, setFocusedCounty] = useState(null);

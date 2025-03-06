@@ -27,9 +27,17 @@ class SemanticService:
                 'metric': 'percentage lacking broadband and computer access',
                 'unit': 'percent'
             },
-            'pct_gas': {
-                'metric': 'percentage of homes with gas heating',
-                'unit': 'percent'
+            'gas': {
+                'metric': 'number of households with gas heating',
+                'unit': 'count'
+            },
+            'electricity': {
+                'metric': 'number of households with electric heating',
+                'unit': 'count'
+            },
+            'oil': {
+                'metric': 'number of households with oil heating',
+                'unit': 'count'
             }
         }
 

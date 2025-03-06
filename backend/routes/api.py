@@ -1,7 +1,7 @@
 # routes/api.py
 
 from flask import Blueprint, jsonify, request, make_response
-from services.data_service import fetch_data, answer_question, retrieve_value
+from services.data_service import fetch_data, answer_question, retrieve_value, fetch_fuel_data
 from services.semantic_service import SemanticService
 import openai
 from config import DevelopmentConfig
@@ -595,7 +595,7 @@ def check_task1_table():
 
 @api.route('/geojson/task2_state', methods=['GET', 'OPTIONS'])
 def get_task2_geojson():
-    """Get GeoJSON data for the task2 dataset"""
+    """Get GeoJSON data for the task2 dataset with multiple fuel types"""
     if request.method == 'OPTIONS':
         # Explicitly return response for OPTIONS request
         response = make_response()
@@ -606,9 +606,8 @@ def get_task2_geojson():
         
     try:
         accuracy = request.args.get("accuracy", default=0.01, type=float)
-        dataset = request.args.get("dataset", default="pct_gas")
         
-        # Use the existing fetch_data function with task2_state table
-        return fetch_data('task2_state', accuracy, dataset)
+        # We'll fetch all fuel types at once
+        return fetch_fuel_data('task2_state', accuracy)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
