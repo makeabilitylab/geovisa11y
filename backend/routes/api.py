@@ -12,6 +12,7 @@ import uuid
 import logging
 from routes.log_routes import logs_collection
 import datetime
+import json
 
 api = Blueprint('api', __name__)
 
@@ -532,4 +533,82 @@ def check_ambiguity():
 
     except Exception as e:
         print(f"Error checking ambiguity: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/geojson/task1_state', methods=['GET', 'OPTIONS'])
+def get_task1_geojson():
+    """Get GeoJSON data for the task1 dataset"""
+    if request.method == 'OPTIONS':
+        # Explicitly return response for OPTIONS request
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,OPTIONS')
+        return response
+        
+    try:
+        accuracy = request.args.get("accuracy", default=0.01, type=float)
+        dataset = request.args.get("dataset", default="pct_tot_co")
+        
+        # Use the existing fetch_data function with task1_state table
+        return fetch_data('task1_state', accuracy, dataset)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/check-task1-table', methods=['GET'])
+def check_task1_table():
+    """Check if task1_state table exists and return its structure"""
+    try:
+        # Check if table exists
+        tables_query = "SELECT table_name FROM information_schema.tables"
+        tables = [row[0] for row in db.execute(tables_query).fetchall()]
+        
+        if 'task1_state' not in tables:
+            return jsonify({
+                'status': 'error',
+                'message': f"Table 'task1_state' does not exist in the database. Available tables: {', '.join(tables)}"
+            }), 404
+            
+        # Get columns
+        columns_query = "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'task1_state'"
+        columns = [{'name': row[0], 'type': row[1]} for row in db.execute(columns_query).fetchall()]
+        
+        # Get row count
+        count_query = "SELECT COUNT(*) FROM task1_state"
+        row_count = db.execute(count_query).fetchone()[0]
+        
+        return jsonify({
+            'status': 'success',
+            'table_exists': True,
+            'columns': columns,
+            'row_count': row_count
+        })
+        
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'traceback': error_details
+        }), 500
+
+@api.route('/geojson/task2_state', methods=['GET', 'OPTIONS'])
+def get_task2_geojson():
+    """Get GeoJSON data for the task2 dataset"""
+    if request.method == 'OPTIONS':
+        # Explicitly return response for OPTIONS request
+        response = make_response()
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,OPTIONS')
+        return response
+        
+    try:
+        accuracy = request.args.get("accuracy", default=0.01, type=float)
+        dataset = request.args.get("dataset", default="pct_gas")
+        
+        # Use the existing fetch_data function with task2_state table
+        return fetch_data('task2_state', accuracy, dataset)
+    except Exception as e:
         return jsonify({'error': str(e)}), 500

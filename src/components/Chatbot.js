@@ -15,7 +15,7 @@ import {
 } from '../utils/logger';
 
 
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus }) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus, isTaskPage = false, isTask2Page = false }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -48,39 +48,92 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         return shuffled.slice(0, n);
     };
 
-    // Function to get random example questions
+    // Function to get map description based on dataset
+    const getMapDescription = () => {
+        if (isTaskPage) {
+            switch(dataset) {
+                case 'pct_tot_co':
+                    return "This is a choropleth map of the United States showing the percentage of priority population in each state. Darker shades indicate higher percentages.";
+                case 'pct_no_bb_':
+                    return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband in each state. Darker shades indicate higher percentages.";
+                default:
+                    return "This is an interactive choropleth map of the United States optimized for screen reader users.";
+            }
+        } else {
+            switch(dataset) {
+                case 'walk_to_wo':
+                    return "This is a choropleth map of the United States showing the percentage of people who walk to work in each state. Darker shades indicate higher percentages of walking commuters.";
+                case 'transit_to':
+                    return "This is a choropleth map of the United States showing the percentage of people who use public transit in each state. Darker shades indicate higher percentages of public transit usage.";
+                default: // ppl_densit
+                    return "This is an interactive choropleth map of the United States showing population density, optimized for screen reader users.";
+            }
+        }
+    };
+
+    // Function to get example questions based on dataset
     const getExampleQuestions = () => {
         const [state1, state2, state3] = getRandomStates(3);
         const extrema = Math.random() < 0.5 ? 'highest' : 'lowest';
         
-        // Dataset-specific questions
-        if (dataset === 'walk_to_wo') {
+        if (isTask2Page) {
+            // Task2-specific questions
             return [
-                `What percentage of people walk to work in ${state1}?`,
-                `Which state has a higher percentage of people walking to work, ${state2} or ${state3}?`,
-                `Which state has the ${extrema} percentage of people walking to work?`,
-                "What's the average percentage of people who walk to work?",
+                `What percentage of homes use gas heating in ${state1}?`,
+                `Which state has a higher percentage of gas heating, ${state2} or ${state3}?`,
+                `Which state has the ${extrema} percentage of gas heating?`,
+                "What's the average percentage of homes with gas heating?",
                 "Is there a pattern in this map?",
                 "Can you describe the pattern?"
             ];
-        } else if (dataset === 'transit_to') {
-            return [
-                `What percentage of people use public transit in ${state1}?`,
-                `Which state has a higher percentage of public transit usage, ${state2} or ${state3}?`,
-                `Which state has the ${extrema} percentage of public transit usage?`,
-                "What's the average percentage of people who use public transit?",
-                "Is there a pattern in this map?",
-                "Can you describe the pattern?"
-            ];
-        } else {  // ppl_densit
-            return [
-                `What's the population density of ${state1}?`,
-                // `Which state has higher population density, ${state2} or ${state3}?`,
-                `Which state has the ${extrema} population density?`,
-                // "What's the average population density in this map?",
-                "Is there a pattern in this map?",
-                // "Can you describe the pattern?",
-            ];
+        } else if (isTaskPage) {
+            // Task1-specific questions
+            if (dataset === 'pct_tot_co') {
+                return [
+                    `What percentage of priority population is in ${state1}?`,
+                    `Which state has a higher percentage of priority population, ${state2} or ${state3}?`,
+                    `Which state has the ${extrema} percentage of priority population?`,
+                    "What's the average percentage of priority population?",
+                    "Is there a pattern in this map?",
+                    "Can you describe the pattern?"
+                ];
+            } else { // pct_no_bb_
+                return [
+                    `What percentage of people lack broadband access in ${state1}?`,
+                    `Which state has a higher percentage lacking broadband, ${state2} or ${state3}?`,
+                    `Which state has the ${extrema} percentage lacking broadband access?`,
+                    "What's the average percentage of people lacking broadband?",
+                    "Is there a pattern in this map?",
+                    "Can you describe the pattern?"
+                ];
+            }
+        } else {
+            // Original dataset questions
+            if (dataset === 'walk_to_wo') {
+                return [
+                    `What percentage of people walk to work in ${state1}?`,
+                    `Which state has a higher percentage of people walking to work, ${state2} or ${state3}?`,
+                    `Which state has the ${extrema} percentage of people walking to work?`,
+                    "What's the average percentage of people who walk to work?",
+                    "Is there a pattern in this map?",
+                    "Can you describe the pattern?"
+                ];
+            } else if (dataset === 'transit_to') {
+                return [
+                    `What percentage of people use public transit in ${state1}?`,
+                    `Which state has a higher percentage of public transit usage, ${state2} or ${state3}?`,
+                    `Which state has the ${extrema} percentage of public transit usage?`,
+                    "What's the average percentage of people who use public transit?",
+                    "Is there a pattern in this map?",
+                    "Can you describe the pattern?"
+                ];
+            } else {  // ppl_densit
+                return [
+                    `What's the population density of ${state1}?`,
+                    `Which state has the ${extrema} population density?`,
+                    "Is there a pattern in this map?",
+                ];
+            }
         }
     };
 
@@ -504,18 +557,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         };
     }, [isRecording, isInputFocused]);
 
-    // Function to get map description based on dataset
-    const getMapDescription = () => {
-        switch(dataset) {
-            case 'walk_to_wo':
-                return "This is a choropleth map of the United States showing the percentage of people who walk to work in each state. Darker shades indicate higher percentages of walking commuters.";
-            case 'transit_to':
-                return "This is a choropleth map of the United States showing the percentage of people who use public transit in each state. Darker shades indicate higher percentages of public transit usage.";
-            default: // ppl_densit
-                // return "This is a choropleth map of the United States showing population density for each state. Darker shades indicate higher population density.";
-                return "This is an interactive choropleth map of the United States showing population density, optimized for screen reader users.";
-        }
-    };
 
     // Function to get general knowledge questions based on dataset
     const getGeneralQuestions = () => {

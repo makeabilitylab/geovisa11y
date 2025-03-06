@@ -18,6 +18,18 @@ class SemanticService:
             'transit_to': {
                 'metric': 'public transit usage',
                 'unit': 'percent'
+            },
+            'pct_tot_co': {
+                'metric': 'priority population percentage',
+                'unit': 'percent'
+            },
+            'pct_no_bb_': {
+                'metric': 'percentage lacking broadband and computer access',
+                'unit': 'percent'
+            },
+            'pct_gas': {
+                'metric': 'percentage of homes with gas heating',
+                'unit': 'percent'
             }
         }
 

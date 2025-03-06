@@ -31,7 +31,7 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         query = f"""
         SELECT GEOID, state_name, 
                CASE 
-                   WHEN '{value_column}' IN ('walk_to_wo', 'transit_to')
+                   WHEN '{value_column}' IN ('walk_to_wo', 'transit_to' , 'pct_gas', 'pct_tot_co', 'pct_no_bb_')
                    THEN COALESCE({value_column}, 0) * 100  -- Multiply percentages by 100
                    ELSE COALESCE({value_column}, 0)
                END as value,
@@ -826,5 +826,3 @@ def find_outliers(lisa_results, dataset):
     except Exception as e:
         print(f"Error formatting outliers: {str(e)}")
         return None
-
-
