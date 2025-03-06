@@ -95,8 +95,10 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const fetchData = async () => {
         setIsLoading(true);
         try {
-
-            const response = await fetch(`${apiUrl}/api/geojson/${selectedDataset}`, {
+            // For Task2, use a special endpoint that returns all fuel types
+            const endpoint = isTask2Page ? 'task2_state' : selectedDataset;
+            
+            const response = await fetch(`${apiUrl}/api/geojson/${endpoint}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -112,6 +114,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             }
 
             const data = await response.json();
+            console.log('Fetched data:', data);
             setGeoData(data);
 
             if (map.current) {
@@ -120,21 +123,9 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     source.setData(data);
                     console.log('Source data updated successfully');
                 } else {
-                    console.error('Population source not found. Available sources:', 
-                        Object.keys(map.current.getStyle().sources || {}));
+                    console.error('Population source not found');
                 }
-            } else {
-                console.error('Map not initialized');
             }
-
-            // Add this after data is received
-            console.log('Data check:', {
-                sourceExists: map.current?.getSource('population') ? 'yes' : 'no',
-                layerExists: map.current?.getLayer('population-density') ? 'yes' : 'no',
-                dataFeatures: data.features?.length,
-                firstFeatureProperties: data.features?.[0]?.properties
-            });
-
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -290,8 +281,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 source: 'population',
                 paint: {
                     'line-color': '#000',
-                    'line-width': 2,
-                    'line-opacity': 0
+                    'line-width': 1,
+                    'line-opacity': isTask2Page ? 0.5 : 0 // Make borders visible by default for Task2
                 },
                 // Ensure this layer is always on top
                 maxzoom: 24
@@ -350,11 +341,9 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                             type: 'circle',
                             source: 'dot-density',
                             paint: {
-                                'circle-radius': 1,
-                                'circle-color': '#ff0000',
-                                'circle-opacity': 1.0,
-                                'circle-stroke-width': 1,
-                                'circle-stroke-color': '#ffffff'
+                                'circle-radius': 2,
+                                'circle-color': ['get', 'color'], // Use the color property from each point
+                                'circle-opacity': 0.8
                             },
                             filter: ['==', ['get', 'lisa_class'], 'HH']
                         }, 'state-borders');
@@ -369,6 +358,60 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             // Set initial layer visibility based on page type
             if (isTask2Page) {
                 map.current.setLayoutProperty('population-density', 'visibility', 'none');
+            }
+
+            // For Task2, add a transparent fill layer for better hover detection
+            if (isTask2Page) {
+                if (!map.current.getLayer('state-hover-layer')) {
+                    map.current.addLayer({
+                        id: 'state-hover-layer',
+                        type: 'fill',
+                        source: 'population',
+                        paint: {
+                            'fill-color': '#000000',
+                            'fill-opacity': 0 // Completely transparent
+                        }
+                    });
+                    
+                    // Add mousemove handler for this special hover layer
+                    map.current.on('mousemove', 'state-hover-layer', (e) => {
+                        if (e.features.length > 0) {
+                            console.log('Mousemove detected on hover layer');
+                            map.current.getCanvas().style.cursor = 'pointer';
+                            
+                            const feature = e.features[0];
+                            const stateName = feature.properties.state_name;
+                            
+                            // Debug log the feature properties
+                            console.log('Hover layer feature properties:', feature.properties);
+                            
+                            // Use the actual gas, electricity, and oil values from the feature properties
+                            const gas = feature.properties.gas || 0;
+                            const electricity = feature.properties.electricity || 0;
+                            const oil = feature.properties.oil || 0;
+                            
+                            const tooltipContent = `
+                                <div class="text-xs font-semibold">${stateName}</div>
+                                <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
+                                <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
+                                <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
+                            `;
+                            
+                            const coordinates = e.lngLat;
+                            console.log('Setting popup from hover layer:', coordinates);
+                            
+                            popup.current
+                                .setLngLat(coordinates)
+                                .setHTML(tooltipContent)
+                                .addTo(map.current);
+                        }
+                    });
+                    
+                    map.current.on('mouseleave', 'state-hover-layer', () => {
+                        map.current.getCanvas().style.cursor = '';
+                        popup.current.remove();
+                    });
+                }
             }
         } catch (error) {
             console.error('Error in initializeLayers:', error);
@@ -620,30 +663,56 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             // Add mousemove handler for states
             map.current.on('mousemove', 'population-density', (e) => {
                 if (e.features.length > 0) {
+                    console.log('Mousemove detected on population-density layer');
                     map.current.getCanvas().style.cursor = 'pointer';
                     
                     const feature = e.features[0];
-                    const value = feature.properties.value;
                     const stateName = feature.properties.state_name;
                     
-                    // Format value based on current dataset
-                    let formattedValue;
-                    if (selectedDataset === 'ppl_densit') {
-                        formattedValue = `${value.toFixed(2)} people per square mile`;
-                    } else if (selectedDataset === 'gas') {
-                        formattedValue = `${value} households with gas heating`;
+                    // Debug log the feature properties
+                    console.log('Feature properties:', feature.properties);
+                    
+                    // Format tooltip content based on dataset
+                    let tooltipContent;
+                    
+                    if (isTask2Page) {
+                        // For Task2, use the actual fuel values
+                        const gas = feature.properties.gas || 0;
+                        const electricity = feature.properties.electricity || 0;
+                        const oil = feature.properties.oil || 0;
+                        
+                        tooltipContent = `
+                            <div class="text-xs font-semibold">${stateName}</div>
+                            <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
+                            <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
+                            <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
+                        `;
                     } else {
-                        formattedValue = `${value.toFixed(2)}%`;
+                        // For other pages, show the current dataset value
+                        const value = feature.properties.value;
+                        
+                        // Format value based on current dataset
+                        let formattedValue;
+                        if (selectedDataset === 'ppl_densit') {
+                            formattedValue = `${value.toFixed(2)} people per square mile`;
+                        } else if (selectedDataset === 'gas') {
+                            formattedValue = `${value} households with gas heating`;
+                        } else {
+                            formattedValue = `${value.toFixed(2)}%`;
+                        }
+                        
+                        tooltipContent = `
+                            <div class="text-xs font-semibold">${stateName}</div>
+                            <div class="text-xs">${formattedValue}</div>
+                        `;
                     }
 
                     const coordinates = e.lngLat;
+                    console.log('Setting popup at coordinates:', coordinates);
 
                     popup.current
                         .setLngLat(coordinates)
-                        .setHTML(`
-                            <div class="text-xs font-semibold">${stateName}</div>
-                            <div class="text-xs">${formattedValue}</div>
-                        `)
+                        .setHTML(tooltipContent)
                         .addTo(map.current);
                 }
             });
@@ -695,7 +764,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 popup.current.remove();
             });
         }
-    }, [selectedDataset, layersInitialized, showingCounties]);
+    }, [selectedDataset, layersInitialized, showingCounties, isTask2Page]);
 
     const removeLisaLayer = () => {
         if (lisaLayer) {
@@ -1510,9 +1579,16 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 console.log("Dot density layer already exists");
             }
             
-            // Hide the choropleth layer for task2
+            // Hide the choropleth layer for task2 but keep state borders visible
             if (map.current.getLayer('population-density')) {
                 map.current.setLayoutProperty('population-density', 'visibility', 'none');
+            }
+            
+            // Make sure state borders are visible
+            if (map.current.getLayer('state-borders')) {
+                map.current.setPaintProperty('state-borders', 'line-opacity', 0.5);
+                map.current.setPaintProperty('state-borders', 'line-width', 1);
+                map.current.setPaintProperty('state-borders', 'line-color', '#000');
             }
         }
     }, [isTask2Page, dotDensityData, layersInitialized]);
@@ -1527,6 +1603,10 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             // Show dot density layer
             if (map.current.getLayer('dot-density-layer')) {
                 map.current.setLayoutProperty('dot-density-layer', 'visibility', 'visible');
+            }
+            // Make sure state borders are visible
+            if (map.current.getLayer('state-borders')) {
+                map.current.setPaintProperty('state-borders', 'line-opacity', 0.5);
             }
         } else {
             // Show choropleth layer
@@ -1561,6 +1641,63 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     useEffect(() => {
         setSelectedDataset(dataset);
     }, [dataset]);
+
+    // Add mousemove handler for state borders (especially for Task2)
+    useEffect(() => {
+        if (map.current && layersInitialized) {
+            map.current.on('mousemove', 'state-borders', (e) => {
+            if (e.features.length > 0) {
+                console.log('Mousemove detected on state-borders layer');
+                map.current.getCanvas().style.cursor = 'pointer';
+                
+                const feature = e.features[0];
+                const stateName = feature.properties.state_name;
+                
+                // Debug log the feature properties
+                console.log('State border feature properties:', feature.properties);
+                
+                // Format tooltip content based on dataset
+                let tooltipContent;
+                
+                if (isTask2Page) {
+                    // For Task2, use the actual fuel values
+                    const gas = feature.properties.gas || 0;
+                    const electricity = feature.properties.electricity || 0;
+                    const oil = feature.properties.oil || 0;
+                    
+                    tooltipContent = `
+                        <div class="text-xs font-semibold">${stateName}</div>
+                        <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
+                        <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
+                        <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
+                    `;
+                } else {
+                    // For other pages, show the current dataset value
+                    const value = feature.properties.value;
+                    
+                    tooltipContent = `
+                        <div class="text-xs font-semibold">${stateName}</div>
+                        <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
+                    `;
+                }
+
+                const coordinates = e.lngLat;
+                console.log('Setting popup at coordinates from borders:', coordinates);
+
+                popup.current
+                    .setLngLat(coordinates)
+                    .setHTML(tooltipContent)
+                    .addTo(map.current);
+            }
+        });
+
+        // Add mouseleave handler for state borders
+        map.current.on('mouseleave', 'state-borders', () => {
+            map.current.getCanvas().style.cursor = '';
+            popup.current.remove();
+        });
+    }
+}, [selectedDataset, layersInitialized, isTask2Page]);
 
     return (
         <div className="relative h-full ">
