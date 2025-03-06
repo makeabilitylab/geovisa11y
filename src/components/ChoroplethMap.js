@@ -4,11 +4,15 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import * as turf from '@turf/turf';
 import { logMapInteraction } from '../utils/logger';
 
-const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, focusedCity, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive, onMapClick }) => {
+const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, focusedCity, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive, onMapClick, isTaskPage = false, isTask2Page = false }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
-    const [selectedDataset, setSelectedDataset] = useState('ppl_densit');
+    const [selectedDataset, setSelectedDataset] = useState(
+        isTask2Page ? 'pct_gas' : 
+        isTaskPage ? 'pct_tot_co' : 
+        'ppl_densit'
+    );
     const [geoData, setGeoData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [lisaLayer, setLisaLayer] = useState(null);
@@ -22,24 +26,38 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const [currentFocusedCounty, setCurrentFocusedCounty] = useState(null);
     const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
 
-    const datasets = {
-        ppl_densit: {
+    const datasets = isTask2Page ? {
+        'pct_gas': {
+            name: 'Gas Heating Usage',
+            breaks: [0, 10, 20, 30, 40, 50],
+            colors: ['#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c']
+        }
+    } : isTaskPage ? {
+        'pct_tot_co': {
+            name: 'Priority Population',
+            breaks: [0, 10, 20, 30, 40, 50],
+            colors: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5']
+        },
+        'pct_no_bb_': {
+            name: 'Lacking Broadband Access',
+            breaks: [0, 10, 20, 30, 40, 50],
+            colors: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45']
+        }
+    } : {
+        'ppl_densit': {
             name: 'Population Density',
-            unit: 'people per square mile',
-            breaks: [0, 100, 1000, 8000, 12000],
-            colors: ['#F2F12D', '#E6B71E', '#CA8323', '#8B4225', '#723122']
+            breaks: [10, 50, 100, 200, 500, 1000],
+            colors: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5']
         },
-        walk_to_wo: {
+        'walk_to_wo': {
             name: 'Walking to Work',
-            unit: 'percent',
-            breaks: [0, 1, 2.5, 5, 10],
-            colors: ['#edf8fb', '#b2e2e2', '#66c2a4', '#2ca25f', '#006d2c']
+            breaks: [1, 2, 3, 4, 5, 6],
+            colors: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45']
         },
-        transit_to: {
+        'transit_to': {
             name: 'Public Transit to Work',
-            unit: 'percent',
-            breaks: [0, 1, 2.5, 5, 10],
-            colors: ['#f1eef6', '#bdc9e1', '#74a9cf', '#2b8cbe', '#045a8d']
+            breaks: [1, 2, 3, 4, 5, 6],
+            colors: ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d']
         }
     };
 
@@ -54,22 +72,20 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         });
     }, [apiUrl]);
 
-    const fetchGeoJSON = async () => {
+    const fetchData = async () => {
         setIsLoading(true);
         try {
-            const url = `${apiUrl}/api/geojson/${selectedDataset}`;
-            console.log('Fetch attempt:', {
-                url,
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Origin': window.location.origin
-                },
-                credentials: 'include',
-                mode: 'cors'
-            });
+            // Determine the endpoint based on which page we're on
+            let endpoint;
+            if (isTask2Page) {
+                endpoint = 'task2_state';
+            } else if (isTaskPage) {
+                endpoint = 'task1_state';
+            } else {
+                endpoint = selectedDataset;
+            }
             
-            const response = await fetch(url, {
+            const response = await fetch(`${apiUrl}/api/geojson/${endpoint}?dataset=${selectedDataset}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -81,23 +97,10 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             });
 
             if (!response.ok) {
-                const text = await response.text();
-                console.error('Error response:', text);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('GeoJSON data received:', {
-                type: data.type,
-                featureCount: data.features?.length,
-                firstFeature: data.features?.[0],
-                properties: data.features?.[0]?.properties
-            });
-
-            if (!data.features || data.features.length === 0) {
-                throw new Error('No features in GeoJSON response');
-            }
-
             setGeoData(data);
 
             if (map.current) {
@@ -122,12 +125,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             });
 
         } catch (error) {
-            console.error('Fetch error details:', {
-                error: error.message,
-                type: error.name,
-                url: `${apiUrl}/api/geojson/${selectedDataset}`,
-                stack: error.stack
-            });
+            console.error('Error fetching data:', error);
         } finally {
             setIsLoading(false);
         }
@@ -316,7 +314,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             });
 
             // Fetch initial data
-            fetchGeoJSON();
+            fetchData();
         } catch (error) {
             console.error('Error in initializeLayers:', error);
         }
@@ -366,7 +364,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     // Update data when dataset changes
     useEffect(() => {
         if (map.current && map.current.loaded()) {
-            fetchGeoJSON();
+            fetchData();
         }
     }, [selectedDataset]);
 
@@ -575,7 +573,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     
                     // Format value based on current dataset
                     let formattedValue;
-                    if (dataset === 'ppl_densit') {
+                    if (selectedDataset === 'ppl_densit') {
                         formattedValue = `${value.toFixed(2)} people per square mile`;
                     } else {
                         formattedValue = `${value.toFixed(2)}%`;
@@ -606,7 +604,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         
                         // Format value based on current dataset
                         let formattedValue;
-                        if (dataset === 'ppl_densit') {
+                        if (selectedDataset === 'ppl_densit') {
                             formattedValue = `${value.toFixed(2)} people per square mile`;
                         } else {
                             formattedValue = `${value.toFixed(2)}%`;
@@ -638,7 +636,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 popup.current.remove();
             });
         }
-    }, [dataset, layersInitialized, showingCounties]);
+    }, [selectedDataset, layersInitialized, showingCounties]);
 
     const removeLisaLayer = () => {
         if (lisaLayer) {
@@ -1369,6 +1367,17 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         // Rest of your existing code...
     };
 
+    // Also add a useEffect to update selectedDataset when any of the page type props change
+    useEffect(() => {
+        if (isTask2Page) {
+            setSelectedDataset('pct_gas');
+        } else if (isTaskPage) {
+            setSelectedDataset('pct_tot_co');
+        } else {
+            setSelectedDataset(dataset || 'ppl_densit');
+        }
+    }, [isTask2Page, isTaskPage, dataset]);
+
     return (
         <div className="relative h-full ">
             <div 
@@ -1453,14 +1462,24 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         }}
                         className="block w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                        <option value="ppl_densit">Population Density</option>
-                        <option value="walk_to_wo">Walking to Work</option>
-                        <option value="transit_to">Public Transit to Work</option>
+                        {isTask2Page ? (
+                            <option value="pct_gas">Gas Heating Usage</option>
+                        ) : isTaskPage ? (
+                            <>
+                                <option value="pct_tot_co">Priority Population</option>
+                                <option value="pct_no_bb_">Lacking Broadband Access</option>
+                            </>
+                        ) : (
+                            <>
+                                <option value="ppl_densit">Population Density</option>
+                                <option value="walk_to_wo">Walking to Work</option>
+                                <option value="transit_to">Public Transit to Work</option>
+                            </>
+                        )}
                     </select>
                 </div>
 
                 {/* Legend */}
-                {/* <h3 className="text-sm font-bold mb-2">{datasets[selectedDataset].name}</h3> */}
                 <div className="flex flex-col gap-1">
                     {datasets[selectedDataset].breaks.map((value, i) => (
                         <div key={i} className="flex items-center">
