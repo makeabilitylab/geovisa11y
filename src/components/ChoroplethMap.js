@@ -3,13 +3,14 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import * as turf from '@turf/turf';
 import { logMapInteraction } from '../utils/logger';
+import { generateDotDensityForFeatureCollection, generateMultiAttributeDotDensity } from '../utils/DotDensityGenerator';
 
 const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, focusedCity, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive, onMapClick, isTaskPage = false, isTask2Page = false }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
     const [selectedDataset, setSelectedDataset] = useState(
-        isTask2Page ? 'pct_gas' : 
+        isTask2Page ? 'gas' : 
         isTaskPage ? 'pct_tot_co' : 
         'ppl_densit'
     );
@@ -25,11 +26,12 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const [countyData, setCountyData] = useState(null);
     const [currentFocusedCounty, setCurrentFocusedCounty] = useState(null);
     const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
+    const [dotDensityData, setDotDensityData] = useState(null);
 
     const datasets = isTask2Page ? {
-        'pct_gas': {
+        'gas': {
             name: 'Gas Heating Usage',
-            breaks: [0, 10, 20, 30, 40, 50],
+            breaks: [0, 1000, 2000, 3000, 4000, 5000],
             colors: ['#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c']
         }
     } : isTaskPage ? {
@@ -58,6 +60,24 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             name: 'Public Transit to Work',
             breaks: [1, 2, 3, 4, 5, 6],
             colors: ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d']
+        }
+    };
+
+    const fuelTypes = {
+        gas: {
+            name: 'Gas Heating',
+            color: '#ff0000', // Red
+            dotValue: 100000
+        },
+        electricity: {
+            name: 'Electric Heating',
+            color: '#0000ff', // Blue
+            dotValue: 100000
+        },
+        oil: {
+            name: 'Oil Heating',
+            color: '#00aa00', // Green
+            dotValue: 100000
         }
     };
 
@@ -315,6 +335,55 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
             // Fetch initial data
             fetchData();
+
+            // Add this after adding the population source
+            if (isTask2Page && dotDensityData) {
+                map.current.addSource('dot-density', {
+                    type: 'geojson',
+                    data: dotDensityData
+                });
+                
+                if (map.current && map.current.loaded()) {
+                    console.log("Map is loaded, checking if dot density source exists");
+                    if (!map.current.getSource('dot-density')) {
+                        console.log("Adding dot density source");
+                        map.current.addSource('dot-density', {
+                            type: 'geojson',
+                            data: dotDensityData
+                        });
+                    } else {
+                        console.log("Updating existing dot density source");
+                        map.current.getSource('dot-density').setData(dotDensityData);
+                    }
+                    
+                    if (!map.current.getLayer('dot-density-layer')) {
+                        console.log("Adding dot density layer");
+                        map.current.addLayer({
+                            id: 'dot-density-layer',
+                            type: 'circle',
+                            source: 'dot-density',
+                            paint: {
+                                'circle-radius': 1,
+                                'circle-color': '#ff0000',
+                                'circle-opacity': 1.0,
+                                'circle-stroke-width': 1,
+                                'circle-stroke-color': '#ffffff'
+                            },
+                            filter: ['==', ['get', 'lisa_class'], 'HH']
+                        }, 'state-borders');
+                        console.log("Dot density layer added");
+                    } else {
+                        console.log("Dot density layer already exists");
+                    }
+                } else {
+                    console.log("Map not fully loaded yet, waiting...");
+                }
+            }
+
+            // Set initial layer visibility based on page type
+            if (isTask2Page) {
+                map.current.setLayoutProperty('population-density', 'visibility', 'none');
+            }
         } catch (error) {
             console.error('Error in initializeLayers:', error);
         }
@@ -575,6 +644,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     let formattedValue;
                     if (selectedDataset === 'ppl_densit') {
                         formattedValue = `${value.toFixed(2)} people per square mile`;
+                    } else if (selectedDataset === 'gas') {
+                        formattedValue = `${value} households with gas heating`;
                     } else {
                         formattedValue = `${value.toFixed(2)}%`;
                     }
@@ -606,6 +677,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         let formattedValue;
                         if (selectedDataset === 'ppl_densit') {
                             formattedValue = `${value.toFixed(2)} people per square mile`;
+                        } else if (selectedDataset === 'gas') {
+                            formattedValue = `${value} households with gas heating`;
                         } else {
                             formattedValue = `${value.toFixed(2)}%`;
                         }
@@ -1370,13 +1443,107 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     // Also add a useEffect to update selectedDataset when any of the page type props change
     useEffect(() => {
         if (isTask2Page) {
-            setSelectedDataset('pct_gas');
+            setSelectedDataset('gas');
         } else if (isTaskPage) {
             setSelectedDataset('pct_tot_co');
         } else {
             setSelectedDataset(dataset || 'ppl_densit');
         }
     }, [isTask2Page, isTaskPage, dataset]);
+
+    // Update the useEffect that generates dot density data
+    useEffect(() => {
+        if (isTask2Page && geoData && geoData.features && geoData.features.length > 0) {
+            console.log("Generating multi-attribute dot density data from", geoData.features.length, "features");
+            
+            const dotData = generateMultiAttributeDotDensity(geoData, fuelTypes);
+            console.log("Generated dot density data with", dotData.features.length, "points");
+            setDotDensityData(dotData);
+        }
+    }, [isTask2Page, geoData]);
+
+    // Update the useEffect that adds the dot density layer
+    useEffect(() => {
+        // Only proceed if we have both the map initialized and dot data
+        if (isTask2Page && dotDensityData && map.current && layersInitialized) {
+            console.log("Map is initialized and dot data is ready, adding dot density layers");
+            
+            // Check if source already exists
+            if (!map.current.getSource('dot-density')) {
+                console.log("Adding dot density source");
+                map.current.addSource('dot-density', {
+                    type: 'geojson',
+                    data: dotDensityData
+                });
+            } else {
+                console.log("Updating existing dot density source");
+                map.current.getSource('dot-density').setData(dotDensityData);
+            }
+            
+            // Add layer if it doesn't exist - using data-driven styling for colors
+            if (!map.current.getLayer('dot-density-layer')) {
+                console.log("Adding dot density layer");
+                map.current.addLayer({
+                    id: 'dot-density-layer',
+                    type: 'circle',
+                    source: 'dot-density',
+                    paint: {
+                        'circle-radius': 2,
+                        'circle-color': ['get', 'color'], // Use the color property from each point
+                        'circle-opacity': 0.8
+                    }
+                }, 'state-borders'); // Make sure it's above other layers
+                console.log("Dot density layer added");
+            } else {
+                console.log("Dot density layer already exists");
+            }
+            
+            // Hide the choropleth layer for task2
+            if (map.current.getLayer('population-density')) {
+                map.current.setLayoutProperty('population-density', 'visibility', 'none');
+            }
+        }
+    }, [isTask2Page, dotDensityData, layersInitialized]);
+
+    // Add a function to toggle between choropleth and dot density views
+    const toggleDotDensity = (show) => {
+        if (!map.current) return;
+        
+        if (show) {
+            // Hide choropleth layer
+            map.current.setLayoutProperty('population-density', 'visibility', 'none');
+            // Show dot density layer
+            if (map.current.getLayer('dot-density-layer')) {
+                map.current.setLayoutProperty('dot-density-layer', 'visibility', 'visible');
+            }
+        } else {
+            // Show choropleth layer
+            map.current.setLayoutProperty('population-density', 'visibility', 'visible');
+            // Hide dot density layer
+            if (map.current.getLayer('dot-density-layer')) {
+                map.current.setLayoutProperty('dot-density-layer', 'visibility', 'none');
+            }
+        }
+    };
+
+    // Add a useEffect to automatically show dot density for task2
+    useEffect(() => {
+        if (map.current && map.current.loaded()) {
+            toggleDotDensity(isTask2Page);
+        }
+    }, [isTask2Page, layersInitialized]);
+
+    // Add a cleanup effect to remove the dot density layer when component unmounts
+    useEffect(() => {
+        return () => {
+            if (map.current && map.current.getLayer('dot-density-layer')) {
+                map.current.removeLayer('dot-density-layer');
+                if (map.current.getSource('dot-density')) {
+                    map.current.removeSource('dot-density');
+                }
+            }
+        };
+    }, []);
 
     return (
         <div className="relative h-full ">
@@ -1452,48 +1619,71 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             <div className="absolute top-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90" 
                 tabIndex="-1">
                 {/* Dataset Selector */}
-                <div className="mb-4">
-                    <h3 className="text-sm font-bold mb-2">Dataset</h3>
-                    <select
-                        value={selectedDataset}
-                        onChange={(e) => {
-                            setSelectedDataset(e.target.value);
-                            onDatasetChange(e.target.value);
-                        }}
-                        className="block w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {isTask2Page ? (
-                            <option value="pct_gas">Gas Heating Usage</option>
-                        ) : isTaskPage ? (
-                            <>
-                                <option value="pct_tot_co">Priority Population</option>
-                                <option value="pct_no_bb_">Lacking Broadband Access</option>
-                            </>
-                        ) : (
-                            <>
-                                <option value="ppl_densit">Population Density</option>
-                                <option value="walk_to_wo">Walking to Work</option>
-                                <option value="transit_to">Public Transit to Work</option>
-                            </>
-                        )}
-                    </select>
-                </div>
-
-                {/* Legend */}
-                <div className="flex flex-col gap-1">
-                    {datasets[selectedDataset].breaks.map((value, i) => (
-                        <div key={i} className="flex items-center">
-                            <div 
-                                className="w-4 h-4 mr-2" 
-                                style={{ backgroundColor: datasets[selectedDataset].colors[i] }}
-                            />
-                            <span className="text-xs">
-                                {value}{i === datasets[selectedDataset].breaks.length - 1 ? '+' : ''}
-                                {selectedDataset === 'ppl_densit' ? '' : '%'}
-                            </span>
+                {!isTask2Page && (
+                    <div className="mb-4">
+                        <h3 className="text-sm font-bold mb-2">Dataset</h3>
+                        <select
+                            value={selectedDataset}
+                            onChange={(e) => {
+                                setSelectedDataset(e.target.value);
+                                onDatasetChange(e.target.value);
+                            }}
+                            className="block w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            {isTaskPage ? (
+                                <>
+                                    <option value="pct_tot_co">Priority Population</option>
+                                    <option value="pct_no_bb_">Lacking Broadband Access</option>
+                                </>
+                            ) : (
+                                <>
+                                    <option value="ppl_densit">Population Density</option>
+                                    <option value="walk_to_wo">Walking to Work</option>
+                                    <option value="transit_to">Public Transit to Work</option>
+                                </>
+                            )}
+                        </select>
+                    </div>
+                )}
+                
+                {/* Legend - Show choropleth legend only for non-task2 pages */}
+                {!isTask2Page && (
+                    <div className="flex flex-col gap-1">
+                        {datasets[selectedDataset].breaks.map((value, i) => (
+                            <div key={i} className="flex items-center">
+                                <div 
+                                    className="w-4 h-4 mr-2" 
+                                    style={{ backgroundColor: datasets[selectedDataset].colors[i] }}
+                                />
+                                <span className="text-xs">
+                                    {value}{i === datasets[selectedDataset].breaks.length - 1 ? '+' : ''}
+                                    {selectedDataset === 'ppl_densit' || selectedDataset === 'gas' ? '' : '%'}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                
+                {/* Dot Density Legend - Show only for task2 */}
+                {isTask2Page && (
+                    <div className="mt-2">
+                        <h3 className="text-sm font-bold mb-2">Heating Fuel Types</h3>
+                        <div className="flex flex-col gap-2">
+                            <div className="flex items-center">
+                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#ff0000' }}></div>
+                                <span className="text-xs">Gas (1 dot = 100,000 households)</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#0000ff' }}></div>
+                                <span className="text-xs">Electricity (1 dot = 100,000 households)</span>
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#00aa00' }}></div>
+                                <span className="text-xs">Oil (1 dot = 100,000 households)</span>
+                            </div>
                         </div>
-                    ))}
-                </div>
+                    </div>
+                )}
             </div>
 
             {/* LISA Clusters Legend with close button */}
