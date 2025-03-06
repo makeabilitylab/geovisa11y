@@ -79,10 +79,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         if (isTask2Page) {
             // Task2-specific questions
             return [
-                `What percentage of homes use gas heating in ${state1}?`,
-                `Which state has a higher percentage of gas heating, ${state2} or ${state3}?`,
-                `Which state has the ${extrema} percentage of gas heating?`,
-                "What's the average percentage of homes with gas heating?",
+                `How many households use gas heating in ${state1}?`,
+                // `Which state has more households using gas heating, ${state2} or ${state3}?`,
+                `Which state has the ${extrema} number of households using gas heating?`,
+                // "What's the average number of households using gas heating?",
                 "Is there a pattern in this map?",
                 "Can you describe the pattern?"
             ];
@@ -90,21 +90,21 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             // Task1-specific questions
             if (dataset === 'pct_tot_co') {
                 return [
-                    `What percentage of priority population is in ${state1}?`,
-                    `Which state has a higher percentage of priority population, ${state2} or ${state3}?`,
+                    `What's the percentage of priority population in ${state1}?`,
+                    // `Which state has a higher percentage of priority population, ${state2} or ${state3}?`,
                     `Which state has the ${extrema} percentage of priority population?`,
-                    "What's the average percentage of priority population?",
+                    // "What's the average percentage of priority population?",
                     "Is there a pattern in this map?",
                     "Can you describe the pattern?"
                 ];
             } else { // pct_no_bb_
                 return [
-                    `What percentage of people lack broadband access in ${state1}?`,
-                    `Which state has a higher percentage lacking broadband, ${state2} or ${state3}?`,
-                    `Which state has the ${extrema} percentage lacking broadband access?`,
-                    "What's the average percentage of people lacking broadband?",
+                    `What percentage of people lack broadband or computer access in ${state1}?`,
+                    // `Which state has a higher percentage lacking broadband or computer access, ${state2} or ${state3}?`,
+                    `Which state has the ${extrema} percentage of peoplelacking broadband or computer access?`,
+                    // "What's the average percentage of people lacking broadband or computer access?",
                     "Is there a pattern in this map?",
-                    "Can you describe the pattern?"
+                    // "Can you describe the pattern?"
                 ];
             }
         } else {
