@@ -37,13 +37,13 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     } : isTaskPage ? {
         'pct_tot_co': {
             name: 'Priority Population',
-            breaks: [0, 10, 20, 30, 40, 50],
-            colors: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5']
+            breaks: [75, 80, 85, 90, 95],
+            colors: ['#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5']
         },
         'pct_no_bb_': {
             name: 'Lacking Broadband Access',
-            breaks: [0, 10, 20, 30, 40, 50],
-            colors: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45']
+            breaks: [5, 7.5, 10, 12.5, 15,],
+            colors: ['#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45']
         }
     } : {
         'ppl_densit': {

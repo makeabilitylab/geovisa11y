@@ -555,44 +555,6 @@ def get_task1_geojson():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@api.route('/check-task1-table', methods=['GET'])
-def check_task1_table():
-    """Check if task1_state table exists and return its structure"""
-    try:
-        # Check if table exists
-        tables_query = "SELECT table_name FROM information_schema.tables"
-        tables = [row[0] for row in db.execute(tables_query).fetchall()]
-        
-        if 'task1_state' not in tables:
-            return jsonify({
-                'status': 'error',
-                'message': f"Table 'task1_state' does not exist in the database. Available tables: {', '.join(tables)}"
-            }), 404
-            
-        # Get columns
-        columns_query = "SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'task1_state'"
-        columns = [{'name': row[0], 'type': row[1]} for row in db.execute(columns_query).fetchall()]
-        
-        # Get row count
-        count_query = "SELECT COUNT(*) FROM task1_state"
-        row_count = db.execute(count_query).fetchone()[0]
-        
-        return jsonify({
-            'status': 'success',
-            'table_exists': True,
-            'columns': columns,
-            'row_count': row_count
-        })
-        
-    except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        return jsonify({
-            'status': 'error',
-            'message': str(e),
-            'traceback': error_details
-        }), 500
-
 @api.route('/geojson/task2_state', methods=['GET', 'OPTIONS'])
 def get_task2_geojson():
     """Get GeoJSON data for the task2 dataset with multiple fuel types"""
