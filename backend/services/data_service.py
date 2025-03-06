@@ -74,6 +74,21 @@ def get_metric_info(dataset):
         'is_percentage': False
     })
 
+# Convert the string representation of neighbors array to actual array
+def parse_neighbors(neighbors_str):
+    if pd.isna(neighbors_str) or neighbors_str is None:
+        return [None, None, None, None]
+    try:
+        # Remove brackets and split by comma
+        neighbors = neighbors_str.strip('[]').split(',')
+         # Clean up each value and replace empty or 'none' with None
+        neighbors = [s.strip().strip("'\"") for s in neighbors]
+        neighbors = [s if s and s.lower() != 'none' else None for s in neighbors]
+        return neighbors
+    except:
+        return [None, None, None, None]
+
+
 def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=None):
     try:
         # Add state filter to query if provided
@@ -125,21 +140,6 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         gdf['c_lat'] = query_result['c_lat']
         if 'county_name' in query_result.columns:
             gdf['county_name'] = query_result['county_name']
-        
-        # Convert the string representation of neighbors array to actual array
-        def parse_neighbors(neighbors_str):
-            if pd.isna(neighbors_str) or neighbors_str is None:
-                return [None, None, None, None]
-            try:
-                # Remove brackets and split by comma
-                neighbors = neighbors_str.strip('[]').split(',')
-                # Clean up each value and replace empty or 'none' with None
-                neighbors = [s.strip().strip("'\"") for s in neighbors]
-                neighbors = [s if s and s.lower() != 'none' else None for s in neighbors]
-                return neighbors
-
-            except:
-                return [None, None, None, None]
 
         # Parse the neighbors column
         gdf['neighbors_'] = gdf['neighbors_'].apply(parse_neighbors)
@@ -189,20 +189,6 @@ def fetch_fuel_data(table_name, accuracy):
         # Centroid coordinates
         gdf['c_lon'] = query_result['c_lon']
         gdf['c_lat'] = query_result['c_lat']
-        
-        # Convert the string representation of neighbors array to actual array
-        def parse_neighbors(neighbors_str):
-            if pd.isna(neighbors_str) or neighbors_str is None:
-                return []
-            try:
-                # Remove brackets and split by comma
-                neighbors = neighbors_str.strip('[]').split(',')
-                # Clean up each value and replace empty or 'none' with None
-                neighbors = [s.strip().strip("'\"") for s in neighbors]
-                neighbors = [s for s in neighbors if s and s.lower() != 'none']
-                return neighbors
-            except:
-                return []
         
         # Parse the neighbors column
         gdf['neighbors_'] = gdf['neighbors_'].apply(parse_neighbors)
