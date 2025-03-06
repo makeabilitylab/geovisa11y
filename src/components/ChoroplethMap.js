@@ -95,17 +95,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            // Determine the endpoint based on which page we're on
-            let endpoint;
-            if (isTask2Page) {
-                endpoint = 'task2_state';
-            } else if (isTaskPage) {
-                endpoint = 'task1_state';
-            } else {
-                endpoint = selectedDataset;
-            }
-            
-            const response = await fetch(`${apiUrl}/api/geojson/${endpoint}?dataset=${selectedDataset}`, {
+
+            const response = await fetch(`${apiUrl}/api/geojson/${selectedDataset}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -344,20 +335,16 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 });
                 
                 if (map.current && map.current.loaded()) {
-                    console.log("Map is loaded, checking if dot density source exists");
                     if (!map.current.getSource('dot-density')) {
-                        console.log("Adding dot density source");
                         map.current.addSource('dot-density', {
                             type: 'geojson',
                             data: dotDensityData
                         });
                     } else {
-                        console.log("Updating existing dot density source");
                         map.current.getSource('dot-density').setData(dotDensityData);
                     }
                     
                     if (!map.current.getLayer('dot-density-layer')) {
-                        console.log("Adding dot density layer");
                         map.current.addLayer({
                             id: 'dot-density-layer',
                             type: 'circle',
@@ -371,7 +358,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                             },
                             filter: ['==', ['get', 'lisa_class'], 'HH']
                         }, 'state-borders');
-                        console.log("Dot density layer added");
                     } else {
                         console.log("Dot density layer already exists");
                     }
@@ -1455,12 +1441,36 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     useEffect(() => {
         if (isTask2Page && geoData && geoData.features && geoData.features.length > 0) {
             console.log("Generating multi-attribute dot density data from", geoData.features.length, "features");
+            console.log("Sample feature properties:", geoData.features[0].properties);
+            
+            // Check if the fuel type properties exist
+            const hasGas = geoData.features.some(f => f.properties.gas !== undefined && f.properties.gas > 0);
+            const hasElectricity = geoData.features.some(f => f.properties.electricity !== undefined && f.properties.electricity > 0);
+            const hasOil = geoData.features.some(f => f.properties.oil !== undefined && f.properties.oil > 0);
+            
+            console.log("Property check:", { hasGas, hasElectricity, hasOil });
+            
+            // If we don't have the properties, try to fetch them again
+            if (!hasGas && !hasElectricity && !hasOil) {
+                console.log("Fuel properties missing, fetching data again...");
+                fetch(`${apiUrl}/api/geojson/task2_state`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Fetched task2 data directly:", data);
+                        if (data.features && data.features.length > 0) {
+                            console.log("Sample feature properties from direct fetch:", data.features[0].properties);
+                            setGeoData(data);
+                        }
+                    })
+                    .catch(error => console.error("Error fetching task2 data:", error));
+                return;
+            }
             
             const dotData = generateMultiAttributeDotDensity(geoData, fuelTypes);
             console.log("Generated dot density data with", dotData.features.length, "points");
             setDotDensityData(dotData);
         }
-    }, [isTask2Page, geoData]);
+    }, [isTask2Page, geoData, apiUrl]);
 
     // Update the useEffect that adds the dot density layer
     useEffect(() => {

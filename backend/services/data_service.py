@@ -43,12 +43,8 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         FROM {table_name}
         {where_clause}
         """
-        # print(f"Executing query: {query}")  # Debug log
         
         query_result = con.execute(query).fetchdf()
-        # print(f"Query result shape: {query_result.shape}")  # Debug log
-        # print(f"Query result columns: {query_result.columns}")  # Debug log
-        # print(f"First few rows: {query_result.head()}")  # Debug log
         
         if query_result.empty:
             raise ValueError(f"No data found for state: {state_filter}")
@@ -108,6 +104,66 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         print(f"Error in fetch_data: {str(e)}")
         print(f"Full traceback: {traceback.format_exc()}")
         raise  # Re-raise the exception to be caught by the route handler
+
+def fetch_fuel_data(table_name, accuracy):
+    """Fetch data for all fuel types (gas, electricity, oil) for the dot density map"""
+    try:
+        
+        # First, check if the columns exist
+        columns_query = f"PRAGMA table_info({table_name})"
+        columns = con.execute(columns_query).fetchdf()
+        
+        query = f"""
+        SELECT GEOID, state_name, 
+               COALESCE(gas, 0) as gas,
+               COALESCE(electricit, 0) as electricity,
+               COALESCE(oil, 0) as oil,
+               ST_X(ST_Centroid(geom)) as c_lon,
+               ST_Y(ST_Centroid(geom)) as c_lat,
+               ST_AsText(ST_Simplify(geom, {accuracy})) AS geom_wkt,
+               neighbors_
+        FROM {table_name}
+        """
+        
+        query_result = con.execute(query).fetchdf()
+        
+        if query_result.empty:
+            raise ValueError(f"No data found in {table_name}")
+            
+        gdf = gpd.GeoDataFrame(query_result, geometry=gpd.GeoSeries.from_wkt(query_result['geom_wkt']))
+        
+        # Centroid coordinates
+        gdf['c_lon'] = query_result['c_lon']
+        gdf['c_lat'] = query_result['c_lat']
+        
+        # Convert the string representation of neighbors array to actual array
+        def parse_neighbors(neighbors_str):
+            if pd.isna(neighbors_str) or neighbors_str is None:
+                return []
+            try:
+                # Remove brackets and split by comma
+                neighbors = neighbors_str.strip('[]').split(',')
+                # Clean up each value and replace empty or 'none' with None
+                neighbors = [s.strip().strip("'\"") for s in neighbors]
+                neighbors = [s for s in neighbors if s and s.lower() != 'none']
+                return neighbors
+            except:
+                return []
+        
+        # Parse the neighbors column
+        gdf['neighbors_'] = gdf['neighbors_'].apply(parse_neighbors)
+        
+        gdf.drop(columns=['geom_wkt'], inplace=True)
+        geojson_data = json.loads(gdf.to_json())
+        
+        # Return the GeoJSON as a proper Flask response
+        return jsonify(geojson_data)
+    
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error fetching fuel data: {str(e)}\n{error_details}")
+        raise e
 
 def execute_query(query):
     """Execute a DuckDB query and return results as a list of dictionaries"""
@@ -827,56 +883,3 @@ def find_outliers(lisa_results, dataset):
         print(f"Error formatting outliers: {str(e)}")
         return None
 
-def fetch_fuel_data(table_name, accuracy):
-    """Fetch data for all fuel types (gas, electricity, oil) for the dot density map"""
-    try:
-        query = f"""
-        SELECT GEOID, state_name, 
-               COALESCE(gas, 0) as gas,
-               COALESCE(electricit, 0) as electricity,
-               COALESCE(oil, 0) as oil,
-               ST_X(ST_Centroid(geom)) as c_lon,
-               ST_Y(ST_Centroid(geom)) as c_lat,
-               ST_AsText(ST_Simplify(geom, {accuracy})) AS geom_wkt,
-               neighbors_
-        FROM {table_name}
-        """
-        
-        query_result = con.execute(query).fetchdf()
-        
-        if query_result.empty:
-            raise ValueError(f"No data found in {table_name}")
-            
-        gdf = gpd.GeoDataFrame(query_result, geometry=gpd.GeoSeries.from_wkt(query_result['geom_wkt']))
-        
-        # Centroid coordinates
-        gdf['c_lon'] = query_result['c_lon']
-        gdf['c_lat'] = query_result['c_lat']
-        
-        # Convert the string representation of neighbors array to actual array
-        def parse_neighbors(neighbors_str):
-            if pd.isna(neighbors_str) or neighbors_str is None:
-                return []
-            try:
-                # Remove brackets and split by comma
-                neighbors = neighbors_str.strip('[]').split(',')
-                # Clean up each value and replace empty or 'none' with None
-                neighbors = [s.strip().strip("'\"") for s in neighbors]
-                neighbors = [s for s in neighbors if s and s.lower() != 'none']
-                return neighbors
-            except:
-                return []
-        
-        # Parse the neighbors column
-        gdf['neighbors_'] = gdf['neighbors_'].apply(parse_neighbors)
-        
-        gdf.drop(columns=['geom_wkt'], inplace=True)
-        geojson_data = json.loads(gdf.to_json())
-        
-        return geojson_data
-        
-    except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"Error fetching fuel data: {str(e)}\n{error_details}")
-        raise e

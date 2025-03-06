@@ -75,7 +75,11 @@ def get_geojson(dataset):
         
     try:
         accuracy = request.args.get("accuracy", default=0.01, type=float)
-        return fetch_data('state', accuracy, dataset)
+        value_column = request.args.get("dataset", default=dataset)
+        state_filter = request.args.get("state", default=None)
+        
+        # Always use the 'state' table for state-level data
+        return fetch_data('state', accuracy, value_column, state_filter)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -535,9 +539,10 @@ def check_ambiguity():
         print(f"Error checking ambiguity: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@api.route('/geojson/task1_state', methods=['GET', 'OPTIONS'])
-def get_task1_geojson():
-    """Get GeoJSON data for the task1 dataset"""
+
+@api.route('/geojson/county', methods=['GET', 'OPTIONS'])
+def get_county_geojson():
+    """Get GeoJSON data for counties"""
     if request.method == 'OPTIONS':
         # Explicitly return response for OPTIONS request
         response = make_response()
@@ -548,10 +553,11 @@ def get_task1_geojson():
         
     try:
         accuracy = request.args.get("accuracy", default=0.01, type=float)
-        dataset = request.args.get("dataset", default="pct_tot_co")
+        value_column = request.args.get("dataset", default="ppl_densit")
+        state_filter = request.args.get("state", default=None)
         
-        # Use the existing fetch_data function with task1_state table
-        return fetch_data('task1_state', accuracy, dataset)
+        # Use the consolidated 'county' table
+        return fetch_data('county', accuracy, value_column, state_filter)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -569,7 +575,7 @@ def get_task2_geojson():
     try:
         accuracy = request.args.get("accuracy", default=0.01, type=float)
         
-        # We'll fetch all fuel types at once
-        return fetch_fuel_data('task2_state', accuracy)
+        # Use the state table instead of task2_state
+        return fetch_fuel_data('state', accuracy)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
