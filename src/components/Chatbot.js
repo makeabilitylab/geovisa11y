@@ -29,6 +29,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     const inputRef = useRef(null);
     const wrapperRef = useRef(null);
     const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
+    const [stateAnnouncement, setStateAnnouncement] = useState('');
 
     // List of US states
     const states = [
@@ -662,6 +663,59 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         setUseTextarea(input.length > 50);
     }, [input]);
 
+    // Add ref for the welcome section
+    const welcomeRef = useRef(null);
+    
+    // Add effect for Ctrl+H hotkey
+    useEffect(() => {
+        const handleHelpHotkey = (e) => {
+            // Handle Ctrl+H to focus on welcome section
+            if (e.ctrlKey && e.key.toLowerCase() === 'h') {
+                e.preventDefault();
+                
+                // Create a clone of the welcome content
+                if (welcomeRef.current) {
+                    // First, focus on the welcome section
+                    welcomeRef.current.focus();
+                    
+                    // Clone the welcome content for announcement
+                    const welcomeContent = welcomeRef.current.cloneNode(true);
+                    
+                    // Extract text content from the welcome section
+                    const textContent = welcomeRef.current.textContent;
+                    
+                    // Set the announcement with the full text content
+                    setStateAnnouncement("Help information: " + textContent);
+                    
+                    // Optional: Scroll to top of chat container
+                    if (chatContainerRef.current) {
+                        chatContainerRef.current.scrollTop = 0;
+                    }
+                    
+                    // Force the screen reader to re-read by temporarily removing and re-adding the content
+                    const parent = welcomeRef.current.parentNode;
+                    const nextSibling = welcomeRef.current.nextSibling;
+                    
+                    // Remove from DOM briefly
+                    parent.removeChild(welcomeRef.current);
+                    
+                    // Re-add to DOM after a short delay
+                    setTimeout(() => {
+                        if (nextSibling) {
+                            parent.insertBefore(welcomeRef.current, nextSibling);
+                        } else {
+                            parent.appendChild(welcomeRef.current);
+                        }
+                        welcomeRef.current.focus();
+                    }, 50);
+                }
+            }
+        };
+        
+        window.addEventListener('keydown', handleHelpHotkey);
+        return () => window.removeEventListener('keydown', handleHelpHotkey);
+    }, []);
+
     return (
         <CardBody 
             className="flex flex-col h-full p-2 overflow-y-auto max-h-screen min-w-[300px]"
@@ -671,6 +725,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         >
             <div 
                 id="welcome"  
+                ref={welcomeRef}
                 aria-live="polite" 
                 role="region"
                 tabIndex="0"
@@ -802,6 +857,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                             </span>
                             {" to hear a list of all the things I can do."}
                         </li>
+                        <li>
+                            {"Press Ctrl+H anytime to hear this information again."}
+                        </li>
                     </ul>
                 </Typography>
 
@@ -878,6 +936,16 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Live region for announcements */}
+            <div
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+                className="sr-only"
+            >
+                {stateAnnouncement}
             </div>
 
             {/* Input, Microphone, and Send Button */}
