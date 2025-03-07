@@ -50,7 +50,10 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         'ppl_densit': {
             name: 'Population Density',
             breaks: [10, 50, 100, 200, 500, 1000],
-            colors: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5']
+            // colors: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5']
+            // colors: [ '#f3e0f7','#e4c7f1','#d1afe8','#b998dd','#9f82ce','#826dba','#63589f']
+            colors: ["#fef6b5", "#ffdd9a", "#ffc285", "#ffa679", "#fa8a76", "#f16d7a", "#e15383"]
+
         },
         'walk_to_wo': {
             name: 'Walking to Work',
@@ -67,17 +70,17 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const fuelTypes = {
         gas: {
             name: 'Gas Heating',
-            color: '#ff0000', // Red
+            color: '#7e57c2',
             dotValue: 100000
         },
         electricity: {
             name: 'Electric Heating',
-            color: '#0000ff', // Blue
+            color: '#26a69a', 
             dotValue: 100000
         },
         oil: {
             name: 'Oil Heating',
-            color: '#00aa00', // Green
+            color: '#f57f17',
             dotValue: 100000
         }
     };
@@ -280,13 +283,26 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 type: 'line',
                 source: 'population',
                 paint: {
-                    'line-color': '#000',
-                    'line-width': 1,
-                    'line-opacity': isTask2Page ? 0.5 : 0 // Make borders visible by default for Task2
+                    'line-color': isTask2Page ? '#546e7a' : '#000', // Grey for Task2, black otherwise
+                    'line-width': isTask2Page ? 1.5 : 1,
+                    'line-opacity': isTask2Page ? 0.7 : 0,
                 },
                 // Ensure this layer is always on top
                 maxzoom: 24
             });
+
+            // For Task2, add a light grey fill layer behind the dots
+            if (isTask2Page) {
+                map.current.addLayer({
+                    id: 'state-fills',
+                    type: 'fill',
+                    source: 'population',
+                    paint: {
+                        'fill-color': '#f5f5f5', // Light grey fill
+                        'fill-opacity': 0.7
+                    }
+                }, 'state-borders'); // Add below state borders
+            }
 
             // Add mousemove handler for popup
             map.current.on('mousemove', 'population-density', (e) => {
@@ -297,7 +313,11 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     const value = feature.properties.value;
                     const stateName = feature.properties.state_name;
                     
-                    const formattedValue = `${value.toFixed(2)} ${datasets[selectedDataset].unit}`;
+                    // Check if value is defined before calling toFixed()
+                    const formattedValue = value !== undefined && value !== null 
+                        ? `${value.toFixed(2)} ${datasets[selectedDataset].unit || ''}`
+                        : 'N/A';
+                    
                     const coordinates = e.lngLat;
 
                     popup.current
@@ -368,9 +388,10 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         type: 'fill',
                         source: 'population',
                         paint: {
-                            'fill-color': '#000000',
-                            'fill-opacity': 0 // Completely transparent
-                        }
+                            'fill-color': '#eceff1',
+                            'fill-opacity': 0// Completely transparent
+                        },
+
                     });
                     
                     // Add mousemove handler for this special hover layer
@@ -407,6 +428,27 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         popup.current.remove();
                     });
                 }
+            }
+
+            // Update the state borders layer for Task2
+            if (isTask2Page) {
+                // Add a light grey fill layer for states
+                if (!map.current.getLayer('state-fills')) {
+                    map.current.addLayer({
+                        id: 'state-fills',
+                        type: 'fill',
+                        source: 'population',
+                        paint: {
+                            'fill-color': '#f5f5f5', // Light grey fill
+                            'fill-opacity': 0.5
+                        }
+                    }, 'dot-density-layer'); // Add below dot density layer
+                }
+                
+                // Update state borders to be thicker and grey
+                map.current.setPaintProperty('state-borders', 'line-color', '#9e9e9e'); // Medium grey
+                map.current.setPaintProperty('state-borders', 'line-width', 1.5);
+                map.current.setPaintProperty('state-borders', 'line-opacity', 0.7);
             }
         } catch (error) {
             console.error('Error in initializeLayers:', error);
@@ -1590,9 +1632,29 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 if (isTask2Page && map.current.getLayer('dot-density-layer')) {
                     map.current.setLayoutProperty('dot-density-layer', 'visibility', 'visible');
                 }
-                // Show state-level choropleth again when returning to state view
-                if (map.current.getLayer('population-density')) {
-                    map.current.setLayoutProperty('population-density', 'visibility', 'visible');
+                
+                // For Task2, ensure state borders and fills are properly restored
+                if (isTask2Page) {
+                    // Restore state borders
+                    map.current.setPaintProperty('state-borders', 'line-color', '#546e7a');
+                    map.current.setPaintProperty('state-borders', 'line-width', 1.5);
+                    map.current.setPaintProperty('state-borders', 'line-opacity', 0.7);
+                    
+                    // Restore state fills
+                    if (map.current.getLayer('state-fills')) {
+                        map.current.setPaintProperty('state-fills', 'fill-color', '#f5f5f5');
+                        map.current.setPaintProperty('state-fills', 'fill-opacity', 0.7);
+                    }
+                    
+                    // Hide choropleth layer for Task2
+                    if (map.current.getLayer('population-density')) {
+                        map.current.setLayoutProperty('population-density', 'visibility', 'none');
+                    }
+                } else {
+                    // Show state-level choropleth again when returning to state view for non-Task2
+                    if (map.current.getLayer('population-density')) {
+                        map.current.setLayoutProperty('population-density', 'visibility', 'visible');
+                    }
                 }
                 
                 // Show state-level LISA clusters again if they were visible
@@ -1984,10 +2046,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
         // For Task2, show predominant fuel choropleth when showing patterns
         if (isTask2Page && showSpatialClusters) {
-            // Keep dot density layer visible - remove the code that hides it
-            // if (map.current.getLayer('dot-density-layer')) {
-            //     map.current.setLayoutProperty('dot-density-layer', 'visibility', 'none');
-            // }
             
             // Add or update predominant fuel layer
             if (!map.current.getLayer('predominant-fuel')) {
@@ -1999,10 +2057,13 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         'fill-color': [
                             'match',
                             ['get', 'main_fuel'],
-                            'gas', '#ff0000',      // Red for gas
-                            'electricity', '#0000ff', // Blue for electricity
-                            'oil', '#00aa00',      // Green for oil
-                            '#cccccc'              // Default gray
+                            // 'gas', '#008A8A',
+                            'gas','#7e57c2' , 
+                            // 'electricity', '#0000ff',
+                            'electricity','#26a69a',
+                            // 'oil', '#00aa00',
+                            'oil','#f57f17',
+                            '#cccccc'   
                         ],
                         'fill-opacity': 0.2
                     }
@@ -2041,20 +2102,23 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
                 map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
                 
-                // Make state borders more visible
-                map.current.setPaintProperty('state-borders', 'line-opacity', 0.8);
-                map.current.setPaintProperty('state-borders', 'line-width', 1.5);
+                // Don't make all state borders visible - only keep the current focused state highlighted
+                // Remove this code that was making all borders visible:
+                // map.current.setPaintProperty('state-borders', 'line-opacity', 0.8);
+                // map.current.setPaintProperty('state-borders', 'line-width', 1.5);
             } else {
                 // Hide LISA clusters
                 map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
                 map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
                 
                 // Reset state borders
-                map.current.setPaintProperty('state-borders', 'line-opacity', isTask2Page ? 0.5 : 0);
-                map.current.setPaintProperty('state-borders', 'line-width', 1);
+                if (!currentFocusedState) {
+                    map.current.setPaintProperty('state-borders', 'line-opacity', isTask2Page ? 0.5 : 0);
+                    map.current.setPaintProperty('state-borders', 'line-width', 1);
+                }
             }
         }
-    }, [showSpatialClusters, geoData, isTask2Page]);
+    }, [showSpatialClusters, geoData, isTask2Page, currentFocusedState]);
 
     useEffect(() => {
         if (map.current && layersInitialized && showSpatialClusters) {
@@ -2283,15 +2347,15 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         <h3 className="text-sm font-bold mb-2">Heating Fuel Types</h3>
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center">
-                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#ff0000' }}></div>
+                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#7e57c2' }}></div>
                                 <span className="text-xs">Gas (1 dot = 100,000 households)</span>
                             </div>
                             <div className="flex items-center">
-                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#0000ff' }}></div>
+                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#26a69a' }}></div>
                                 <span className="text-xs">Electricity (1 dot = 100,000 households)</span>
                             </div>
                             <div className="flex items-center">
-                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#00aa00' }}></div>
+                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#f57f17' }}></div>
                                 <span className="text-xs">Oil (1 dot = 100,000 households)</span>
                             </div>
                         </div>
@@ -2351,15 +2415,15 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     </div>
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#ff0000' }}></div>
+                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#7e57c2' }}></div>
                             <span className="text-xs">Gas</span>
                         </div>
                         <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#0000ff' }}></div>
+                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#26a69a' }}></div>
                             <span className="text-xs">Electricity</span>
                         </div>
                         <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#00aa00' }}></div>
+                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#f57f17' }}></div>
                             <span className="text-xs">Oil</span>
                         </div>
                     </div>
