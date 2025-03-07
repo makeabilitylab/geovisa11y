@@ -397,6 +397,18 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             
             console.log('Conversation history:', messageHistory);
 
+            // Prepare the request data
+            const requestData = {
+                input: input,
+                current_dataset: dataset,
+                current_focus: currentFocusedState || currentFocusedCounty || currentFocusedCity,
+                previous_answer: previousAnswer,
+                conversation_history: messageHistory,
+                question_id: questionId,
+                raw_county: currentFocusedCounty ? currentFocusedCounty.county : null,
+                raw_state: currentFocusedState
+            };
+
             const response = await fetch(`${apiUrl}/api/analyze-input`, {
                 method: 'POST',
                 headers: {
@@ -405,16 +417,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 },
                 credentials: 'include',
                 mode: 'cors',
-                body: JSON.stringify({
-                    input,
-                    previous_answer: previousAnswer,
-                    current_focus: currentFocus,
-                    raw_state: currentFocusedState,
-                    raw_county: currentFocusedCounty,
-                    current_dataset: dataset,
-                    conversation_history: messageHistory,
-                    question_id: questionId
-                })
+                body: JSON.stringify(requestData)
             });
 
             if (!response.ok) {

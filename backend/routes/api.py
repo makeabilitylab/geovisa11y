@@ -328,7 +328,7 @@ def analyze_input():
                 }), 200
 
         # 7. Handle all other questions
-        analysis = answer_question(user_input, current_dataset)
+        analysis = answer_question(user_input, current_dataset, current_focus)
         
         # Log answer generation
         log_backend_processing(question_id, {
