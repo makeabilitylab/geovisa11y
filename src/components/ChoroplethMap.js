@@ -646,113 +646,269 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [focusedState, focusedCity, geoData, layersInitialized]);
 
-    // Update mousemove handler effect
+    // Update mousemove handlers to handle county-level data properly
     useEffect(() => {
         if (map.current && layersInitialized) {
             // Remove existing mousemove handlers
             map.current.off('mousemove', 'population-density');
+            map.current.off('mousemove', 'state-borders');
+            map.current.off('mousemove', 'state-hover-layer');
             if (showingCounties) {
                 map.current.off('mousemove', 'county-fills');
+                map.current.off('mousemove', 'county-borders');
             }
             
-            // Add mousemove handler for states
-            map.current.on('mousemove', 'population-density', (e) => {
-                if (e.features.length > 0) {
-                    map.current.getCanvas().style.cursor = 'pointer';
-                    
-                    const feature = e.features[0];
-                    const stateName = feature.properties.state_name;
-                    
-                    // Format tooltip content based on dataset
-                    let tooltipContent;
-                    
-                    if (isTask2Page) {
-                        // For Task2, use the actual fuel values
-                        const gas = feature.properties.gas || 0;
-                        const electricity = feature.properties.electricity || 0;
-                        const oil = feature.properties.oil || 0;
-                        
-                        tooltipContent = `
-                            <div class="text-xs font-semibold">${stateName}</div>
-                            <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
-                            <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
-                            <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
-                        `;
-                    } else {
-                        // For other pages, show the current dataset value
-                        const value = feature.properties.value;
-                        
-                        // Format value based on current dataset
-                        let formattedValue;
-                        if (selectedDataset === 'ppl_densit') {
-                            formattedValue = `${value.toFixed(2)} people per square mile`;
-                        } else if (selectedDataset === 'gas') {
-                            formattedValue = `${value} households with gas heating`;
-                        } else {
-                            formattedValue = `${value.toFixed(2)}%`;
-                        }
-                        
-                        tooltipContent = `
-                            <div class="text-xs font-semibold">${stateName}</div>
-                            <div class="text-xs">${formattedValue}</div>
-                        `;
-                    }
-
-                    const coordinates = e.lngLat;
-
-                    popup.current
-                        .setLngLat(coordinates)
-                        .setHTML(tooltipContent)
-                        .addTo(map.current);
-                }
-            });
-
-            // Add mousemove handler for counties when showing counties
-            if (showingCounties) {
-                map.current.on('mousemove', 'county-fills', (e) => {
+            // Add mousemove handler for states - only active when not showing counties
+            if (!showingCounties) {
+                map.current.on('mousemove', 'population-density', (e) => {
                     if (e.features.length > 0) {
+                        console.log('Mousemove detected on population-density layer');
                         map.current.getCanvas().style.cursor = 'pointer';
                         
                         const feature = e.features[0];
-                        const value = feature.properties.value;
-                        const countyName = feature.properties.county_name;
                         const stateName = feature.properties.state_name;
                         
-                        // Format value based on current dataset
-                        let formattedValue;
-                        if (selectedDataset === 'ppl_densit') {
-                            formattedValue = `${value.toFixed(2)} people per square mile`;
-                        } else if (selectedDataset === 'gas') {
-                            formattedValue = `${value} households with gas heating`;
+                        // Debug log the feature properties
+                        console.log('Feature properties:', feature.properties);
+                        
+                        // Format tooltip content based on dataset
+                        let tooltipContent;
+                        
+                        if (isTask2Page) {
+                            // For Task2, show all fuel types
+                            const gas = feature.properties.gas || 0;
+                            const electricity = feature.properties.electricity || 0;
+                            const oil = feature.properties.oil || 0;
+                            
+                            tooltipContent = `
+                                <div class="text-xs font-semibold">${stateName}</div>
+                                <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
+                                <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
+                                <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
+                            `;
                         } else {
-                            formattedValue = `${value.toFixed(2)}%`;
+                            // For other pages, show the current dataset value
+                            const value = feature.properties.value;
+                            
+                            // Format value based on current dataset
+                            let formattedValue;
+                            if (selectedDataset === 'ppl_densit') {
+                                formattedValue = `${value.toFixed(2)} people per square mile`;
+                            } else if (selectedDataset === 'gas') {
+                                formattedValue = `${value} households with gas heating`;
+                            } else {
+                                formattedValue = `${value.toFixed(2)}%`;
+                            }
+                            
+                            tooltipContent = `
+                                <div class="text-xs font-semibold">${stateName}</div>
+                                <div class="text-xs">${formattedValue}</div>
+                            `;
                         }
 
                         const coordinates = e.lngLat;
+                        console.log('Setting popup at coordinates:', coordinates);
 
                         popup.current
                             .setLngLat(coordinates)
-                            .setHTML(`
-                                <div class="text-xs font-semibold">${countyName} County</div>
-                                <div class="text-xs">${stateName}</div>
-                                <div class="text-xs">${formattedValue}</div>
-                            `)
+                            .setHTML(tooltipContent)
                             .addTo(map.current);
                     }
                 });
 
-                // Add mouseleave handler for counties
-                map.current.on('mouseleave', 'county-fills', () => {
+                // Add mousemove handler for state borders
+                map.current.on('mousemove', 'state-borders', (e) => {
+                    if (e.features.length > 0) {
+                        console.log('Mousemove detected on state-borders layer');
+                        map.current.getCanvas().style.cursor = 'pointer';
+                        
+                        const feature = e.features[0];
+                        const stateName = feature.properties.state_name;
+                        
+                        // Format tooltip content based on dataset
+                        let tooltipContent;
+                        
+                        if (isTask2Page) {
+                            // For Task2, show all fuel types
+                            const gas = feature.properties.gas || 0;
+                            const electricity = feature.properties.electricity || 0;
+                            const oil = feature.properties.oil || 0;
+                            
+                            tooltipContent = `
+                                <div class="text-xs font-semibold">${stateName}</div>
+                                <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
+                                <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
+                                <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
+                            `;
+                        } else {
+                            // For other pages, show the current dataset value
+                            const value = feature.properties.value;
+                            
+                            tooltipContent = `
+                                <div class="text-xs font-semibold">${stateName}</div>
+                                <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
+                            `;
+                        }
+
+                        const coordinates = e.lngLat;
+                        
+                        popup.current
+                            .setLngLat(coordinates)
+                            .setHTML(tooltipContent)
+                            .addTo(map.current);
+                    }
+                });
+                
+                // Add mouseleave handler for state borders
+                map.current.on('mouseleave', 'state-borders', () => {
+                    map.current.getCanvas().style.cursor = '';
+                    popup.current.remove();
+                });
+                
+                // Add mousemove handler for state hover layer
+                if (map.current.getLayer('state-hover-layer')) {
+                    map.current.on('mousemove', 'state-hover-layer', (e) => {
+                        if (e.features.length > 0) {
+                            console.log('Mousemove detected on state-hover-layer');
+                            map.current.getCanvas().style.cursor = 'pointer';
+                            
+                            const feature = e.features[0];
+                            const stateName = feature.properties.state_name;
+                            
+                            // Format tooltip content based on dataset
+                            let tooltipContent;
+                            
+                            if (isTask2Page) {
+                                // For Task2, show all fuel types
+                                const gas = feature.properties.gas || 0;
+                                const electricity = feature.properties.electricity || 0;
+                                const oil = feature.properties.oil || 0;
+                                
+                                tooltipContent = `
+                                    <div class="text-xs font-semibold">${stateName}</div>
+                                    <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
+                                    <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
+                                    <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
+                                `;
+                            } else {
+                                // For other pages, show the current dataset value
+                                const value = feature.properties.value;
+                                
+                                tooltipContent = `
+                                    <div class="text-xs font-semibold">${stateName}</div>
+                                    <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
+                                `;
+                            }
+
+                            const coordinates = e.lngLat;
+                            
+                            popup.current
+                                .setLngLat(coordinates)
+                                .setHTML(tooltipContent)
+                                .addTo(map.current);
+                        }
+                    });
+                    
+                    // Add mouseleave handler for state hover layer
+                    map.current.on('mouseleave', 'state-hover-layer', () => {
+                        map.current.getCanvas().style.cursor = '';
+                        popup.current.remove();
+                    });
+                }
+                
+                // Add mouseleave handler for population density
+                map.current.on('mouseleave', 'population-density', () => {
                     map.current.getCanvas().style.cursor = '';
                     popup.current.remove();
                 });
             }
-
-            // Add mouseleave handler for states
-            map.current.on('mouseleave', 'population-density', () => {
-                map.current.getCanvas().style.cursor = '';
-                popup.current.remove();
-            });
+            
+            // Add mousemove handler for county borders
+            if (showingCounties) {
+                map.current.on('mousemove', 'county-borders', (e) => {
+                    if (e.features.length > 0) {
+                        map.current.getCanvas().style.cursor = 'pointer';
+                        
+                        const feature = e.features[0];
+                        const countyName = feature.properties.county_name;
+                        const stateName = feature.properties.state_name;
+                        
+                        // Format tooltip content based on dataset
+                        let tooltipContent;
+                        
+                        if (isTask2Page) {
+                            // For Task2, show all fuel types at county level
+                            const gas = feature.properties.gas || 0;
+                            const electricity = feature.properties.electricity || 0;
+                            const oil = feature.properties.oil || 0;
+                            
+                            tooltipContent = `
+                                <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
+                                <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
+                                <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
+                                <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
+                            `;
+                        } else {
+                            // For other pages, show the current dataset value
+                            const value = feature.properties.value;
+                            
+                            tooltipContent = `
+                                <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
+                                <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
+                            `;
+                        }
+                        
+                        const coordinates = e.lngLat;
+                        
+                        popup.current
+                            .setLngLat(coordinates)
+                            .setHTML(tooltipContent)
+                            .addTo(map.current);
+                    }
+                });
+                
+                map.current.on('mouseleave', 'county-borders', () => {
+                    map.current.getCanvas().style.cursor = '';
+                    popup.current.remove();
+                });
+                
+                // For Task2, also add handler for county fills if they exist
+                if (isTask2Page && map.current.getLayer('county-fills')) {
+                    map.current.on('mousemove', 'county-fills', (e) => {
+                        if (e.features.length > 0) {
+                            map.current.getCanvas().style.cursor = 'pointer';
+                            
+                            const feature = e.features[0];
+                            const countyName = feature.properties.county_name;
+                            const stateName = feature.properties.state_name;
+                            
+                            // Format tooltip content for Task2
+                            const gas = feature.properties.gas || 0;
+                            const electricity = feature.properties.electricity || 0;
+                            const oil = feature.properties.oil || 0;
+                            
+                            const tooltipContent = `
+                                <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
+                                <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
+                                <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
+                                <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
+                            `;
+                            
+                            const coordinates = e.lngLat;
+                            
+                            popup.current
+                                .setLngLat(coordinates)
+                                .setHTML(tooltipContent)
+                                .addTo(map.current);
+                        }
+                    });
+                    
+                    map.current.on('mouseleave', 'county-fills', () => {
+                        map.current.getCanvas().style.cursor = '';
+                        popup.current.remove();
+                    });
+                }
+            }
         }
     }, [selectedDataset, layersInitialized, showingCounties, isTask2Page]);
 
@@ -1061,8 +1217,11 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             // Normalize state name input
             stateName = normalizeStateName(stateName);
 
+            // For Task2, always request gas data to get all fuel types
+            const datasetParam = isTask2Page ? 'gas' : selectedDataset;
+            
             // Add the current dataset as a query parameter
-            const response = await fetch(`${apiUrl}/api/counties/${stateName}?dataset=${selectedDataset}`, {
+            const response = await fetch(`${apiUrl}/api/counties/${stateName}?dataset=${datasetParam}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -1079,6 +1238,13 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
             const data = await response.json();
             console.log('County data received:', data);
+            
+            // Check if we have fuel data for Task2
+            if (isTask2Page) {
+                const hasGas = data.features.some(f => f.properties.gas !== undefined);
+                console.log('County data has gas property:', hasGas);
+            }
+            
             setCountyData(data);
             
             if (!map.current || !map.current.isStyleLoaded()) {
@@ -1097,46 +1263,110 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             if (map.current.getSource('counties')) {
                 map.current.removeSource('counties');
             }
+            
+            // Remove county dot density layers if they exist
+            if (map.current.getLayer('county-dot-density-layer')) {
+                map.current.removeLayer('county-dot-density-layer');
+            }
+            if (map.current.getSource('county-dot-density')) {
+                map.current.removeSource('county-dot-density');
+            }
 
-            // Add new source and layers
+            // Add new source for counties
             map.current.addSource('counties', {
                 type: 'geojson',
                 data: data
             });
 
-            // Get current dataset configuration
-            const dataset = datasets[selectedDataset];
-
-            // Add fill layer with choropleth colors
-            map.current.addLayer({
-                id: 'county-fills',
-                type: 'fill',
-                source: 'counties',
-                paint: {
-                    'fill-color': [
-                        'interpolate',
-                        ['linear'],
-                        ['coalesce', ['get', 'value'], 0],
-                        ...dataset.breaks.flatMap((break_, i) => [
-                            break_,
-                            dataset.colors[i]
-                        ])
-                    ],
-                    'fill-opacity': 0.75
+            // For Task2, generate dot density data for counties
+            if (isTask2Page) {
+                console.log('Generating county dot density data for Task2');
+                
+                // Use a much smaller dot value for counties (1000 instead of 50,000)
+                const countyDotData = generateMultiAttributeDotDensity(data, fuelTypes, 1000);
+                console.log('Generated county dot density data with', countyDotData.features.length, 'points');
+                
+                // Add county dot density source
+                map.current.addSource('county-dot-density', {
+                    type: 'geojson',
+                    data: countyDotData
+                });
+                
+                // Add light grey county fills first (so they appear below the dots)
+                map.current.addLayer({
+                    id: 'county-fills',
+                    type: 'fill',
+                    source: 'counties',
+                    paint: {
+                        'fill-color': '#f0f0f0',  // Light grey
+                        'fill-opacity': 0.4       // Semi-transparent
+                    }
+                });
+                
+                // Add county dot density layer on top of the fills
+                map.current.addLayer({
+                    id: 'county-dot-density-layer',
+                    type: 'circle',
+                    source: 'county-dot-density',
+                    paint: {
+                        'circle-radius': 1.5, // Smaller dots for county level
+                        'circle-color': ['get', 'color'],
+                        'circle-opacity': 0.8
+                    }
+                });
+                
+                // Add county borders on top of everything
+                map.current.addLayer({
+                    id: 'county-borders',
+                    type: 'line',
+                    source: 'counties',
+                    paint: {
+                        'line-color': '#fff',
+                        'line-width': 0.5,
+                        'line-opacity': 0.7
+                    }
+                });
+                
+                // Hide the state-level dot density layer when showing counties
+                if (map.current.getLayer('dot-density-layer')) {
+                    map.current.setLayoutProperty('dot-density-layer', 'visibility', 'none');
                 }
-            });
+            } else {
+                // For non-Task2, use the original choropleth approach
+                // Get current dataset configuration
+                const dataset = datasets[selectedDataset];
 
-            // Add thin border layer
-            map.current.addLayer({
-                id: 'county-borders',
-                type: 'line',
-                source: 'counties',
-                paint: {
-                    'line-color': '#fff',
-                    'line-width': 0.5,
-                    'line-opacity': 0.5
-                }
-            });
+                // Add fill layer with choropleth colors
+                map.current.addLayer({
+                    id: 'county-fills',
+                    type: 'fill',
+                    source: 'counties',
+                    paint: {
+                        'fill-color': [
+                            'interpolate',
+                            ['linear'],
+                            ['coalesce', ['get', 'value'], 0],
+                            ...dataset.breaks.flatMap((break_, i) => [
+                                break_,
+                                dataset.colors[i]
+                            ])
+                        ],
+                        'fill-opacity': 0.75
+                    }
+                });
+
+                // Add thin border layer
+                map.current.addLayer({
+                    id: 'county-borders',
+                    type: 'line',
+                    source: 'counties',
+                    paint: {
+                        'line-color': '#fff',
+                        'line-width': 0.5,
+                        'line-opacity': 0.5
+                    }
+                });
+            }
 
             // Zoom to the state's counties
             const bounds = new mapboxgl.LngLatBounds();
@@ -1317,6 +1547,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             setShowingCounties(false);
             setCurrentFocusedCounty(null);
             setCountyData(null);
+            
+            // Clean up county layers
             if (map.current) {
                 if (map.current.getLayer('county-borders')) {
                     map.current.removeLayer('county-borders');
@@ -1324,10 +1556,22 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 if (map.current.getLayer('county-fills')) {
                     map.current.removeLayer('county-fills');
                 }
+                if (map.current.getLayer('county-dot-density-layer')) {
+                    map.current.removeLayer('county-dot-density-layer');
+                }
+                if (map.current.getSource('county-dot-density')) {
+                    map.current.removeSource('county-dot-density');
+                }
                 if (map.current.getSource('counties')) {
                     map.current.removeSource('counties');
                 }
+                
+                // Show the state-level dot density layer again when returning to state view
+                if (isTask2Page && map.current.getLayer('dot-density-layer')) {
+                    map.current.setLayoutProperty('dot-density-layer', 'visibility', 'visible');
+                }
             }
+            
             // Normalize currentFocusedState before using it
             const stateName = Array.isArray(currentFocusedState) 
                 ? currentFocusedState[0] 
@@ -1503,27 +1747,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         if (isTask2Page && geoData && geoData.features && geoData.features.length > 0) {
             console.log("Generating multi-attribute dot density data from", geoData.features.length, "features");
             
-            // // Check if the fuel type properties exist
-            // const hasGas = geoData.features.some(f => f.properties.gas !== undefined && f.properties.gas > 0);
-            // const hasElectricity = geoData.features.some(f => f.properties.electricity !== undefined && f.properties.electricity > 0);
-            // const hasOil = geoData.features.some(f => f.properties.oil !== undefined && f.properties.oil > 0);
-            
-            // // If we don't have the properties, try to fetch them again
-            // if (!hasGas && !hasElectricity && !hasOil) {
-            //     console.log("Fuel properties missing, fetching data again...");
-            //     fetch(`${apiUrl}/api/geojson/task2_state`)
-            //         .then(response => response.json())
-            //         .then(data => {
-            //             console.log("Fetched task2 data directly:", data);
-            //             if (data.features && data.features.length > 0) {
-            //                 console.log("Sample feature properties from direct fetch:", data.features[0].properties);
-            //                 setGeoData(data);
-            //             }
-            //         })
-            //         .catch(error => console.error("Error fetching task2 data:", error));
-            //     return;
-            // }
-            
             const dotData = generateMultiAttributeDotDensity(geoData, fuelTypes);
             console.log("Generated dot density data with", dotData.features.length, "points");
             setDotDensityData(dotData);
@@ -1685,6 +1908,40 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         });
     }
 }, [selectedDataset, layersInitialized, isTask2Page]);
+
+    // Add mousemove handler for county dot density layer
+    useEffect(() => {
+        if (map.current && layersInitialized && isTask2Page) {
+            // Add mousemove handler for county dot density
+            map.current.on('mousemove', 'county-dot-density-layer', (e) => {
+                if (e.features.length > 0) {
+                    map.current.getCanvas().style.cursor = 'pointer';
+                    
+                    const feature = e.features[0];
+                    const county = feature.properties.county || 'Unknown County';
+                    const state = feature.properties.state || 'Unknown State';
+                    const attribute = feature.properties.attribute || 'Unknown';
+                    
+                    const tooltipContent = `
+                        <div class="text-xs font-semibold">${county}, ${state}</div>
+                        <div class="text-xs">Fuel type: ${attribute}</div>
+                    `;
+                    
+                    const coordinates = e.lngLat;
+                    
+                    popup.current
+                        .setLngLat(coordinates)
+                        .setHTML(tooltipContent)
+                        .addTo(map.current);
+                }
+            });
+            
+            map.current.on('mouseleave', 'county-dot-density-layer', () => {
+                map.current.getCanvas().style.cursor = '';
+                popup.current.remove();
+            });
+        }
+    }, [layersInitialized, isTask2Page]);
 
     return (
         <div className="relative h-full ">

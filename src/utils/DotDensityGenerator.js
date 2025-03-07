@@ -84,38 +84,99 @@ export const generateDotDensityForFeatureCollection = (geojson, dotValue = 10000
 
 /**
  * Generates dot density points for all features in a GeoJSON FeatureCollection with multiple attributes
- * @param {Object} geojson - GeoJSON FeatureCollection
- * @param {Object} attributes - Object mapping attribute names to dot values and colors
+ * @param {Object} featureCollection - GeoJSON FeatureCollection
+ * @param {Object} attributeConfig - Object mapping attribute names to dot values and colors
+ * @param {number} customDotValue - Custom dot value to use instead of the one from config
  * @returns {Object} GeoJSON FeatureCollection of points
  */
-export const generateMultiAttributeDotDensity = (geojson, attributes) => {
-  if (!geojson || !geojson.features || !Array.isArray(geojson.features)) {
-    console.error('Invalid GeoJSON:', geojson);
-    return { type: 'FeatureCollection', features: [] };
+export const generateMultiAttributeDotDensity = (featureCollection, attributeConfig, customDotValue = null) => {
+    const dotDensityPoints = {
+        type: 'FeatureCollection',
+        features: []
+    };
+
+    featureCollection.features.forEach(feature => {
+        const properties = feature.properties;
+        const geometry = feature.geometry;
+
+        // Process each attribute (gas, electricity, oil)
+        Object.keys(attributeConfig).forEach(attribute => {
+            const config = attributeConfig[attribute];
+            const value = properties[attribute] || 0;
+            
+            // Use custom dot value if provided, otherwise use the one from config
+            const dotValue = customDotValue || config.dotValue;
+            
+            // Calculate number of dots
+            const numDots = Math.round(value / dotValue);
+            
+            if (numDots > 0) {
+                // Generate points for this attribute
+                const points = generatePointsInPolygon(geometry, numDots);
+                
+                // Add points to the collection with attribute properties
+                points.forEach(point => {
+                    dotDensityPoints.features.push({
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: point
+                        },
+                        properties: {
+                            attribute: attribute,
+                            color: config.color,
+                            state: properties.state_name,
+                            county: properties.county_name || null
+                        }
+                    });
+                });
+            }
+        });
+    });
+
+    return dotDensityPoints;
+};
+
+/**
+ * Generates random points within a polygon
+ * @param {Object} geometry - GeoJSON geometry (Polygon or MultiPolygon)
+ * @param {number} numDots - Number of dots to generate
+ * @returns {Array} Array of point coordinates [x, y]
+ */
+const generatePointsInPolygon = (geometry, numDots) => {
+  if (!geometry || !['Polygon', 'MultiPolygon'].includes(geometry.type)) {
+    console.error('Invalid geometry type:', geometry?.type);
+    return [];
+  }
+
+  // Create a GeoJSON feature from the geometry for turf operations
+  const feature = {
+    type: 'Feature',
+    properties: {},
+    geometry: geometry
+  };
+  
+  // Get the bounding box
+  const bbox = turf.bbox(feature);
+  
+  // Generate points
+  const points = [];
+  let attempts = 0;
+  const maxAttempts = numDots * 10; // Limit attempts to avoid infinite loops
+  
+  while (points.length < numDots && attempts < maxAttempts) {
+    attempts++;
+    
+    // Generate a random point within the bounding box
+    const x = bbox[0] + Math.random() * (bbox[2] - bbox[0]);
+    const y = bbox[1] + Math.random() * (bbox[3] - bbox[1]);
+    const point = turf.point([x, y]);
+    
+    // Check if the point is inside the polygon
+    if (turf.booleanPointInPolygon(point, geometry)) {
+      points.push([x, y]);
+    }
   }
   
-  const allPoints = [];
-  
-  geojson.features.forEach(feature => {
-    if (feature.geometry.type.includes('Polygon')) {
-      // Generate dots for each attribute
-      Object.entries(attributes).forEach(([attribute, config]) => {
-        const value = feature.properties[attribute] || 0;
-        const points = generateDotDensity(feature, value, config.dotValue);
-        
-        // Add attribute and color information to each point
-        points.forEach(point => {
-          point.properties.attribute = attribute;
-          point.properties.color = config.color;
-        });
-        
-        allPoints.push(...points);
-      });
-    }
-  });
-  
-  return {
-    type: 'FeatureCollection',
-    features: allPoints
-  };
+  return points;
 };

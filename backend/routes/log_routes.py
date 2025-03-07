@@ -13,7 +13,8 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("app_logs.log"),
+        # Remove file handler that's causing permission issues
+        # logging.FileHandler("app_logs.log"),
         logging.StreamHandler()
     ]
 )
@@ -51,13 +52,7 @@ except Exception as e:
 def log_data():
     # Handle preflight OPTIONS request
     if request.method == 'OPTIONS':
-        response = make_response()
-        response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
-        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Origin, Accept'
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-        response.headers['Access-Control-Max-Age'] = '3600'  # Cache preflight response for 1 hour
-        return response, 200
+        return '', 200
 
     try:
         log_data = request.json
@@ -73,26 +68,18 @@ def log_data():
         # Insert into MongoDB
         result = logs_collection.insert_one(log_data)
         
-        # Set CORS headers for the main response
-        response = jsonify({
+        return jsonify({
             'success': True, 
             'message': 'Log saved successfully', 
             'id': str(result.inserted_id)
-        })
-        response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-        
-        return response, 201
+        }), 201
     
     except Exception as e:
         logger.error(f"Error saving log: {e}")
-        response = jsonify({
+        return jsonify({
             'success': False, 
             'message': f'Error saving log: {str(e)}'
-        })
-        response.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-        return response, 500
+        }), 500
 
 # Backend-specific logging endpoint
 @log_bp.route('/backend-logs', methods=['POST'])

@@ -24,7 +24,8 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("app_logs.log"),
+        # Remove file handler that's causing permission issues
+        # logging.FileHandler("app_logs.log"),
         logging.StreamHandler()
     ]
 )
@@ -66,12 +67,8 @@ def get_openai_response(question):
 def get_geojson(dataset):
     """Get GeoJSON data for the specified dataset"""
     if request.method == 'OPTIONS':
-        # Explicitly return response for OPTIONS request
-        response = make_response()
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,OPTIONS')
-        return response
+        # Return empty response for OPTIONS request
+        return '', 200
         
     try:
         accuracy = request.args.get("accuracy", default=0.01, type=float)
@@ -450,9 +447,11 @@ def get_counties(state_name):
         
         print(f"Normalized state name: {state_name}")  # Debug log
         
-        result = fetch_data('county', accuracy, value_column=dataset, state_filter=state_name)
-        print(f"Result type: {type(result)}")  # Debug log
-        return result
+        # For Task2, use the fuel data function
+        if dataset in ['gas', 'electricity', 'oil']:
+            return fetch_fuel_data('county', accuracy, state_name)
+        else:
+            return fetch_data('county', accuracy, dataset, state_name)
     except Exception as e:
         print(f"Error fetching counties: {str(e)}")
         print(f"Full traceback: {traceback.format_exc()}")

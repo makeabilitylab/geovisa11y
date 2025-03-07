@@ -159,16 +159,18 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         print(f"Full traceback: {traceback.format_exc()}")
         raise  # Re-raise the exception to be caught by the route handler
 
-def fetch_fuel_data(table_name, accuracy):
+def fetch_fuel_data(table_name, accuracy, state_filter=None):
     """Fetch data for all fuel types (gas, electricity, oil) for the dot density map"""
     try:
+        # Add state filter to query if provided
+        where_clause = f"WHERE LOWER(state_name) = LOWER('{state_filter}')" if state_filter else ""
         
-        # First, check if the columns exist
-        columns_query = f"PRAGMA table_info({table_name})"
-        columns = con.execute(columns_query).fetchdf()
+        # Add county_name column if fetching county data
+        county_column = "county_nam as county_name," if table_name == 'county' else ""
         
         query = f"""
         SELECT GEOID, state_name, 
+               {county_column}
                COALESCE(gas, 0) as gas,
                COALESCE(electricit, 0) as electricity,
                COALESCE(oil, 0) as oil,
@@ -177,12 +179,13 @@ def fetch_fuel_data(table_name, accuracy):
                ST_AsText(ST_Simplify(geom, {accuracy})) AS geom_wkt,
                neighbors_
         FROM {table_name}
+        {where_clause}
         """
         
         query_result = con.execute(query).fetchdf()
         
         if query_result.empty:
-            raise ValueError(f"No data found in {table_name}")
+            raise ValueError(f"No data found in {table_name} {where_clause}")
             
         gdf = gpd.GeoDataFrame(query_result, geometry=gpd.GeoSeries.from_wkt(query_result['geom_wkt']))
         
