@@ -122,7 +122,7 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         gdf = gpd.GeoDataFrame(query_result, geometry=gpd.GeoSeries.from_wkt(query_result['geom_wkt']))
         
         # LISA classifications
-        lisa_results = get_lisa_clusters(value_column)  # Pass the current dataset
+        lisa_results = get_lisa_clusters(value_column, state_filter)  # Pass the current dataset and state_filter
         if lisa_results:
             lisa_mapping = {}
             for state in lisa_results['HH']:
@@ -258,8 +258,16 @@ def answer_question(question, current_dataset, current_focus=None):
     try:
         # Get the question type first
         question_type = semantic_service.identify_question_type(question, current_dataset)
-        #print(f"Debug - Question type identified in answer_question: {question_type}")
-
+        
+        # Extract state filter from current_focus if available
+        state_filter = None
+        if current_focus:
+            if isinstance(current_focus, dict) and current_focus.get('state'):
+                state_filter = current_focus.get('state')
+            elif isinstance(current_focus, str):
+                state_filter = current_focus
+        
+        print(f"DEBUG - State filter extracted: {state_filter}")
         # Handle pattern questions before metric check
         if question_type == 'get_pattern':
             # For Task2, return hardcoded answer about heating fuel patterns
@@ -273,7 +281,7 @@ def answer_question(question, current_dataset, current_focus=None):
                 }
             
             # For other datasets, combine Moran's I and LISA analysis
-            moran_result = get_moran_i(current_dataset)
+            moran_result = get_moran_i(current_dataset, state_filter)
             
             # If there's no pattern, just return that without the description
             if moran_result['pattern'] == 'random':
@@ -284,8 +292,8 @@ def answer_question(question, current_dataset, current_focus=None):
                 }
             
             # Otherwise, add the pattern description
-            lisa_result = get_lisa_clusters(current_dataset)
-            pattern_description = get_gpt_spatial_pattern_summary(lisa_result, current_dataset)
+            lisa_result = get_lisa_clusters(current_dataset, state_filter)
+            pattern_description = get_gpt_spatial_pattern_summary(lisa_result, current_dataset, state_filter)
             
             return {
                 'result': f"{moran_result['description']} {pattern_description}",
@@ -410,7 +418,7 @@ def answer_question(question, current_dataset, current_focus=None):
             }
             
         elif question_type == 'find_outliers':
-            result = get_lisa_clusters(current_dataset)
+            result = get_lisa_clusters(current_dataset, current_focus)
             outliers = find_outliers(result, current_dataset)
             return {
                 'result': outliers,
@@ -804,15 +812,33 @@ def find_similar(state, dataset):
         }
 
 #08_identify_pattern
-def get_moran_i(dataset):
-    """Analyze global spatial pattern using Moran's I"""
+def get_moran_i(dataset, state_filter=None):
+    """Analyze global spatial pattern using Moran's I, optionally filtered by state"""
     try:
-        # Get state geometries and data for the specified dataset
+        # Determine which table to use based on state_filter
+        table_name = 'county' if state_filter else 'state'
+        
+        # Build WHERE clause - simpler approach
+        where_clause = f"{dataset} IS NOT NULL"
+        if state_filter:
+            where_clause += f" AND LOWER(state_name) = LOWER('{state_filter}')"
+        
+        # Get geometries and data for the specified dataset
         query = f"""
-            SELECT state_name, {dataset} as value, ST_AsText(geom) as geometry
-            FROM state
+            SELECT 
+                {'county_nam as name' if state_filter else 'state_name as name'}, 
+                {dataset} as value, 
+                ST_AsText(geom) as geometry
+            FROM {table_name}
+            WHERE {where_clause}
         """
         result = con.execute(query).fetchdf()
+        
+        if result.empty:
+            return {
+                'pattern': 'unknown',
+                'description': f"Unable to analyze pattern{' for ' + state_filter if state_filter else ''}. Not enough data available."
+            }
         
         # Convert to GeoDataFrame
         gdf = gpd.GeoDataFrame(
@@ -821,52 +847,82 @@ def get_moran_i(dataset):
         )
         
         # Create spatial weights matrix using KNN
-        w = KNN.from_dataframe(gdf, k=10)
+        # Use fewer neighbors for county analysis to reflect local patterns better
+        k = 5 if state_filter else 10
+        w = KNN.from_dataframe(gdf, k=k)
         w.transform = 'r'  # Row-standardize weights
         
         # Calculate global Moran's I
         moran = Moran(gdf['value'], w)
         
+        # Get the metric name for better descriptions
+        metric_info = get_metric_info(dataset)
+        metric_name = metric_info['name']
+        
         # Interpret the results and provide simple response
         if moran.p_sim < 0.05:  # Statistically significant
             if moran.I > 0:
+                scope = f"in {state_filter}" if state_filter else "across the United States"
                 response = {
                     'pattern': 'clustered',
-                    'description': 'Yes, there is a clustered pattern in the map, similar values tend to be located near each other.'
+                    'description': f"Yes, there is a clustered pattern of {metric_name} {scope}. Similar values tend to be located near each other."
                 }
             else:
+                scope = f"in {state_filter}" if state_filter else "across the United States"
                 response = {
                     'pattern': 'dispersed',
-                    'description': 'Yes, there is a dispersed pattern in the map, dissimilar values tend to be located near each other.'
+                    'description': f"Yes, there is a dispersed pattern of {metric_name} {scope}. Dissimilar values tend to be located near each other."
                 }
         else:
+            scope = f"in {state_filter}" if state_filter else "in this map"
             response = {
                 'pattern': 'random',
-                'description': 'No, there is no obvious spatial pattern in this map.'
+                'description': f"No, there is no obvious spatial pattern of {metric_name} {scope}."
             }
         
         return response
         
     except Exception as e:
         print(f"Error analyzing global pattern: {str(e)}")
-        return None
+        return {
+            'pattern': 'error',
+            'description': "I couldn't analyze the spatial pattern due to a technical issue."
+        }
 
 #09_describe_pattern
-def get_lisa_clusters(dataset):
-    """Analyze spatial patterns using Local Moran's I and return cluster classifications"""
+def get_lisa_clusters(dataset, state_filter=None):
+    """Analyze spatial patterns using Local Moran's I and return cluster classifications, optionally filtered by state"""
     try:
-        # Get state geometries and data for the specified dataset
+        # Determine which table to use based on state_filter
+        table_name = 'county' if state_filter else 'state'
+        
+        # Build WHERE clause - simpler approach
+        where_clause = f"{dataset} IS NOT NULL"
+        if state_filter:
+            where_clause += f" AND LOWER(state_name) = LOWER('{state_filter}')"
+        
+        # Get geometries and data for the specified dataset
         query = f"""
-            SELECT state_name, 
-                   CASE 
-                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                       THEN {dataset} * 100  -- Multiply percentages by 100
-                       ELSE {dataset}
-                   END as value,
-                   ST_AsText(geom) as geometry
-            FROM state
+            SELECT 
+                {'county_nam as name' if state_filter else 'state_name as name'}, 
+                CASE 
+                    WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
+                    THEN {dataset} * 100  -- Multiply percentages by 100
+                    ELSE {dataset}
+                END as value,
+                ST_AsText(geom) as geometry
+            FROM {table_name}
+            WHERE {where_clause}
         """
         result = con.execute(query).fetchdf()
+        
+        if result.empty:
+            return {
+                'HH': [],
+                'LL': [],
+                'HL': [],
+                'LH': []
+            }
         
         # Convert to GeoDataFrame
         gdf = gpd.GeoDataFrame(
@@ -875,7 +931,9 @@ def get_lisa_clusters(dataset):
         )
         
         # Create spatial weights matrix using KNN
-        w = KNN.from_dataframe(gdf, k=10)
+        # Use fewer neighbors for county analysis
+        k = 5 if state_filter else 10
+        w = KNN.from_dataframe(gdf, k=k)
         w.transform = 'r'  # Normalize weights
         
         # Calculate local Moran's I
@@ -887,46 +945,62 @@ def get_lisa_clusters(dataset):
         # Assign cluster categories where p < 0.05
         significant = gdf['LISA_P'] < 0.05
         
-        # Create lists of states in each category
-        hh_states = gdf[significant & (moran.q == 1)]['state_name'].tolist()
-        lh_states = gdf[significant & (moran.q == 2)]['state_name'].tolist()
-        ll_states = gdf[significant & (moran.q == 3)]['state_name'].tolist()
-        hl_states = gdf[significant & (moran.q == 4)]['state_name'].tolist()
+        # Create lists of locations in each category
+        hh_locations = gdf[significant & (moran.q == 1)]['name'].tolist()
+        lh_locations = gdf[significant & (moran.q == 2)]['name'].tolist()
+        ll_locations = gdf[significant & (moran.q == 3)]['name'].tolist()
+        hl_locations = gdf[significant & (moran.q == 4)]['name'].tolist()
         
         return {
-            'HH': hh_states,
-            'LL': ll_states,
-            'HL': hl_states,
-            'LH': lh_states
+            'HH': hh_locations,
+            'LL': ll_locations,
+            'HL': hl_locations,
+            'LH': lh_locations
         }
         
     except Exception as e:
         print(f"Error analyzing spatial patterns: {str(e)}")
-        return None
+        return {
+            'HH': [],
+            'LL': [],
+            'HL': [],
+            'LH': []
+        }
         
-def get_gpt_spatial_pattern_summary(lisa_clusters, dataset):
+def get_gpt_spatial_pattern_summary(lisa_clusters, dataset, state_filter=None):
     """Get a natural language summary of spatial patterns using GPT"""
     try:
         metric_info = get_metric_info(dataset)
         metric_name = metric_info['name']
-
+        
+        # Check if we have any significant clusters
+        has_clusters = any(len(cluster) > 0 for cluster in lisa_clusters.values())
+        if not has_clusters:
+            if state_filter:
+                return f"There are no statistically significant clusters or outliers of {metric_name} among counties in {state_filter}."
+            else:
+                return f"There are no statistically significant clusters or outliers of {metric_name} among states."
+        
         # Create description from LISA clusters
         description = []
+        location_type = "counties" if state_filter else "states"
+        
         if lisa_clusters['HH']:
-            description.append(f"High-High clusters (states with high {metric_name} surrounded by high-{metric_name} neighbors): {', '.join(lisa_clusters['HH'])}")
+            description.append(f"High-High clusters ({location_type} with high {metric_name} surrounded by high-{metric_name} neighbors): {', '.join(lisa_clusters['HH'])}")
         if lisa_clusters['LL']:
-            description.append(f"Low-Low clusters (states with low {metric_name} surrounded by low-{metric_name} neighbors): {', '.join(lisa_clusters['LL'])}")
+            description.append(f"Low-Low clusters ({location_type} with low {metric_name} surrounded by low-{metric_name} neighbors): {', '.join(lisa_clusters['LL'])}")
         if lisa_clusters['HL']:
-            description.append(f"High-Low outliers (states with high {metric_name} surrounded by low-{metric_name} neighbors): {', '.join(lisa_clusters['HL'])}")
+            description.append(f"High-Low outliers ({location_type} with high {metric_name} surrounded by low-{metric_name} neighbors): {', '.join(lisa_clusters['HL'])}")
         if lisa_clusters['LH']:
-            description.append(f"Low-High outliers (states with low {metric_name} surrounded by high-{metric_name} neighbors): {', '.join(lisa_clusters['LH'])}")
+            description.append(f"Low-High outliers ({location_type} with low {metric_name} surrounded by high-{metric_name} neighbors): {', '.join(lisa_clusters['LH'])}")
         
         raw_description = '. '.join(description)
         
+        scope = f"in {state_filter}" if state_filter else "across the United States"
         prompt = f"""
-        Summarize the following US {metric_name} patterns in a single, concise paragraph following this structure:
-        1. First mention high-value clusters with 1-2 example states
-        2. Then mention low-value clusters with 1-2 example states
+        Summarize the following {metric_name} patterns {scope} in a single, concise paragraph following this structure:
+        1. First mention high-value clusters with 1-2 example {location_type}
+        2. Then mention low-value clusters with 1-2 example {location_type}
         3. Finally, mention any notable outliers (high values surrounded by low or vice versa)
         
         Keep the summary brief and focused on the most significant patterns.
@@ -941,9 +1015,9 @@ def get_gpt_spatial_pattern_summary(lisa_clusters, dataset):
             messages=[
                 {
                     "role": "system", 
-                    "content": """You are a spatial analysis expert who provides concise summaries for the general public. 
+                    "content": f"""You are a spatial analysis expert who provides concise summaries for the general public. 
                     Focus on the most significant patterns and use clear geographic references. 
-                    Keep responses to within 50 words and always include example states.
+                    Keep responses to within 50 words and always include example {location_type}.
                     Pick examples that makes the most sense for the metric."""
                 },
                 {"role": "user", "content": prompt}
@@ -954,7 +1028,10 @@ def get_gpt_spatial_pattern_summary(lisa_clusters, dataset):
         
     except Exception as e:
         print(f"Error getting GPT summary: {str(e)}")
-        return None
+        if state_filter:
+            return f"I found some patterns in {metric_name} among counties in {state_filter}, but couldn't generate a detailed summary."
+        else:
+            return f"I found some patterns in {metric_name} across states, but couldn't generate a detailed summary."
 
 #10_find_outliers
 def find_outliers(lisa_results, dataset):
