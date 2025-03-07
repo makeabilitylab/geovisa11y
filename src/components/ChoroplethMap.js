@@ -744,14 +744,10 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             if (!showingCounties) {
                 map.current.on('mousemove', 'population-density', (e) => {
                     if (e.features.length > 0) {
-                        console.log('Mousemove detected on population-density layer');
                         map.current.getCanvas().style.cursor = 'pointer';
                         
                         const feature = e.features[0];
                         const stateName = feature.properties.state_name;
-                        
-                        // Debug log the feature properties
-                        console.log('Feature properties:', feature.properties);
                         
                         // Format tooltip content based on dataset
                         let tooltipContent;
@@ -789,7 +785,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         }
 
                         const coordinates = e.lngLat;
-                        console.log('Setting popup at coordinates:', coordinates);
 
                         popup.current
                             .setLngLat(coordinates)
@@ -801,7 +796,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 // Add mousemove handler for state borders
                 map.current.on('mousemove', 'state-borders', (e) => {
                     if (e.features.length > 0) {
-                        console.log('Mousemove detected on state-borders layer');
                         map.current.getCanvas().style.cursor = 'pointer';
                         
                         const feature = e.features[0];
@@ -2006,14 +2000,10 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         if (map.current && layersInitialized) {
             map.current.on('mousemove', 'state-borders', (e) => {
             if (e.features.length > 0) {
-                console.log('Mousemove detected on state-borders layer');
                 map.current.getCanvas().style.cursor = 'pointer';
                 
                 const feature = e.features[0];
                 const stateName = feature.properties.state_name;
-                
-                // Debug log the feature properties
-                console.log('State border feature properties:', feature.properties);
                 
                 // Format tooltip content based on dataset
                 let tooltipContent;
@@ -2041,7 +2031,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }
 
                 const coordinates = e.lngLat;
-                console.log('Setting popup at coordinates from borders:', coordinates);
 
                 popup.current
                     .setLngLat(coordinates)
