@@ -11,6 +11,7 @@ import openai
 from config import DevelopmentConfig
 from services.semantic_service import SemanticService
 import traceback
+from scipy.stats import chi2_contingency
 
 # Initialize DuckDB connection
 con = duckdb.connect('database/spatial-db.db', read_only=True)
@@ -290,6 +291,15 @@ def answer_question(question, current_dataset):
                 'result': get_gpt_spatial_pattern_summary(result, current_dataset),
                 'dataset': current_dataset,
                 'question_type': 'describe_pattern'
+            }
+            
+        elif question_type == 'urban_rural_comparison' and current_dataset in ['gas', 'electricity', 'oil']:
+            # Handle urban vs rural comparison for heating fuels
+            result = compare_urban_rural_heating_fuels()
+            return {
+                'result': result,
+                'dataset': current_dataset,
+                'question_type': 'urban_rural_comparison'
             }
 
         if question_type == 'retrieve':
@@ -964,4 +974,59 @@ def find_outliers(lisa_results, dataset):
     except Exception as e:
         print(f"Error formatting outliers: {str(e)}")
         return None
+
+def compare_urban_rural_heating_fuels():
+    """Compare urban and rural counties' predominant heating fuel types"""
+    try:
+        # Query to get county data with urban/rural classification and predominant fuel
+        query = """
+        SELECT 
+            rural,  -- 'Rural' or 'Not rural'
+            main_fuel,
+            COUNT(*) as count
+        FROM county
+        WHERE rural IS NOT NULL AND main_fuel IS NOT NULL
+        GROUP BY rural, main_fuel
+        ORDER BY rural, main_fuel
+        """
+        
+        result = con.execute(query).fetchdf()
+        
+        if result.empty:
+            return "I couldn't find data on urban and rural counties' heating fuel usage."
+        
+        # Create a contingency table for chi-square test
+        # Reshape the data into a contingency table format
+        contingency_table = result.pivot(index='rural', columns='main_fuel', values='count').fillna(0)
+        
+        # Perform chi-square test
+        chi2, p_value, dof, expected = chi2_contingency(contingency_table)
+        
+        # Format the results
+        rural_predominant = contingency_table.loc['Rural'].idxmax()
+        urban_predominant = contingency_table.loc['Not rural'].idxmax()
+        
+        # Calculate percentages
+        urban_total = contingency_table.loc['Not rural'].sum()
+        rural_total = contingency_table.loc['Rural'].sum()
+        
+        urban_percentages = (contingency_table.loc['Not rural'] / urban_total * 100).round(1)
+        rural_percentages = (contingency_table.loc['Rural'] / rural_total * 100).round(1)
+        
+        # Prepare the response
+        if p_value < 0.05:
+            significance = "There is a statistically significant difference"
+        else:
+            significance = "There is no statistically significant difference"
+            
+        response = f"{significance} between urban and rural counties regarding their predominant heating fuels.\n\n"
+        
+        response += f"Urban counties predominantly use {urban_predominant} heating ({urban_percentages[urban_predominant]}%), "
+        response += f"while rural counties predominantly use {rural_predominant} heating ({rural_percentages[rural_predominant]}%).\n\n"
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error comparing urban and rural heating fuels: {str(e)}")
+        return "I couldn't analyze the difference between urban and rural counties due to a technical issue."
 

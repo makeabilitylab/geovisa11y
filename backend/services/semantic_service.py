@@ -60,7 +60,8 @@ class SemanticService:
             11. find_outliers - Finding outliers (e.g., "What states have high X despite low surroundings?")
             12. correlate - Relationship analysis (e.g., "Is there a relationship between X and Y?")
             13. describe_shape - Shape description (e.g., "Can you describe the shape of X?")
-            14. others - Conceptual/invalid questions (e.g., "What is X?" or invalid queries)
+            14. urban_rural_comparison - Comparing urban vs rural areas (e.g., "Is there a difference between urban and rural counties regarding their predominant heating fuels?")
+            15. others - Conceptual/invalid questions (e.g., "What is X?" or invalid queries)
 
             Respond with ONLY the category name, nothing else."""
 
@@ -126,6 +127,10 @@ class SemanticService:
             metric_name = self.dataset_terms[current_dataset]['metric']
             unit = self.dataset_terms[current_dataset]['unit']
 
+            # Special case for urban-rural comparison in Task2
+            if current_dataset in ['gas', 'electricity', 'oil'] and any(term in question.lower() for term in ['urban', 'rural', 'city', 'countryside']):
+                return False  # Keep these questions in scope
+
             system_prompt = """You are an expert at analyzing geographic data questions.
             Determine if this question can be answered using the current dataset.
             
@@ -166,20 +171,8 @@ class SemanticService:
             return result
 
         except Exception as e:
-            print(f"Error in out of scope check: {str(e)}")
-            # Fallback to basic check
-            question_lower = question.lower()
-            # Check for non-dataset metrics
-            # metric_terms = ['income', 'poverty', 'education', 'unemployment', 'gdp', 'crime']
-            # if any(term in question_lower for term in metric_terms):
-            #     return True
-            # Check for non-supported geographic units
-            geo_terms = ['region', 'city', 'town', 'metropolitan', 'urban', 'rural']
-            if any(term in question_lower for term in geo_terms):
-                return True
-            # Check for conceptual questions
-            concept_terms = ['why', 'how come', 'what causes', 'explain', 'theory', 'reason']
-            return any(term in question_lower for term in concept_terms)
+            print(f"Error in out_of_scope check: {str(e)}")
+            return False  # Default to keeping the question in scope if there's an error
 
     def is_ambiguous_question(self, question, previous_answer=None, current_focus=None, conversation_history=None):
         """
