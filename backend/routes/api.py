@@ -585,12 +585,16 @@ def get_task2_geojson():
 
 @api.route('/lisa_clusters/<state_name>', methods=['GET'])
 def get_lisa_clusters(state_name):
+    """Get LISA clusters for a state or its counties"""
     try:
         dataset = request.args.get('dataset', 'ppl_densit')
         level = request.args.get('level', 'state')  # 'state' or 'county'
         
+        # Import the data_service module here to avoid circular imports
+        from services.data_service import get_lisa_clusters as get_clusters
+        
         # Get LISA clusters
-        clusters = data_service.get_lisa_clusters(dataset, state_name if level == 'county' else None)
+        clusters = get_clusters(dataset, state_name if level == 'county' else None)
         
         # If we're requesting county-level clusters, we need to update the county GeoJSON
         if level == 'county':
@@ -614,4 +618,6 @@ def get_lisa_clusters(state_name):
         return jsonify(clusters)
         
     except Exception as e:
+        print(f"Error getting LISA clusters: {str(e)}")
+        print(f"Full traceback: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
