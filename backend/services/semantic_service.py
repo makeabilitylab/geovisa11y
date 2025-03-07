@@ -211,7 +211,15 @@ class SemanticService:
 
             # Simplified context normalization
             if isinstance(current_focus, dict) and current_focus.get('county'):
-                location = f"{current_focus['county']} County, {current_focus['state']}"
+                # This is the key fix - properly format county context
+                county_name = current_focus['county']
+                state_name = current_focus['state']
+                
+                # Handle array input for state
+                if isinstance(state_name, list) and len(state_name) > 0:
+                    state_name = state_name[0]
+                
+                location = f"{county_name} County, {state_name}"
                 context_type = "county"
             elif isinstance(current_focus, dict) and current_focus.get('city'):
                 location = f"{current_focus['city']}, {current_focus['state']}"
@@ -219,6 +227,9 @@ class SemanticService:
             else:
                 location = current_focus.get('state') if isinstance(current_focus, dict) else current_focus
                 context_type = "state"
+
+            print(f"AHHHHH current_focus: {current_focus}")
+            print(f"Normalized location: {location}, type: {context_type}")
 
             # Format conversation history for context
             conversation_context = ""

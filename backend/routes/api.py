@@ -122,7 +122,22 @@ def analyze_input():
         raw_county = data.get('raw_county')
         raw_state = data.get('raw_state')
         
+        # Debug the incoming data
         print(f"Processing input: {user_input} for dataset: {current_dataset}")
+        print(f"Current focus: {current_focus}")
+        print(f"Raw county: {raw_county}, Raw state: {raw_state}")
+        
+        # Fix for county context - if we have raw_county and raw_state but current_focus is just the state
+        if raw_county and raw_state and (not isinstance(current_focus, dict) or not current_focus.get('county')):
+            # Create a proper county context
+            state_name = raw_state[0] if isinstance(raw_state, list) else raw_state
+            current_focus = {
+                'county': raw_county,
+                'state': state_name,
+                'full': f"{raw_county} County, {state_name}"
+            }
+            print(f"Updated current_focus to include county: {current_focus}")
+        
         print(f"Conversation history: {conversation_history}")
         logger.info(f"Processing input: {user_input} for dataset: {current_dataset}")
         logger.info(f"Conversation history: {conversation_history[:2]}...")
