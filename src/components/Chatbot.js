@@ -54,11 +54,11 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         if (isTaskPage) {
             switch(dataset) {
                 case 'pct_tot_co':
-                    return "This is a choropleth map of the United States showing the percentage of priority population in each state. Darker shades indicate higher percentages.";
+                    return "This is a choropleth map of the United States showing the percentage of priority population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
                 case 'pct_no_bb_':
                     return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband in each state. Darker shades indicate higher percentages.";
                 default:
-                    return "This is an interactive choropleth map of the United States optimized for screen reader users.";
+                    return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
             }
         } else {
             switch(dataset) {
@@ -85,7 +85,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 `Which state has the ${extrema} number of households using gas heating?`,
                 // "What's the average number of households using gas heating?",
                 "Is there a pattern in this map?",
-                "Can you describe the pattern?"
+                // "Can you describe the pattern?"
             ];
         } else if (isTaskPage) {
             // Task1-specific questions
@@ -96,7 +96,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     `Which state has the ${extrema} percentage of priority population?`,
                     // "What's the average percentage of priority population?",
                     "Is there a pattern in this map?",
-                    "Can you describe the pattern?"
+                    // "Can you describe the pattern?"
                 ];
             } else { // pct_no_bb_
                 return [
@@ -117,7 +117,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     `Which state has the ${extrema} percentage of people walking to work?`,
                     "What's the average percentage of people who walk to work?",
                     "Is there a pattern in this map?",
-                    "Can you describe the pattern?"
+                    // "Can you describe the pattern?"
                 ];
             } else if (dataset === 'transit_to') {
                 return [
@@ -126,7 +126,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     `Which state has the ${extrema} percentage of public transit usage?`,
                     "What's the average percentage of people who use public transit?",
                     "Is there a pattern in this map?",
-                    "Can you describe the pattern?"
+                    // "Can you describe the pattern?"
                 ];
             } else {  // ppl_densit
                 return [
@@ -799,17 +799,17 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                         <li>
                             {"When focused on a state or county, you can ask specific questions like: "}
                             <span
-                                onClick={() => handleExampleClick("What's the population density here?")}
+                                onClick={() => handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of priority population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?`)}
                                 className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
                                 role="text"
                                 tabIndex="0"
                                 onKeyPress={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick("What's the population density here?");
+                                        handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of priority population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?`);
                                     }
                                 }}
                             >
-                                What's the population density here?
+                                What's the {dataset === 'pct_tot_co' ? 'percentage of priority population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?
                             </span>
                             {" or "}
                             <span

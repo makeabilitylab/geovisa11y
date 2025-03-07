@@ -901,13 +901,15 @@ def get_moran_i(dataset, state_filter=None):
         
         # Calculate global Moran's I
         moran = Moran(gdf['value'], w)
+        print(f"Moran's I: {moran.I}")
+        print(f"Moran's p-value: {moran.p_sim}")
         
         # Get the metric name for better descriptions
         metric_info = get_metric_info(dataset)
         metric_name = metric_info['name']
         
         # Interpret the results and provide simple response
-        if moran.p_sim < 0.05:  # Statistically significant
+        if moran.p_sim < 0.1:  # Statistically significant
             if moran.I > 0:
                 scope = f"in {state_filter}" if state_filter else "across the United States"
                 response = {
