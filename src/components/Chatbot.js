@@ -328,16 +328,19 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             const startTime = Date.now();
             setIsLoading(true);
             
-            // Add special case for "What else can you do?"
-            if (input.toLowerCase().trim() === "what else can you do?") {
+            // Add more flexible matching for "What else can you do?"
+            const whatElseRegex = /^what\s+(else|more)\s+(can|could)\s+(you|i)\s+(do|ask|say).*$/i;
+            if (whatElseRegex.test(input.trim()) || 
+                input.toLowerCase().includes("what can you do") || 
+                input.toLowerCase().includes("what else can you do")) {
                 setMessages(prev => [...prev, { 
                     text: `For the current dataset, I can:<br>
-• Compare and sort data<br>
-• Filter information<br>
-• Find similar values and outliers<br>
-• Describe patterns on the map<br>
-• Describe state shapes<br>
-• Identify neighboring states`, 
+                            • Compare and sort data<br>
+                            • Filter information<br>
+                            • Find similar values and outliers<br>
+                            • Describe patterns on the map<br>
+                            • Describe state shapes<br>
+                            • Identify neighboring states`, 
                     sender: 'bot' 
                 }]);
                 setIsLoading(false);
