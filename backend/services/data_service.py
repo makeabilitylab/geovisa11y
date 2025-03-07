@@ -12,6 +12,8 @@ from config import DevelopmentConfig
 from services.semantic_service import SemanticService
 import traceback
 from scipy.stats import chi2_contingency
+import libpysal
+from scipy.spatial.distance import squareform, pdist
 
 # Initialize DuckDB connection
 con = duckdb.connect('database/spatial-db.db', read_only=True)
@@ -828,7 +830,8 @@ def get_moran_i(dataset, state_filter=None):
             SELECT 
                 {'county_nam as name' if state_filter else 'state_name as name'}, 
                 {dataset} as value, 
-                ST_AsText(geom) as geometry
+                ST_AsText(geom) as geometry,
+                c_lat, c_lon
             FROM {table_name}
             WHERE {where_clause}
         """
@@ -846,11 +849,44 @@ def get_moran_i(dataset, state_filter=None):
             geometry=gpd.GeoSeries.from_wkt(result['geometry'])
         )
         
-        # Create spatial weights matrix using KNN
-        # Use fewer neighbors for county analysis to reflect local patterns better
-        k = 5 if state_filter else 10
-        w = KNN.from_dataframe(gdf, k=k)
-        w.transform = 'r'  # Row-standardize weights
+        # Create spatial weights matrix based on geography level
+        if state_filter:
+            # For county level, use Queen contiguity weights
+            w = libpysal.weights.Queen.from_dataframe(gdf)
+        else:
+            # For state level, use distance band weights
+            # Extract centroids from the data
+            coords = np.array(list(zip(gdf['c_lon'], gdf['c_lat'])))
+            
+            # Compute distance matrix
+            distance_matrix = squareform(pdist(coords))
+            
+            # Find each state's closest neighbor's distance (ignoring self)
+            min_distances = np.min(distance_matrix + np.eye(len(gdf)) * 1e6, axis=1)
+            
+            # Max nearest-neighbor distance across all states
+            max_nn_distance = max(min_distances)
+            
+            # Define threshold (20% above max nearest-neighbor distance)
+            distance_threshold = max_nn_distance * 1.2
+            
+            # Create distance band weights
+            w = libpysal.weights.DistanceBand.from_array(
+                coords, 
+                threshold=distance_threshold, 
+                binary=True
+            )
+        
+        # Handle islands (locations with no neighbors)
+        if not w.islands:
+            w.transform = 'r'  # Row-standardize weights
+        else:
+            # If there are islands, we need to handle them
+            print(f"Warning: {len(w.islands)} locations have no neighbors")
+            # Use KNN as fallback for islands
+            knn = libpysal.weights.KNN.from_dataframe(gdf, k=1)
+            w = libpysal.weights.util.attach_islands(w, knn)
+            w.transform = 'r'
         
         # Calculate global Moran's I
         moran = Moran(gdf['value'], w)
@@ -884,6 +920,7 @@ def get_moran_i(dataset, state_filter=None):
         
     except Exception as e:
         print(f"Error analyzing global pattern: {str(e)}")
+        print(f"Full traceback: {traceback.format_exc()}")
         return {
             'pattern': 'error',
             'description': "I couldn't analyze the spatial pattern due to a technical issue."
@@ -910,7 +947,8 @@ def get_lisa_clusters(dataset, state_filter=None):
                     THEN {dataset} * 100  -- Multiply percentages by 100
                     ELSE {dataset}
                 END as value,
-                ST_AsText(geom) as geometry
+                ST_AsText(geom) as geometry,
+                c_lat, c_lon
             FROM {table_name}
             WHERE {where_clause}
         """
@@ -930,11 +968,44 @@ def get_lisa_clusters(dataset, state_filter=None):
             geometry=gpd.GeoSeries.from_wkt(result['geometry'])
         )
         
-        # Create spatial weights matrix using KNN
-        # Use fewer neighbors for county analysis
-        k = 5 if state_filter else 10
-        w = KNN.from_dataframe(gdf, k=k)
-        w.transform = 'r'  # Normalize weights
+        # Create spatial weights matrix based on geography level
+        if state_filter:
+            # For county level, use Queen contiguity weights
+            w = libpysal.weights.Queen.from_dataframe(gdf)
+        else:
+            # For state level, use distance band weights
+            # Extract centroids from the data
+            coords = np.array(list(zip(gdf['c_lon'], gdf['c_lat'])))
+            
+            # Compute distance matrix
+            distance_matrix = squareform(pdist(coords))
+            
+            # Find each state's closest neighbor's distance (ignoring self)
+            min_distances = np.min(distance_matrix + np.eye(len(gdf)) * 1e6, axis=1)
+            
+            # Max nearest-neighbor distance across all states
+            max_nn_distance = max(min_distances)
+            
+            # Define threshold (20% above max nearest-neighbor distance)
+            distance_threshold = max_nn_distance * 1.2
+            
+            # Create distance band weights
+            w = libpysal.weights.DistanceBand.from_array(
+                coords, 
+                threshold=distance_threshold, 
+                binary=True
+            )
+        
+        # Handle islands (locations with no neighbors)
+        if not w.islands:
+            w.transform = 'r'  # Row-standardize weights
+        else:
+            # If there are islands, we need to handle them
+            print(f"Warning: {len(w.islands)} locations have no neighbors in LISA analysis")
+            # Use KNN as fallback for islands
+            knn = libpysal.weights.KNN.from_dataframe(gdf, k=1)
+            w = libpysal.weights.util.attach_islands(w, knn)
+            w.transform = 'r'
         
         # Calculate local Moran's I
         moran = Moran_Local(gdf['value'], w, permutations=999)
@@ -960,6 +1031,7 @@ def get_lisa_clusters(dataset, state_filter=None):
         
     except Exception as e:
         print(f"Error analyzing spatial patterns: {str(e)}")
+        print(f"Full traceback: {traceback.format_exc()}")
         return {
             'HH': [],
             'LL': [],
