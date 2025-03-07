@@ -193,7 +193,7 @@ def analyze_input():
         })
 
         # 3. Handle pattern-related questions directly
-        if question_type in ['is_pattern', 'describe_pattern', 'find_outliers']:
+        if question_type in ['get_pattern', 'find_outliers']:
             analysis = answer_question(user_input, current_dataset)
             if analysis:
                 processing_time = time.time() - start_time

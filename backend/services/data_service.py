@@ -261,36 +261,36 @@ def answer_question(question, current_dataset, current_focus=None):
         #print(f"Debug - Question type identified in answer_question: {question_type}")
 
         # Handle pattern questions before metric check
-        if question_type == 'is_pattern':
+        if question_type == 'get_pattern':
             # For Task2, return hardcoded answer about heating fuel patterns
             if current_dataset in ['gas', 'electricity', 'oil']:
+                pattern_result = 'Yes, there is a clustered pattern in the map; states with similar heating fuel composition tend to be located near each other.'
+                description_result = 'Southern states like Florida, Texas, and Georgia use predominantly electricity, midwestern states like Minnesota, Illinois, and Wisconsin use predominantly gas, and northeastern states like Maine and Vermont use predominantly oil.'
                 return {
-                    'result': 'Yes, there is a clustered pattern in the map; states with similar heating fuel composition tend to be located near each other.',
+                    'result': f"{pattern_result} {description_result}",
                     'dataset': current_dataset,
-                    'question_type': 'is_pattern'
+                    'question_type': 'get_pattern'
                 }
-            # For other datasets, use the regular Moran's I analysis
-            result = get_moran_i(current_dataset)
-            return {
-                'result': result['description'],
-                'dataset': current_dataset,
-                'question_type': 'is_pattern'
-            }
             
-        elif question_type == 'describe_pattern':
-            # For Task2, return hardcoded answer about regional heating fuel patterns
-            if current_dataset in ['gas', 'electricity', 'oil']:
+            # For other datasets, combine Moran's I and LISA analysis
+            moran_result = get_moran_i(current_dataset)
+            
+            # If there's no pattern, just return that without the description
+            if moran_result['pattern'] == 'random':
                 return {
-                    'result': 'Southern states like Florida, Texas, and Georgia use predominantly electricity, midwestern states like Minnesota, Illinois, and Wisconsin use predominantly gas, and northeastern states like Maine and Vermont use predominantly oil.',
+                    'result': moran_result['description'],
                     'dataset': current_dataset,
-                    'question_type': 'describe_pattern'
+                    'question_type': 'get_pattern'
                 }
-            # For other datasets, use the regular LISA analysis
-            result = get_lisa_clusters(current_dataset)
+            
+            # Otherwise, add the pattern description
+            lisa_result = get_lisa_clusters(current_dataset)
+            pattern_description = get_gpt_spatial_pattern_summary(lisa_result, current_dataset)
+            
             return {
-                'result': get_gpt_spatial_pattern_summary(result, current_dataset),
+                'result': f"{moran_result['description']} {pattern_description}",
                 'dataset': current_dataset,
-                'question_type': 'describe_pattern'
+                'question_type': 'get_pattern'
             }
             
         elif question_type == 'urban_rural_comparison' and current_dataset in ['gas', 'electricity', 'oil']:

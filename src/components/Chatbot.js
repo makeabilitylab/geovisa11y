@@ -472,11 +472,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 setPreviousAnswer(data.result); // Store the answer for context
                 setConversationHistory(prev => [...prev, input, data.result]); // Update conversation history
 
-                // Update map for pattern questions
-                if (data.question_type === 'describe_pattern') {
+
+                if (data.question_type === 'get_pattern') {
                     onPatternQuestion(true);
-                } else if (data.question_type === 'is_pattern') {
-                    onPatternQuestion(false);
                 }
 
                 // Handle state/county focusing for relevant question types
