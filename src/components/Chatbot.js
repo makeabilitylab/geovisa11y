@@ -404,11 +404,15 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             const requestData = {
                 input: input,
                 current_dataset: dataset,
-                current_focus: currentFocusedState || currentFocusedCounty || currentFocusedCity,
+                current_focus: {
+                    county: currentFocusedCounty,
+                    state: currentFocusedState,
+                    full: currentFocusedCounty ? `${currentFocusedCounty} County, ${Array.isArray(currentFocusedState) ? currentFocusedState[0] : currentFocusedState}` : null
+                },
                 previous_answer: previousAnswer,
                 conversation_history: messageHistory,
                 question_id: questionId,
-                raw_county: currentFocusedCounty ? currentFocusedCounty.county : null,
+                raw_county: currentFocusedCounty,
                 raw_state: currentFocusedState
             };
 

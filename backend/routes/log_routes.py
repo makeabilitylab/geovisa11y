@@ -55,31 +55,31 @@ def log_data():
         return '', 200
 
     try:
-        log_data = request.json
+        data = request.json
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        # Add timestamp if not present
+        if 'timestamp' not in data:
+            data['timestamp'] = datetime.datetime.utcnow()
+            
+        # Add IP address
+        data['ip_address'] = request.remote_addr
         
-        # Add timestamp and IP address
-        log_data['timestamp'] = datetime.datetime.utcnow()
-        log_data['ip_address'] = request.remote_addr
-        log_data['source'] = 'frontend'
-        
-        # Log the data
-        logger.info(f"Received log data: {log_data}")
+        # Add source
+        data['source'] = 'frontend'
         
         # Insert into MongoDB
-        result = logs_collection.insert_one(log_data)
+        result = logs_collection.insert_one(data)
         
-        return jsonify({
-            'success': True, 
-            'message': 'Log saved successfully', 
-            'id': str(result.inserted_id)
-        }), 201
-    
+        # Comment out or remove this line to stop printing logs
+        # logger.info(f"Received log data: {data}")
+        
+        return jsonify({'id': str(result.inserted_id)}), 201
+        
     except Exception as e:
-        logger.error(f"Error saving log: {e}")
-        return jsonify({
-            'success': False, 
-            'message': f'Error saving log: {str(e)}'
-        }), 500
+        logger.error(f"Error logging data: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # Backend-specific logging endpoint
 @log_bp.route('/backend-logs', methods=['POST'])
