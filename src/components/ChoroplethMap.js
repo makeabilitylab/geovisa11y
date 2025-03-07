@@ -499,6 +499,46 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     // Update data when dataset changes
     useEffect(() => {
         if (map.current && map.current.loaded()) {
+            // Turn off LISA layers when dataset changes
+            if (showSpatialClusters) {
+                onSpatialClustersToggle(false);
+            }
+            
+            // Reset to default view
+            map.current.flyTo({
+                center: [-96, 37.8],
+                zoom: 4,
+                duration: 2000
+            });
+            
+            // Clear state highlights
+            map.current.setPaintProperty('state-borders', 'line-opacity', 0);
+            
+            // Clear county view if showing
+            if (showingCounties) {
+                setShowingCounties(false);
+                setCurrentFocusedCounty(null);
+                setCountyData(null);
+                if (map.current.getLayer('county-borders')) {
+                    map.current.removeLayer('county-borders');
+                }
+                if (map.current.getLayer('county-fills')) {
+                    map.current.removeLayer('county-fills');
+                }
+                if (map.current.getSource('counties')) {
+                    map.current.removeSource('counties');
+                }
+            }
+            
+            // Announce dataset change
+            const datasetName = datasets[selectedDataset]?.name || selectedDataset;
+            setStateAnnouncement(`Dataset changed to ${datasetName}`);
+            
+            // Reset focused state
+            setCurrentFocusedState(null);
+            onStateFocus(null);
+            
+            // Fetch new data
             fetchData();
         }
     }, [selectedDataset]);
