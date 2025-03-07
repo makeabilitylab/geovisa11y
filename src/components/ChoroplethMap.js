@@ -275,18 +275,18 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             });
 
             // Add state borders layer last (top layer)
-            map.current.addLayer({
-                id: 'state-borders',
-                type: 'line',
-                source: 'population',
-                paint: {
-                    'line-color': '#000',
-                    'line-width': 1,
-                    'line-opacity': isTask2Page ? 0.5 : 0 // Make borders visible by default for Task2
-                },
-                // Ensure this layer is always on top
-                maxzoom: 24
-            });
+            // map.current.addLayer({
+            //     id: 'state-borders',
+            //     type: 'line',
+            //     source: 'population',
+            //     paint: {
+            //         'line-color': '#000',
+            //         'line-width': 1,
+            //         'line-opacity': isTask2Page ? 0.5 : 0 // Make borders visible by default for Task2
+            //     },
+            //     // Ensure this layer is always on top
+            //     maxzoom: 24
+            // });
 
             // Add mousemove handler for popup
             map.current.on('mousemove', 'population-density', (e) => {
@@ -1576,6 +1576,12 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 if (map.current.getSource('county-dot-density')) {
                     map.current.removeSource('county-dot-density');
                 }
+                if (map.current.getLayer('county-lisa-clusters-fill')) {
+                    map.current.removeLayer('county-lisa-clusters-fill');
+                }
+                if (map.current.getLayer('county-lisa-clusters')) {
+                    map.current.removeLayer('county-lisa-clusters');
+                }
                 if (map.current.getSource('counties')) {
                     map.current.removeSource('counties');
                 }
@@ -2049,6 +2055,107 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             }
         }
     }, [showSpatialClusters, geoData, isTask2Page]);
+
+    useEffect(() => {
+        if (map.current && layersInitialized && showSpatialClusters) {
+            // If we're showing counties, we need to fetch county-level LISA clusters
+            if (showingCounties && currentFocusedState) {
+                // Hide state-level LISA clusters
+                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
+                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+                
+                // Fetch county-level LISA clusters
+                fetch(`${apiUrl}/api/lisa_clusters/${currentFocusedState}?dataset=${selectedDataset}&level=county`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update county source with LISA classifications
+                        if (map.current.getSource('counties')) {
+                            map.current.getSource('counties').setData(data);
+                            
+                            // Add county LISA cluster layers if they don't exist
+                            if (!map.current.getLayer('county-lisa-clusters-fill')) {
+                                map.current.addLayer({
+                                    id: 'county-lisa-clusters-fill',
+                                    type: 'fill',
+                                    source: 'counties',
+                                    paint: {
+                                        'fill-color': [
+                                            'match',
+                                            ['get', 'lisa_class'],
+                                            'LL', '#01579b',  // Blue for Low-Low
+                                            'HL', '#f06292',  // Pink for High-Low
+                                            'LH', '#00bcd4',  // Light Blue for Low-High
+                                            'HH', '#d81b60',  // Red for High-High
+                                            'transparent'
+                                        ],
+                                        'fill-opacity': [
+                                            'case',
+                                            ['has', 'lisa_class'],
+                                            0.2, 
+                                            0
+                                        ]
+                                    }
+                                });
+                                
+                                map.current.addLayer({
+                                    id: 'county-lisa-clusters',
+                                    type: 'line',
+                                    source: 'counties',
+                                    paint: {
+                                        'line-color': [
+                                            'match',
+                                            ['get', 'lisa_class'],
+                                            'LL', '#01579b',
+                                            'HL', '#f06292',
+                                            'LH', '#00bcd4',
+                                            'HH', '#d81b60',
+                                            'transparent'
+                                        ],
+                                        'line-width': 2,
+                                        'line-opacity': [
+                                            'case',
+                                            ['has', 'lisa_class'],
+                                            0.8,
+                                            0
+                                        ],
+                                        'line-offset': 1,
+                                        'line-join': 'round',
+                                    }
+                                });
+                            } else {
+                                // Show existing county LISA layers
+                                map.current.setLayoutProperty('county-lisa-clusters-fill', 'visibility', 'visible');
+                                map.current.setLayoutProperty('county-lisa-clusters', 'visibility', 'visible');
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error fetching county LISA clusters:', error));
+            } else {
+                // We're at state level, show state LISA clusters
+                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
+                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
+                
+                // Hide county LISA clusters if they exist
+                if (map.current.getLayer('county-lisa-clusters-fill')) {
+                    map.current.setLayoutProperty('county-lisa-clusters-fill', 'visibility', 'none');
+                }
+                if (map.current.getLayer('county-lisa-clusters')) {
+                    map.current.setLayoutProperty('county-lisa-clusters', 'visibility', 'none');
+                }
+            }
+        } else if (map.current && layersInitialized && !showSpatialClusters) {
+            // Hide all LISA clusters
+            map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
+            map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+            
+            if (map.current.getLayer('county-lisa-clusters-fill')) {
+                map.current.setLayoutProperty('county-lisa-clusters-fill', 'visibility', 'none');
+            }
+            if (map.current.getLayer('county-lisa-clusters')) {
+                map.current.setLayoutProperty('county-lisa-clusters', 'visibility', 'none');
+            }
+        }
+    }, [showSpatialClusters, showingCounties, currentFocusedState, selectedDataset, layersInitialized, apiUrl]);
 
     return (
         <div className="relative h-full ">
