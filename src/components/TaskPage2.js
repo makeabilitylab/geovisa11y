@@ -11,6 +11,8 @@ function TaskPage2() {
   const [focusedCounty, setFocusedCounty] = useState(null);
   const [focusedCity, setFocusedCity] = useState(null);
   const [interactionFocus, setInteractionFocus] = useState('none'); // 'none', 'map', or 'chat'
+  const [showingCounties, setShowingCounties] = useState(false);
+  const [countyViewState, setCountyViewState] = useState(null);
 
   const API_URL = process.env.NODE_ENV === 'production'
     ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
@@ -60,6 +62,12 @@ function TaskPage2() {
     setFocusedCounty(null);
     // Set city focus
     setFocusedCity(cityInfo);
+  };
+
+  const handleCountyViewChange = (isShowing, stateName) => {
+    console.log(`County view changed: ${isShowing}, state: ${stateName}`);
+    setShowingCounties(isShowing);
+    setCountyViewState(stateName);
   };
 
   useEffect(() => {
@@ -113,6 +121,7 @@ function TaskPage2() {
           onCityFocus={setFocusedCity}
           isTaskPage={true}
           isTask2Page={true}
+          onShowingCountiesChange={handleCountyViewChange}
         />
       </div>
       <div className="w-1/3 h-full">
@@ -130,6 +139,8 @@ function TaskPage2() {
           onCityFocus={handleCityFocus}
           isTaskPage={true}
           isTask2Page={true}
+          showingCounties={showingCounties}
+          countyViewState={countyViewState}
         />
       </div>
     </div>
