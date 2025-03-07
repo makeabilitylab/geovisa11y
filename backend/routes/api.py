@@ -194,7 +194,7 @@ def analyze_input():
 
         # 3. Handle pattern-related questions directly
         if question_type in ['get_pattern', 'find_outliers']:
-            analysis = answer_question(user_input, current_dataset)
+            analysis = answer_question(user_input, current_dataset, current_focus)
             if analysis:
                 processing_time = time.time() - start_time
                 
@@ -580,5 +580,38 @@ def get_task2_geojson():
         
         # Use the state table instead of task2_state
         return fetch_fuel_data('state', accuracy)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@api.route('/lisa_clusters/<state_name>', methods=['GET'])
+def get_lisa_clusters(state_name):
+    try:
+        dataset = request.args.get('dataset', 'ppl_densit')
+        level = request.args.get('level', 'state')  # 'state' or 'county'
+        
+        # Get LISA clusters
+        clusters = data_service.get_lisa_clusters(dataset, state_name if level == 'county' else None)
+        
+        # If we're requesting county-level clusters, we need to update the county GeoJSON
+        if level == 'county':
+            # Get the county GeoJSON first
+            county_response = get_counties(state_name)
+            county_data = json.loads(county_response.data)
+            
+            # Update features with LISA classifications
+            for feature in county_data['features']:
+                county_name = feature['properties']['county_name']
+                
+                # Check which cluster this county belongs to
+                for cluster_type in ['HH', 'LL', 'HL', 'LH']:
+                    if county_name in clusters[cluster_type]:
+                        feature['properties']['lisa_class'] = cluster_type
+                        break
+            
+            return jsonify(county_data)
+        
+        # For state-level, just return the clusters
+        return jsonify(clusters)
+        
     except Exception as e:
         return jsonify({'error': str(e)}), 500

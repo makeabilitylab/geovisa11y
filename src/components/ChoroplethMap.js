@@ -244,7 +244,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     ]
                 }
             });
-
             // Add LISA cluster outlines
             map.current.addLayer({
                 id: 'lisa-clusters',
@@ -1539,6 +1538,21 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     fetchCountyData(currentFocusedState);
                     setStateAnnouncement(`Showing counties in ${currentFocusedState}. Press Tab to focus on a county.`);
                     setCurrentFocusedCounty(null);
+                    
+                    // Hide state-level choropleth when showing counties
+                    if (map.current && map.current.getLayer('population-density')) {
+                        map.current.setLayoutProperty('population-density', 'visibility', 'none');
+                    }
+                    
+                    // Also hide state-level LISA clusters if they're visible
+                    if (map.current && showSpatialClusters) {
+                        if (map.current.getLayer('lisa-clusters-fill')) {
+                            map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
+                        }
+                        if (map.current.getLayer('lisa-clusters')) {
+                            map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+                        }
+                    }
                 }
             }
 
@@ -1570,6 +1584,20 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 if (isTask2Page && map.current.getLayer('dot-density-layer')) {
                     map.current.setLayoutProperty('dot-density-layer', 'visibility', 'visible');
                 }
+                // Show state-level choropleth again when returning to state view
+                if (map.current.getLayer('population-density')) {
+                    map.current.setLayoutProperty('population-density', 'visibility', 'visible');
+                }
+                
+                // Show state-level LISA clusters again if they were visible
+                if (showSpatialClusters) {
+                    if (map.current.getLayer('lisa-clusters-fill')) {
+                        map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
+                    }
+                    if (map.current.getLayer('lisa-clusters')) {
+                        map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
+                    }
+                }
             }
             
             // Normalize currentFocusedState before using it
@@ -1597,7 +1625,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     onFocusedCountyChange,
     onStateFocus,
     normalizeStateName,
-    fetchCountyData
+    fetchCountyData,
+    showSpatialClusters
 ]);
 
     // Update effect to sync with parent's state
