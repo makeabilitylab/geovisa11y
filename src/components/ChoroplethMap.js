@@ -27,6 +27,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const [currentFocusedCounty, setCurrentFocusedCounty] = useState(null);
     const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
     const [dotDensityData, setDotDensityData] = useState(null);
+    const [showPredominantFuelLegend, setShowPredominantFuelLegend] = useState(false);
 
     const datasets = isTask2Page ? {
         'gas': {
@@ -1943,6 +1944,84 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [layersInitialized, isTask2Page]);
 
+    // Add this to the useEffect that handles showSpatialClusters changes
+    useEffect(() => {
+        if (!map.current || !geoData) return;
+
+        // For Task2, show predominant fuel choropleth when showing patterns
+        if (isTask2Page && showSpatialClusters) {
+            // Keep dot density layer visible - remove the code that hides it
+            // if (map.current.getLayer('dot-density-layer')) {
+            //     map.current.setLayoutProperty('dot-density-layer', 'visibility', 'none');
+            // }
+            
+            // Add or update predominant fuel layer
+            if (!map.current.getLayer('predominant-fuel')) {
+                map.current.addLayer({
+                    id: 'predominant-fuel',
+                    type: 'fill',
+                    source: 'population',
+                    paint: {
+                        'fill-color': [
+                            'match',
+                            ['get', 'main_fuel'],
+                            'gas', '#ff0000',      // Red for gas
+                            'electricity', '#0000ff', // Blue for electricity
+                            'oil', '#00aa00',      // Green for oil
+                            '#cccccc'              // Default gray
+                        ],
+                        'fill-opacity': 0.2
+                    }
+                }, 'dot-density-layer'); // Place below dot density layer so dots are visible on top
+            } else {
+                map.current.setLayoutProperty('predominant-fuel', 'visibility', 'visible');
+            }
+            
+            // Add a legend for predominant fuel
+            setShowPredominantFuelLegend(true);
+            
+            // Make sure LISA clusters are hidden for Task2
+            if (map.current.getLayer('lisa-clusters-fill')) {
+                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
+            }
+            if (map.current.getLayer('lisa-clusters')) {
+                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+            }
+        } else if (isTask2Page) {
+            // Hide predominant fuel layer when not showing patterns
+            if (map.current.getLayer('predominant-fuel')) {
+                map.current.setLayoutProperty('predominant-fuel', 'visibility', 'none');
+            }
+            
+            // Show dot density layer (this should already be visible)
+            if (map.current.getLayer('dot-density-layer')) {
+                map.current.setLayoutProperty('dot-density-layer', 'visibility', 'visible');
+            }
+            
+            // Hide the legend
+            setShowPredominantFuelLegend(false);
+        } else {
+            // Handle non-Task2 pages (original LISA clusters logic)
+            if (showSpatialClusters) {
+                // Show LISA clusters
+                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
+                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
+                
+                // Make state borders more visible
+                map.current.setPaintProperty('state-borders', 'line-opacity', 0.8);
+                map.current.setPaintProperty('state-borders', 'line-width', 1.5);
+            } else {
+                // Hide LISA clusters
+                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
+                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+                
+                // Reset state borders
+                map.current.setPaintProperty('state-borders', 'line-opacity', isTask2Page ? 0.5 : 0);
+                map.current.setPaintProperty('state-borders', 'line-width', 1);
+            }
+        }
+    }, [showSpatialClusters, geoData, isTask2Page]);
+
     return (
         <div className="relative h-full ">
             <div 
@@ -2086,7 +2165,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             </div>
 
             {/* LISA Clusters Legend with close button */}
-            {showSpatialClusters && (
+            {showSpatialClusters && !isTask2Page &&(
                 <div className="absolute bottom-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90">
                     <div className="flex justify-between items-center mb-2">
                         <h3 className="text-sm font-bold">Hot and Cold Spots</h3>
@@ -2113,6 +2192,40 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         <div className="flex items-center">
                             <div className="w-4 h-4 mr-2 border-2 border-[#00bcd4] bg-[#00bcd4] bg-opacity-20"></div>
                             <span className="text-xs">Low-High Outlier</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Predominant Fuel Legend - Show only for task2 when showing patterns */}
+            {isTask2Page && showPredominantFuelLegend && (
+                <div className="absolute bottom-10 left-4 bg-white p-3 rounded-md shadow-md z-10">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-bold">Predominant Heating Fuel</h3>
+                        <button 
+                            onClick={() => {
+                                setShowPredominantFuelLegend(false);
+                                // Also turn off the spatial clusters when closing the legend
+                                onSpatialClustersToggle(false);
+                            }}
+                            className="text-gray-500 hover:text-gray-700"
+                            aria-label="Close legend"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center">
+                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#ff0000' }}></div>
+                            <span className="text-xs">Gas</span>
+                        </div>
+                        <div className="flex items-center">
+                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#0000ff' }}></div>
+                            <span className="text-xs">Electricity</span>
+                        </div>
+                        <div className="flex items-center">
+                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#00aa00' }}></div>
+                            <span className="text-xs">Oil</span>
                         </div>
                     </div>
                 </div>
