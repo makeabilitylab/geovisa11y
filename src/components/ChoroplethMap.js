@@ -275,18 +275,18 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             });
 
             // Add state borders layer last (top layer)
-            // map.current.addLayer({
-            //     id: 'state-borders',
-            //     type: 'line',
-            //     source: 'population',
-            //     paint: {
-            //         'line-color': '#000',
-            //         'line-width': 1,
-            //         'line-opacity': isTask2Page ? 0.5 : 0 // Make borders visible by default for Task2
-            //     },
-            //     // Ensure this layer is always on top
-            //     maxzoom: 24
-            // });
+            map.current.addLayer({
+                id: 'state-borders',
+                type: 'line',
+                source: 'population',
+                paint: {
+                    'line-color': '#000',
+                    'line-width': 1,
+                    'line-opacity': isTask2Page ? 0.5 : 0 // Make borders visible by default for Task2
+                },
+                // Ensure this layer is always on top
+                maxzoom: 24
+            });
 
             // Add mousemove handler for popup
             map.current.on('mousemove', 'population-density', (e) => {
