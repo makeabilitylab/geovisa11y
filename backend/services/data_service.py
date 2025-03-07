@@ -253,7 +253,7 @@ def check_location_exists(location):
 #######################################
 
 
-def answer_question(question, current_dataset):
+def answer_question(question, current_dataset, current_focus=None):
     """Answer any question for any dataset based on query type"""
     try:
         # Get the question type first
@@ -294,12 +294,24 @@ def answer_question(question, current_dataset):
             }
             
         elif question_type == 'urban_rural_comparison' and current_dataset in ['gas', 'electricity', 'oil']:
+            # Extract state from the question or use the current focused state
+            states = semantic_service.extract_states(question)
+            state_name = states[0] if states else None
+            
+            # If no state was mentioned in the question but there's a focused state,
+            # use the focused state from the frontend
+            if not state_name and isinstance(current_focus, dict) and current_focus.get('state'):
+                state_name = current_focus.get('state')
+            elif not state_name and isinstance(current_focus, str) and current_focus:
+                state_name = current_focus
+            
             # Handle urban vs rural comparison for heating fuels
-            result = compare_urban_rural_heating_fuels()
+            result = compare_urban_rural_heating_fuels(state_name)
             return {
                 'result': result,
                 'dataset': current_dataset,
-                'question_type': 'urban_rural_comparison'
+                'question_type': 'urban_rural_comparison',
+                'state': state_name
             }
 
         if question_type == 'retrieve':
@@ -975,17 +987,21 @@ def find_outliers(lisa_results, dataset):
         print(f"Error formatting outliers: {str(e)}")
         return None
 
-def compare_urban_rural_heating_fuels():
-    """Compare urban and rural counties' predominant heating fuel types"""
+def compare_urban_rural_heating_fuels(state_name=None):
+    """Compare urban and rural counties' predominant heating fuel types within a specific state"""
     try:
+        # Add state filter if provided
+        state_filter = f"AND LOWER(state_name) = LOWER('{state_name}')" if state_name else ""
+        
         # Query to get county data with urban/rural classification and predominant fuel
-        query = """
+        query = f"""
         SELECT 
             rural,  -- 'Rural' or 'Not rural'
             main_fuel,
             COUNT(*) as count
         FROM county
         WHERE rural IS NOT NULL AND main_fuel IS NOT NULL
+        {state_filter}
         GROUP BY rural, main_fuel
         ORDER BY rural, main_fuel
         """
@@ -993,11 +1009,15 @@ def compare_urban_rural_heating_fuels():
         result = con.execute(query).fetchdf()
         
         if result.empty:
-            return "I couldn't find data on urban and rural counties' heating fuel usage."
+            return f"I couldn't find data on urban and rural counties' heating fuel usage{' in ' + state_name if state_name else ''}."
         
         # Create a contingency table for chi-square test
         # Reshape the data into a contingency table format
         contingency_table = result.pivot(index='rural', columns='main_fuel', values='count').fillna(0)
+        
+        # Check if we have both rural and non-rural counties
+        if 'Rural' not in contingency_table.index or 'Not rural' not in contingency_table.index:
+            return f"I couldn't compare urban and rural counties in {state_name} because there aren't enough counties of both types."
         
         # Perform chi-square test
         chi2, p_value, dof, expected = chi2_contingency(contingency_table)
@@ -1019,14 +1039,20 @@ def compare_urban_rural_heating_fuels():
         else:
             significance = "There is no statistically significant difference"
             
-        response = f"{significance} between urban and rural counties regarding their predominant heating fuels.\n\n"
-        
-        response += f"Urban counties predominantly use {urban_predominant} heating ({urban_percentages[urban_predominant]}%), "
-        response += f"while rural counties predominantly use {rural_predominant} heating ({rural_percentages[rural_predominant]}%).\n\n"
+        # Include state name in the response
+        state_phrase = f" in {state_name}" if state_name else ""
+        response = f"{significance} between urban and rural counties regarding their predominant heating fuels{state_phrase}.\n\n"
+
+        if urban_predominant == rural_predominant:
+            response += f"Both urban and rural counties predominantly use {urban_predominant} heating in {state_name}."
+        else:
+            response += f"Urban counties predominantly use {urban_predominant} heating ({urban_percentages[urban_predominant]}%), "
+            response += f"while rural counties predominantly use {rural_predominant} heating ({rural_percentages[rural_predominant]}%).\n\n"
         
         return response
         
     except Exception as e:
         print(f"Error comparing urban and rural heating fuels: {str(e)}")
-        return "I couldn't analyze the difference between urban and rural counties due to a technical issue."
+        state_phrase = f" in {state_name}" if state_name else ""
+        return f"I couldn't analyze the difference between urban and rural counties{state_phrase} due to a technical issue."
 

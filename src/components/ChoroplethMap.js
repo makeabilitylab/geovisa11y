@@ -770,7 +770,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 if (map.current.getLayer('state-hover-layer')) {
                     map.current.on('mousemove', 'state-hover-layer', (e) => {
                         if (e.features.length > 0) {
-                            console.log('Mousemove detected on state-hover-layer');
                             map.current.getCanvas().style.cursor = 'pointer';
                             
                             const feature = e.features[0];
