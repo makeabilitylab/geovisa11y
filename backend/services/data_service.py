@@ -170,16 +170,9 @@ def fetch_fuel_data(table_name, accuracy, state_filter=None):
         
         # Add county_name column if fetching county data
         county_column = "county_nam as county_name," if table_name == 'county' else ""
-        
-        # Calculate main_fuel on the fly if it doesn't exist as a column
-        # main_fuel_calc = """
-        #     CASE 
-        #         WHEN gas > electricity AND gas > oil THEN 'gas'
-        #         WHEN electricity > gas AND electricity > oil THEN 'electricity'
-        #         WHEN oil > gas AND oil > electricity THEN 'oil'
-        #         ELSE 'mixed'
-        #     END as main_fuel
-        # """
+
+        ## Add rural column
+        rural_column = "rural," if table_name == 'county' else ""
         
         query = f"""
         SELECT GEOID, state_name, 
@@ -188,6 +181,7 @@ def fetch_fuel_data(table_name, accuracy, state_filter=None):
                COALESCE(electricit, 0) as electricity,
                COALESCE(oil, 0) as oil,
                main_fuel,
+               {rural_column}
                ST_X(ST_Centroid(geom)) as c_lon,
                ST_Y(ST_Centroid(geom)) as c_lat,
                ST_AsText(ST_Simplify(geom, {accuracy})) AS geom_wkt,
@@ -263,24 +257,41 @@ def answer_question(question, current_dataset, current_focus=None):
         
         # Extract state filter from current_focus if available
         state_filter = None
+        county_view = False
         if current_focus:
-            if isinstance(current_focus, dict) and current_focus.get('state'):
-                state_filter = current_focus.get('state')
+            if isinstance(current_focus, dict):
+                if current_focus.get('state'):
+                    state_filter = current_focus.get('state')
+                # Check if we're in county view - either by having a county or by having showingCounties flag
+                if current_focus.get('county') or current_focus.get('showingCounties'):
+                    county_view = True
             elif isinstance(current_focus, str):
                 state_filter = current_focus
         
-        print(f"DEBUG - State filter extracted: {state_filter}")
+        print(f"DEBUG - State filter extracted: {state_filter}, County view: {county_view}")
+        
         # Handle pattern questions before metric check
         if question_type == 'get_pattern':
             # For Task2, return hardcoded answer about heating fuel patterns
             if current_dataset in ['gas', 'electricity', 'oil']:
-                pattern_result = 'Yes, there is a clustered pattern in the map; states with similar heating fuel composition tend to be located near each other.'
-                description_result = 'Southern states like Florida, Texas, and Georgia use predominantly electricity, midwestern states like Minnesota, Illinois, and Wisconsin use predominantly gas, and northeastern states like Maine and Vermont use predominantly oil.'
-                return {
-                    'result': f"{pattern_result} {description_result}",
-                    'dataset': current_dataset,
-                    'question_type': 'get_pattern'
-                }
+                # Use urban_rural_comparison when in county view OR when we have a state filter
+                if county_view and state_filter:
+                    result = compare_urban_rural_heating_fuels(state_filter)
+                    return {
+                        'result': result,
+                        'dataset': current_dataset,
+                        'question_type': 'urban_rural_comparison',
+                        'state': state_filter
+                    }
+                # For state level view, use the original hardcoded answer
+                else:
+                    pattern_result = 'Yes, there is a clustered pattern in the map; states with similar heating fuel composition tend to be located near each other.'
+                    description_result = 'Southern states like Florida, Texas, and Georgia use predominantly electricity, midwestern states like Minnesota, Illinois, and Wisconsin use predominantly gas, and northeastern states like Maine and Vermont use predominantly oil.'
+                    return {
+                        'result': f"{pattern_result} {description_result}",
+                        'dataset': current_dataset,
+                        'question_type': 'get_pattern'
+                    }
             
             # For other datasets, combine Moran's I and LISA analysis
             moran_result = get_moran_i(current_dataset, state_filter)
@@ -1160,43 +1171,41 @@ def compare_urban_rural_heating_fuels(state_name=None):
         if result.empty:
             return f"I couldn't find data on urban and rural counties' heating fuel usage{' in ' + state_name if state_name else ''}."
         
-        # Create a contingency table for chi-square test
-        # Reshape the data into a contingency table format
+        # Create a contingency table
         contingency_table = result.pivot(index='rural', columns='main_fuel', values='count').fillna(0)
         
         # Check if we have both rural and non-rural counties
         if 'Rural' not in contingency_table.index or 'Not rural' not in contingency_table.index:
             return f"I couldn't compare urban and rural counties in {state_name} because there aren't enough counties of both types."
         
-        # Perform chi-square test
-        chi2, p_value, dof, expected = chi2_contingency(contingency_table)
-        
-        # Format the results
-        rural_predominant = contingency_table.loc['Rural'].idxmax()
-        urban_predominant = contingency_table.loc['Not rural'].idxmax()
-        
-        # Calculate percentages
+        # Calculate percentages for each fuel type
         urban_total = contingency_table.loc['Not rural'].sum()
         rural_total = contingency_table.loc['Rural'].sum()
         
         urban_percentages = (contingency_table.loc['Not rural'] / urban_total * 100).round(1)
         rural_percentages = (contingency_table.loc['Rural'] / rural_total * 100).round(1)
         
-        # Prepare the response
-        if p_value < 0.05:
-            significance = "There is a statistically significant difference"
-        else:
-            significance = "There is no statistically significant difference"
-            
-        # Include state name in the response
+        # Prepare the response with the new first sentence
         state_phrase = f" in {state_name}" if state_name else ""
-        response = f"{significance} between urban and rural counties regarding their predominant heating fuels{state_phrase}.\n\n"
-
-        if urban_predominant == rural_predominant:
-            response += f"Both urban and rural counties predominantly use {urban_predominant} heating in {state_name}."
-        else:
-            response += f"Urban counties predominantly use {urban_predominant} heating ({urban_percentages[urban_predominant]}%), "
-            response += f"while rural counties predominantly use {rural_predominant} heating ({rural_percentages[rural_predominant]}%).\n\n"
+        response = f"Here's a breakdown of predominantly used heating fuels{state_phrase}.\n\n"
+        
+        # Add detailed breakdown for urban counties
+        urban_breakdown = []
+        for fuel_type in contingency_table.columns:
+            if urban_percentages[fuel_type] > 0:
+                urban_breakdown.append(f"{urban_percentages[fuel_type]}% predominantly use {fuel_type}")
+        
+        if urban_breakdown:
+            response += f"For urban counties: {', '.join(urban_breakdown)}.\n"
+        
+        # Add detailed breakdown for rural counties
+        rural_breakdown = []
+        for fuel_type in contingency_table.columns:
+            if rural_percentages[fuel_type] > 0:
+                rural_breakdown.append(f"{rural_percentages[fuel_type]}% predominantly use {fuel_type}")
+        
+        if rural_breakdown:
+            response += f"For rural counties: {', '.join(rural_breakdown)}."
         
         return response
         

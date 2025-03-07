@@ -15,7 +15,7 @@ import {
 } from '../utils/logger';
 
 
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus, isTaskPage = false, isTask2Page = false }) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus, isTaskPage = false, isTask2Page = false, showingCounties = false, countyViewState = null }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -348,24 +348,30 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 return;
             }
 
-            // Create focus object that includes state, county, and city
+            // Create focus object that includes state, county, and showingCounties flag
             const currentFocus = currentFocusedCity 
                 ? {
                     city: currentFocusedCity.name,
                     state: currentFocusedCity.state,
                     coordinates: currentFocusedCity.coordinates,
-                    full: `${currentFocusedCity.name}, ${currentFocusedCity.state}`
+                    full: `${currentFocusedCity.name}, ${currentFocusedCity.state}`,
+                    showingCounties: showingCounties
                   }
                 : currentFocusedCounty 
                 ? {
                     county: currentFocusedCounty,
                     state: currentFocusedState,
-                    full: `${currentFocusedCounty} County, ${currentFocusedState}`
+                    full: `${currentFocusedCounty} County, ${currentFocusedState}`,
+                    showingCounties: showingCounties
                   }
                 : {
-                    state: currentFocusedState,
-                    full: currentFocusedState
+                    state: currentFocusedState || countyViewState, // Use countyViewState as fallback
+                    full: currentFocusedState || countyViewState,
+                    showingCounties: showingCounties
                   };
+
+            // Log the current focus for debugging
+            console.log("Sending current focus to backend:", currentFocus);
 
             // Build conversation history from messages
             const messageHistory = messages.map(msg => msg.text);
@@ -401,15 +407,11 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             
             console.log('Conversation history:', messageHistory);
 
-            // Prepare the request data
+            // Prepare the request data - USE THE CURRENT FOCUS OBJECT WE CREATED
             const requestData = {
                 input: input,
                 current_dataset: dataset,
-                current_focus: {
-                    county: currentFocusedCounty,
-                    state: currentFocusedState,
-                    full: currentFocusedCounty ? `${currentFocusedCounty} County, ${Array.isArray(currentFocusedState) ? currentFocusedState[0] : currentFocusedState}` : null
-                },
+                current_focus: currentFocus,  // Use the object we created above
                 previous_answer: previousAnswer,
                 conversation_history: messageHistory,
                 question_id: questionId,

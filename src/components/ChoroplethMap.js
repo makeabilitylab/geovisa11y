@@ -5,7 +5,7 @@ import * as turf from '@turf/turf';
 import { logMapInteraction } from '../utils/logger';
 import { generateDotDensityForFeatureCollection, generateMultiAttributeDotDensity } from '../utils/DotDensityGenerator';
 
-const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, focusedCity, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive, onMapClick, isTaskPage = false, isTask2Page = false }) => {
+const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, focusedCity, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive, onMapClick, isTaskPage = false, isTask2Page = false, onShowingCountiesChange }) => {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
@@ -757,9 +757,11 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                             const gas = feature.properties.gas || 0;
                             const electricity = feature.properties.electricity || 0;
                             const oil = feature.properties.oil || 0;
+                            const isRural = feature.properties.rural === 'Rural' ? 'Rural' : 'Urban';
                             
                             tooltipContent = `
                                 <div class="text-xs font-semibold">${stateName}</div>
+                                <div class="text-xs">Classification: ${isRural}</div>
                                 <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
                                 <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
                                 <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
@@ -917,9 +919,14 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                             const gas = feature.properties.gas || 0;
                             const electricity = feature.properties.electricity || 0;
                             const oil = feature.properties.oil || 0;
+                            const isRural = feature.properties.rural ? 
+                                (feature.properties.rural === 'Rural' ? 'Rural' : 'Urban') : 
+                                'Unknown';
+                            console.log(feature.properties);
                             
                             tooltipContent = `
                                 <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
+                                <div class="text-xs">County Type: ${isRural}</div>
                                 <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
                                 <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
                                 <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
@@ -965,9 +972,11 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                             const gas = feature.properties.gas || 0;
                             const electricity = feature.properties.electricity || 0;
                             const oil = feature.properties.oil || 0;
+                            const isRural = feature.properties.rural === 'Rural' ? 'Rural' : 'Urban';
                             
                             tooltipContent = `
                                 <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
+                                <div class="text-xs">Classification: ${isRural}</div>
                                 <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
                                 <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
                                 <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
@@ -1471,6 +1480,13 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             });
 
             setShowingCounties(true);
+            
+            // Notify parent component about county view
+            if (onShowingCountiesChange) {
+                console.log(`Notifying parent that counties are now showing for ${stateName}`);
+                onShowingCountiesChange(true, stateName);
+            }
+            
             setIsLoading(false);
         } catch (error) {
             console.error('Error fetching county data:', error);
@@ -1649,6 +1665,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             setShowingCounties(false);
             setCurrentFocusedCounty(null);
             setCountyData(null);
+            onShowingCountiesChange(false, null);
             
             // Clean up county layers
             if (map.current) {
@@ -2261,6 +2278,57 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             }
         }
     }, [showSpatialClusters, showingCounties, currentFocusedState, selectedDataset, layersInitialized, apiUrl]);
+
+    // Update the resetToStateView function to properly reset the map and notify parent
+    const resetToStateView = () => {
+        if (map.current) {
+            // Hide county layers if they exist
+            if (map.current.getLayer('county-fills')) {
+                map.current.removeLayer('county-fills');
+            }
+            if (map.current.getLayer('county-borders')) {
+                map.current.removeLayer('county-borders');
+            }
+            if (map.current.getSource('counties')) {
+                map.current.removeSource('counties');
+            }
+            
+            // Hide county dot density layers if they exist
+            if (map.current.getLayer('county-dot-density-layer')) {
+                map.current.removeLayer('county-dot-density-layer');
+            }
+            if (map.current.getSource('county-dot-density')) {
+                map.current.removeSource('county-dot-density');
+            }
+            
+            // Reset to US view
+            map.current.fitBounds([
+                [-125.0, 24.0], // Southwest coordinates
+                [-66.0, 50.0]   // Northeast coordinates
+            ]);
+            
+            // Show state layers again
+            if (map.current.getLayer('state-fills')) {
+                map.current.setLayoutProperty('state-fills', 'visibility', 'visible');
+            }
+            if (map.current.getLayer('state-borders')) {
+                map.current.setLayoutProperty('state-borders', 'visibility', 'visible');
+            }
+            
+            // Reset state
+            setShowingCounties(false);
+            setCurrentFocusedCounty(null);
+            setCurrentFocusedState(null);
+            
+            // Notify parent component
+            if (onShowingCountiesChange) {
+                console.log('Notifying parent that counties are no longer showing');
+                onShowingCountiesChange(false, null);
+            }
+            
+            setStateAnnouncement('Returned to national view.');
+        }
+    };
 
     return (
         <div className="relative h-full ">
