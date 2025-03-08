@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../App.css';
-import ChoroplethMap from './ChoroplethMap';
+import DotDensityMap from './DotDensityMap';
 import Chatbot from './Chatbot';
 import { logSessionEnd } from '../utils/logger';
 
@@ -106,7 +106,7 @@ function TaskPage2() {
   return (
     <div className="flex h-screen w-screen overflow-hidden">
       <div className="w-2/3 h-full relative">
-        <ChoroplethMap
+        <DotDensityMap
           dataset={currentDataset}
           showSpatialClusters={showSpatialClusters}
           onSpatialClustersToggle={setShowSpatialClusters}
@@ -118,9 +118,7 @@ function TaskPage2() {
           isMapInteractive={interactionFocus === 'map'}
           onMapClick={() => setInteractionFocus('map')}
           focusedCity={focusedCity}
-          onCityFocus={setFocusedCity}
-          isTaskPage={true}
-          isTask2Page={true}
+          onCityFocus={handleCityFocus}
           onShowingCountiesChange={handleCountyViewChange}
         />
       </div>
@@ -147,4 +145,4 @@ function TaskPage2() {
   );
 }
 
-export default TaskPage2; 
+export default TaskPage2;

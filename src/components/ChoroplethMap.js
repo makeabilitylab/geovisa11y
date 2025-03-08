@@ -1,9 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import * as turf from '@turf/turf';
 import { logMapInteraction } from '../utils/logger';
-import { generateDotDensityForFeatureCollection, generateMultiAttributeDotDensity } from '../utils/DotDensityGenerator';
 
 const ChoroplethMap = ({ dataset, 
     showSpatialClusters, 
@@ -17,14 +15,12 @@ const ChoroplethMap = ({ dataset,
     isMapInteractive, 
     onMapClick, 
     isTaskPage = false, 
-    isTask2Page = false, 
     onShowingCountiesChange }) => 
         {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
     const [selectedDataset, setSelectedDataset] = useState(
-        isTask2Page ? 'gas' : 
         isTaskPage ? 'pct_tot_co' : 
         'ppl_densit'
     );
@@ -44,17 +40,8 @@ const ChoroplethMap = ({ dataset,
     const [countyData, setCountyData] = useState(null);
     
     const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
-    
-    const [dotDensityData, setDotDensityData] = useState(null);
-    const [showPredominantFuelLegend, setShowPredominantFuelLegend] = useState(false);
 
-    const datasets = isTask2Page ? {
-        'gas': {
-            name: 'Gas Heating Usage',
-            breaks: [0, 1000, 2000, 3000, 4000, 5000],
-            colors: ['#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c']
-        }
-    } : isTaskPage ? {
+    const datasets = isTaskPage ? {
         'pct_tot_co': {
             name: 'Priority Population',
             breaks: [75, 80, 85, 90, 95],
@@ -84,24 +71,6 @@ const ChoroplethMap = ({ dataset,
         }
     };
 
-    const fuelTypes = {
-        gas: {
-            name: 'Gas Heating',
-            color: '#7e57c2',
-            dotValue: 100000
-        },
-        electricity: {
-            name: 'Electric Heating',
-            color: '#26a69a', 
-            dotValue: 100000
-        },
-        oil: {
-            name: 'Oil Heating',
-            color: '#f57f17',
-            dotValue: 100000
-        }
-    };
-
     useEffect(() => {
         // Log environment info
         console.log('Environment Check:', {
@@ -116,10 +85,8 @@ const ChoroplethMap = ({ dataset,
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            // For Task2, use a special endpoint that returns all fuel types
-            const endpoint = isTask2Page ? 'task2_state' : selectedDataset;
             
-            const response = await fetch(`${apiUrl}/api/geojson/${endpoint}`, {
+            const response = await fetch(`${apiUrl}/api/geojson/${selectedDataset}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -139,7 +106,7 @@ const ChoroplethMap = ({ dataset,
             setGeoData(data);
 
             if (map.current) {
-                const source = map.current.getSource('population');
+                const source = map.current.getSource('states');
                 if (source) {
                     source.setData(data);
                     console.log('Source data updated successfully');
@@ -202,7 +169,7 @@ const ChoroplethMap = ({ dataset,
             }
 
             // Add the population source
-            map.current.addSource('population', {
+            map.current.addSource('states', {
                 type: 'geojson',
                 data: {
                     type: 'FeatureCollection',
@@ -214,7 +181,7 @@ const ChoroplethMap = ({ dataset,
             map.current.addLayer({
                 id: 'state-choropleth',
                 type: 'fill',
-                source: 'population',
+                source: 'states',
                 paint: {
                     'fill-color': [
                         'interpolate',
@@ -233,7 +200,7 @@ const ChoroplethMap = ({ dataset,
             map.current.addLayer({
                 id: 'state-lisa-clusters-fill',
                 type: 'fill',
-                source: 'population',
+                source: 'states',
                 layout: {
                     'visibility': 'none'
                 },
@@ -259,7 +226,7 @@ const ChoroplethMap = ({ dataset,
             map.current.addLayer({
                 id: 'state-lisa-clusters-border',
                 type: 'line',
-                source: 'population',
+                source: 'states',
                 layout: {
                     'visibility': 'none'
                 },
@@ -289,28 +256,15 @@ const ChoroplethMap = ({ dataset,
             map.current.addLayer({
                 id: 'state-borders',
                 type: 'line',
-                source: 'population',
+                source: 'states',
                 paint: {
-                    'line-color': isTask2Page ? '#546e7a' : '#000', // Grey for Task2, black otherwise
-                    'line-width': isTask2Page ? 1.5 : 1,
-                    'line-opacity': isTask2Page ? 0.7 : 0,
+                    'line-color': '#000',
+                    'line-width': 1,
+                    'line-opacity': 0.7,
                 },
                 // Ensure this layer is always on top
                 maxzoom: 24
             });
-
-            // For Task2, add a light grey fill layer behind the dots
-            if (isTask2Page) {
-                map.current.addLayer({
-                    id: 'state-base',
-                    type: 'fill',
-                    source: 'population',
-                    paint: {
-                        'fill-color': '#f5f5f5', // Light grey fill
-                        'fill-opacity': 0.7
-                    }
-                }, 'state-borders'); 
-            }
 
             // Add mousemove handler for popup
             map.current.on('mousemove', 'state-choropleth', (e) => {
@@ -346,92 +300,6 @@ const ChoroplethMap = ({ dataset,
             // Fetch initial data
             fetchData();
 
-            // Add this after adding the population source
-            if (isTask2Page && dotDensityData) {
-                map.current.addSource('dot-density', {
-                    type: 'geojson',
-                    data: dotDensityData
-                });
-                
-                if (map.current && map.current.loaded()) {
-                    if (!map.current.getSource('dot-density')) {
-                        map.current.addSource('dot-density', {
-                            type: 'geojson',
-                            data: dotDensityData
-                        });
-                    } else {
-                        map.current.getSource('dot-density').setData(dotDensityData);
-                    }
-                    
-                    if (!map.current.getLayer('state-dot-density-layer')) {
-                        map.current.addLayer({
-                            id: 'state-dot-density-layer',
-                            type: 'circle',
-                            source: 'dot-density',
-                            paint: {
-                                'circle-radius': 2,
-                                'circle-color': ['get', 'color'],
-                                'circle-opacity': 0.8
-                            },
-                            filter: ['==', ['get', 'lisa_class'], 'HH']
-                        }, 'state-borders');
-                    } 
-                }
-            }
-
-            // Set initial layer visibility based on page type
-            if (isTask2Page) {
-                map.current.setLayoutProperty('state-choropleth', 'visibility', 'none');
-            }
-
-            // For Task2, add a transparent fill layer for better hover detection
-            if (isTask2Page) {
-                if (!map.current.getLayer('state-base')) {
-                    map.current.addLayer({
-                        id: 'state-base',
-                        type: 'fill',
-                        source: 'population',
-                        paint: {
-                            'fill-color': '#eceff1', //light grey
-                            'fill-opacity': 0.4// Completely transparent
-                        },
-                    }, 'state-dot-density-layer' //Add below dot density layer
-                );
-                    // Add mousemove handler for this special hover layer
-                    map.current.on('mousemove', 'state-base', (e) => {
-                        if (e.features.length > 0) {
-                            map.current.getCanvas().style.cursor = 'pointer';
-                            
-                            const feature = e.features[0];
-                            const stateName = feature.properties.state_name;
-                            
-                            // Use the actual gas, electricity, and oil values from the feature properties
-                            const gas = feature.properties.gas || 0;
-                            const electricity = feature.properties.electricity || 0;
-                            const oil = feature.properties.oil || 0;
-                            
-                            const tooltipContent = `
-                                <div class="text-xs font-semibold">${stateName}</div>
-                                <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
-                                <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
-                                <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
-                            `;
-                            
-                            const coordinates = e.lngLat;
-                            
-                            popup.current
-                                .setLngLat(coordinates)
-                                .setHTML(tooltipContent)
-                                .addTo(map.current);
-                        }
-                    });
-                    
-                    map.current.on('mouseleave', 'state-base', () => {
-                        map.current.getCanvas().style.cursor = '';
-                        popup.current.remove();
-                    });
-                }
-            }
         } catch (error) {
             console.error('Error in initializeLayers:', error);
         }
@@ -504,11 +372,11 @@ const ChoroplethMap = ({ dataset,
                 if (map.current.getLayer('county-borders')) {
                     map.current.removeLayer('county-borders');
                 }
-                if (map.current.getLayer('county-base')) {
-                    map.current.removeLayer('county-base');
+                if (map.current.getLayer('county-choropleth')) {
+                    map.current.removeLayer('county-choropleth');
                 }
-                if (map.current.getSource('county-choropleth')) {
-                    map.current.removeSource('county-choropleth');
+                if (map.current.getSource('counties')) {
+                    map.current.removeSource('counties');
                 }
             }
             
@@ -578,11 +446,11 @@ const ChoroplethMap = ({ dataset,
                     if (map.current.getLayer('county-borders')) {
                         map.current.removeLayer('county-borders');
                     }
-                    if (map.current.getLayer('county-base')) {
-                        map.current.removeLayer('county-base');
+                    if (map.current.getLayer('county-choropleth')) {
+                        map.current.removeLayer('county-choropleth');
                     }
-                    if (map.current.getSource('county-choropleth')) {
-                        map.current.removeSource('county-choropleth');
+                    if (map.current.getSource('counties')) {
+                        map.current.removeSource('counties');
                     }
                 }
 
@@ -609,11 +477,11 @@ const ChoroplethMap = ({ dataset,
                     if (map.current.getLayer('county-borders')) {
                         map.current.removeLayer('county-borders');
                     }
-                    if (map.current.getLayer('county-base')) {
-                        map.current.removeLayer('county-base');
+                    if (map.current.getLayer('county-choropleth')) {
+                        map.current.removeLayer('county-choropleth');
                     }
-                    if (map.current.getSource('county-choropleth')) {
-                        map.current.removeSource('county-choropleth');
+                    if (map.current.getSource('counties')) {
+                        map.current.removeSource('counties');
                     }
                 }
 
@@ -651,11 +519,11 @@ const ChoroplethMap = ({ dataset,
                     if (map.current.getLayer('county-borders')) {
                         map.current.removeLayer('county-borders');
                     }
-                    if (map.current.getLayer('county-base')) {
-                        map.current.removeLayer('county-base');
+                    if (map.current.getLayer('county-choropleth')) {
+                        map.current.removeLayer('county-choropleth');
                     }
-                    if (map.current.getSource('county-choropleth')) {
-                        map.current.removeSource('county-choropleth');
+                    if (map.current.getSource('counties')) {
+                        map.current.removeSource('counties');
                     }
                 }
 
@@ -722,7 +590,7 @@ const ChoroplethMap = ({ dataset,
             map.current.off('mousemove', 'state-borders');
             map.current.off('mousemove', 'state-base');
             if (showingCounties) {
-                map.current.off('mousemove', 'county-base');
+                map.current.off('mousemove', 'county-choropleth');
                 map.current.off('mousemove', 'county-borders');
             }
             
@@ -738,21 +606,6 @@ const ChoroplethMap = ({ dataset,
                         // Format tooltip content based on dataset
                         let tooltipContent;
                         
-                        if (isTask2Page) {
-                            // For Task2, show all fuel types
-                            const gas = feature.properties.gas || 0;
-                            const electricity = feature.properties.electricity || 0;
-                            const oil = feature.properties.oil || 0;
-                            const isRural = feature.properties.rural === 'Rural' ? 'Rural' : 'Urban';
-                            
-                            tooltipContent = `
-                                <div class="text-xs font-semibold">${stateName}</div>
-                                <div class="text-xs">Classification: ${isRural}</div>
-                                <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
-                                <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
-                                <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
-                            `;
-                        } else {
                             // For other pages, show the current dataset value
                             const value = feature.properties.value;
                             
@@ -768,9 +621,8 @@ const ChoroplethMap = ({ dataset,
                             
                             tooltipContent = `
                                 <div class="text-xs font-semibold">${stateName}</div>
-                                <div class="text-xs">${formattedValue}</div>
-                            `;
-                        }
+                            <div class="text-xs">${formattedValue}</div>
+                        `;
 
                         const coordinates = e.lngLat;
 
@@ -791,28 +643,15 @@ const ChoroplethMap = ({ dataset,
                         
                         // Format tooltip content based on dataset
                         let tooltipContent;
+
+                        // For other pages, show the current dataset value
+                        const value = feature.properties.value;
+                            
+                        tooltipContent = `
+                            <div class="text-xs font-semibold">${stateName}</div>
+                            <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
+                        `;
                         
-                        if (isTask2Page) {
-                            // For Task2, show all fuel types
-                            const gas = feature.properties.gas || 0;
-                            const electricity = feature.properties.electricity || 0;
-                            const oil = feature.properties.oil || 0;
-                            
-                            tooltipContent = `
-                                <div class="text-xs font-semibold">${stateName}</div>
-                                <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
-                                <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
-                                <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
-                            `;
-                        } else {
-                            // For other pages, show the current dataset value
-                            const value = feature.properties.value;
-                            
-                            tooltipContent = `
-                                <div class="text-xs font-semibold">${stateName}</div>
-                                <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
-                            `;
-                        }
 
                         const coordinates = e.lngLat;
                         
@@ -841,27 +680,13 @@ const ChoroplethMap = ({ dataset,
                             // Format tooltip content based on dataset
                             let tooltipContent;
                             
-                            if (isTask2Page) {
-                                // For Task2, show all fuel types
-                                const gas = feature.properties.gas || 0;
-                                const electricity = feature.properties.electricity || 0;
-                                const oil = feature.properties.oil || 0;
-                                
-                                tooltipContent = `
-                                    <div class="text-xs font-semibold">${stateName}</div>
-                                    <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
-                                    <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
-                                    <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
-                                `;
-                            } else {
-                                // For other pages, show the current dataset value
-                                const value = feature.properties.value;
-                                
-                                tooltipContent = `
-                                    <div class="text-xs font-semibold">${stateName}</div>
-                                    <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
-                                `;
-                            }
+                            // For other pages, show the current dataset value
+                            const value = feature.properties.value;
+                            
+                            tooltipContent = `
+                                <div class="text-xs font-semibold">${stateName}</div>
+                                <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
+                            `;
 
                             const coordinates = e.lngLat;
                             
@@ -888,7 +713,7 @@ const ChoroplethMap = ({ dataset,
             
             // Add mousemove handler for county fills
             if (showingCounties) {
-                map.current.on('mousemove', 'county-base', (e) => {
+                map.current.on('mousemove', 'county-choropleth', (e) => {
                     if (e.features.length > 0) {
                         map.current.getCanvas().style.cursor = 'pointer';
                         
@@ -899,24 +724,6 @@ const ChoroplethMap = ({ dataset,
                         // Format tooltip content based on dataset
                         let tooltipContent;
                         
-                        if (isTask2Page) {
-                            // For Task2, show all fuel types at county level
-                            const gas = feature.properties.gas || 0;
-                            const electricity = feature.properties.electricity || 0;
-                            const oil = feature.properties.oil || 0;
-                            const isRural = feature.properties.rural ? 
-                                (feature.properties.rural === 'Rural' ? 'Rural' : 'Urban') : 
-                                'Unknown';
-                            console.log(feature.properties);
-                            
-                            tooltipContent = `
-                                <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
-                                <div class="text-xs">County Type: ${isRural}</div>
-                                <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
-                                <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
-                                <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
-                            `;
-                        } else {
                             // For other pages, show the current dataset value
                             const value = feature.properties.value;
                             
@@ -924,7 +731,6 @@ const ChoroplethMap = ({ dataset,
                                 <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
                                 <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
                             `;
-                        }
                         
                         const coordinates = e.lngLat;
                         
@@ -935,7 +741,7 @@ const ChoroplethMap = ({ dataset,
                     }
                 });
                 
-                map.current.on('mouseleave', 'county-base', () => {
+                map.current.on('mouseleave', 'county-choropleth', () => {
                     map.current.getCanvas().style.cursor = '';
                     popup.current.remove();
                 });
@@ -952,29 +758,13 @@ const ChoroplethMap = ({ dataset,
                         // Format tooltip content based on dataset
                         let tooltipContent;
                         
-                        if (isTask2Page) {
-                            // For Task2, show all fuel types at county level
-                            const gas = feature.properties.gas || 0;
-                            const electricity = feature.properties.electricity || 0;
-                            const oil = feature.properties.oil || 0;
-                            const isRural = feature.properties.rural === 'Rural' ? 'Rural' : 'Urban';
-                            
-                            tooltipContent = `
-                                <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
-                                <div class="text-xs">Classification: ${isRural}</div>
-                                <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
-                                <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
-                                <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
-                            `;
-                        } else {
-                            // For other pages, show the current dataset value
-                            const value = feature.properties.value;
-                            
+                        // For other pages, show the current dataset value
+                        const value = feature.properties.value;
+                        
                             tooltipContent = `
                                 <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
                                 <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
-                            `;
-                        }
+                        `;
                         
                         const coordinates = e.lngLat;
                         
@@ -991,7 +781,7 @@ const ChoroplethMap = ({ dataset,
                 });
             }
         }
-    }, [selectedDataset, layersInitialized, showingCounties, isTask2Page]);
+    }, [selectedDataset, layersInitialized, showingCounties]);
 
     const removeLisaLayer = () => {
         if (lisaLayer) {
@@ -1257,12 +1047,9 @@ const ChoroplethMap = ({ dataset,
             setIsLoading(true);
             // Normalize state name input
             stateName = normalizeStateName(stateName);
-
-            // For Task2, always request gas data to get all fuel types
-            const datasetParam = isTask2Page ? 'gas' : selectedDataset;
             
             // Add the current dataset as a query parameter
-            const response = await fetch(`${apiUrl}/api/counties/${stateName}?dataset=${datasetParam}`, {
+            const response = await fetch(`${apiUrl}/api/counties/${stateName}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -1278,11 +1065,7 @@ const ChoroplethMap = ({ dataset,
             }
 
             const data = await response.json();
-            
-            // Check if we have fuel data for Task2
-            if (isTask2Page) {
-                const hasGas = data.features.some(f => f.properties.gas !== undefined);
-            }
+        
             
             setCountyData(data);
             
@@ -1292,119 +1075,56 @@ const ChoroplethMap = ({ dataset,
             }
 
             // Remove existing layers and source if they exist
-            if (map.current.getLayer('county-base')) {
-                map.current.removeLayer('county-base');
-            }
             if (map.current.getLayer('county-borders')) {
                 map.current.removeLayer('county-borders');
+            }
+            if (map.current.getLayer('county-choropleth')) {
+                map.current.removeLayer('county-choropleth');
             }
             if (map.current.getSource('counties')) {
                 map.current.removeSource('counties');
             }
-            
-            // Remove county dot density layers if they exist
-            if (map.current.getLayer('county-dot-density-layer')) {
-                map.current.removeLayer('county-dot-density-layer');
-            }
-            if (map.current.getSource('county-dot-density')) {
-                map.current.removeSource('county-dot-density');
-            }
-
             // Add new source for counties
-            map.current.addSource('county-choropleth', {
+            map.current.addSource('counties', {
                 type: 'geojson',
                 data: data
             });
 
-            // For Task2, generate dot density data for counties
-            if (isTask2Page) {
-                console.log('Generating county dot density data for Task2');
-                
-                // Use a much smaller dot value for counties (1000 instead of 50,000)
-                const countyDotData = generateMultiAttributeDotDensity(data, fuelTypes, 1000);
-                console.log('Generated county dot density data with', countyDotData.features.length, 'points');
-                
-                // Add county dot density source
-                map.current.addSource('county-dot-density', {
-                    type: 'geojson',
-                    data: countyDotData
-                });
-                
-                // Add light grey county fills first (so they appear below the dots)
-                map.current.addLayer({
-                    id: 'county-base',
-                    type: 'fill',
-                    source: 'county-choropleth',
-                    paint: {
-                        'fill-color': '#f0f0f0',  // Light grey
-                        'fill-opacity': 0.4  
-                    }
-                });
-                
-                // Add county dot density layer on top of the fills
-                map.current.addLayer({
-                    id: 'county-dot-density-layer',
-                    type: 'circle',
-                    source: 'county-dot-density',
-                    paint: {
-                        'circle-radius': 1.5, // Smaller dots for county level
-                        'circle-color': ['get', 'color'],
-                        'circle-opacity': 0.8
-                    }
-                });
-                
-                // Add county borders on top of everything
-                map.current.addLayer({
-                    id: 'county-borders',
-                    type: 'line',
-                    source: 'county-choropleth',
-                    paint: {
-                        'line-color': '#000',
-                        'line-width': 0.5,
-                        'line-opacity': 0.7
-                    }
-                });
-                
-                // Hide the state-level dot density layer when showing counties
-                if (map.current.getLayer('state-dot-density-layer')) {
-                    map.current.setLayoutProperty('state-dot-density-layer', 'visibility', 'none');
-                }
-            } else {
-                // For non-Task2, use the original choropleth approach
-                // Get current dataset configuration
-                const dataset = datasets[selectedDataset];
+          
+            // Get current dataset configuration
+            const dataset = datasets[selectedDataset];
+
+            // Add county borders layer
+            map.current.addLayer({
+                id: 'county-borders',
+                type: 'line',
+                source: 'counties',
+                paint: {
+                    'line-color': '#fff',
+                    'line-width': 0.5,
+                 }
+            });
 
                 // Add fill layer with choropleth colors
-                map.current.addLayer({
-                    id: 'county-base',
-                    type: 'fill',
-                    source: 'county-choropleth',
-                    paint: {
-                        'fill-color': [
-                            'interpolate',
-                            ['linear'],
-                            ['coalesce', ['get', 'value'], 0],
-                            ...dataset.breaks.flatMap((break_, i) => [
-                                break_,
-                                dataset.colors[i]
-                            ])
-                        ],
-                        'fill-opacity': 0.75
-                    }
-                });
+            map.current.addLayer({
+                id: 'county-choropleth',
+                type: 'fill',
+                source: 'counties',
+                paint: {
+                    'fill-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['coalesce', ['get', 'value'], 0],
+                        ...dataset.breaks.flatMap((break_, i) => [
+                            break_,
+                            dataset.colors[i]
+                        ])
+                    ],
+                    'fill-opacity': 0.75
+                }
+            }, 'state-borders');// Place below state-borders layer and a
 
-                // Add thin border layer
-                map.current.addLayer({
-                    id: 'county-borders',
-                    type: 'line',
-                    source: 'county-choropleth',
-                    paint: {
-                        'line-color': '#fff',
-                        'line-width': 0.5,
-                        'line-opacity': 0.5
-                    }
-                });
-            }
+
 
             // Zoom to the state's counties
             const bounds = new mapboxgl.LngLatBounds();
@@ -1629,53 +1349,24 @@ const ChoroplethMap = ({ dataset,
                 if (map.current.getLayer('county-borders')) {
                     map.current.removeLayer('county-borders');
                 }
-                if (map.current.getLayer('county-base')) {
-                    map.current.removeLayer('county-base');
-                }
-                if (map.current.getLayer('county-dot-density-layer')) {
-                    map.current.removeLayer('county-dot-density-layer');
-                }
-                if (map.current.getSource('county-dot-density')) {
-                    map.current.removeSource('county-dot-density');
-                }
                 if (map.current.getLayer('county-lisa-clusters-fill')) {
                     map.current.removeLayer('county-lisa-clusters-fill');
                 }
                 if (map.current.getLayer('county-lisa-clusters-border')) {
                     map.current.removeLayer('county-lisa-clusters-border');
                 }
-                if (map.current.getSource('county-choropleth')) {
-                    map.current.removeSource('county-choropleth');
+                if (map.current.getLayer('county-choropleth')) {
+                    map.current.removeLayer('county-choropleth');
                 }
+                if (map.current.getSource('counties')) {
+                    map.current.removeSource('counties');
+                }
+
+            // show state-level choropleth
+            if (map.current.getLayer('state-choropleth')) {
+                map.current.setLayoutProperty('state-choropleth', 'visibility', 'visible');
+            }
                 
-                // Show the state-level dot density layer again when returning to state view
-                if (isTask2Page && map.current.getLayer('state-dot-density-layer')) {
-                    map.current.setLayoutProperty('state-dot-density-layer', 'visibility', 'visible');
-                }
-                
-                // For Task2, ensure state borders and fills are properly restored
-                if (isTask2Page) {
-                    // Restore state borders
-                    map.current.setPaintProperty('state-borders', 'line-color', '#546e7a');
-                    map.current.setPaintProperty('state-borders', 'line-width', 1.5);
-                    map.current.setPaintProperty('state-borders', 'line-opacity', 0.7);
-                    
-                    // Restore state fills
-                    if (map.current.getLayer('state-base')) {
-                        map.current.setPaintProperty('state-base', 'fill-color', '#f5f5f5');
-                        map.current.setPaintProperty('state-base', 'fill-opacity', 0.7);
-                    }
-                    
-                    // Hide choropleth layer for Task2
-                    if (map.current.getLayer('state-choropleth')) {
-                        map.current.setLayoutProperty('state-choropleth', 'visibility', 'none');
-                    }
-                } else {
-                    // Show state-level choropleth again when returning to state view for non-Task2
-                    if (map.current.getLayer('state-choropleth')) {
-                        map.current.setLayoutProperty('state-choropleth', 'visibility', 'visible');
-                    }
-                }
                 
                 // Show state-level LISA clusters again if they were visible
                 if (showSpatialClusters) {
@@ -1802,316 +1493,16 @@ const ChoroplethMap = ({ dataset,
         }
     }, [map.current]);
 
-    // Update the handleStateClick function
-    const handleStateClick = (e) => {
-        if (!isMapInteractive) return;
-        
-        onMapClick();
-        const clickedState = e.features[0].properties.state_name;
-        
-        // Log the state click interaction
-        logMapInteraction(
-            'state_click', 
-            {
-                zoom: map.current.getZoom(),
-                center: map.current.getCenter(),
-                bounds: map.current.getBounds()
-            },
-            clickedState,
-            null,
-            'map'
-        );
-        
-        // Rest of your existing code...
-    };
-
-    // Update the handleCountyClick function
-    const handleCountyClick = (e) => {
-        if (!isMapInteractive || !showingCounties) return;
-        
-        onMapClick();
-        const clickedCounty = e.features[0].properties.county_name;
-        
-        // Log the county click interaction
-        logMapInteraction(
-            'county_click', 
-            {
-                zoom: map.current.getZoom(),
-                center: map.current.getCenter(),
-                bounds: map.current.getBounds()
-            },
-            currentFocusedState,
-            clickedCounty,
-            'map'
-        );
-        
-        // Rest of your existing code...
-    };
-
-    // Also add a useEffect to update selectedDataset when any of the page type props change
-    useEffect(() => {
-        if (isTask2Page) {
-            setSelectedDataset('gas');
-        } else if (isTaskPage) {
-            setSelectedDataset('pct_tot_co');
-        } else {
-            setSelectedDataset(dataset || 'ppl_densit');
-        }
-    }, [isTask2Page, isTaskPage, dataset]);
-
-    // Update the useEffect that generates dot density data
-    useEffect(() => {
-        if (isTask2Page && geoData && geoData.features && geoData.features.length > 0) {
-            console.log("Generating multi-attribute dot density data from", geoData.features.length, "features");
-            
-            const dotData = generateMultiAttributeDotDensity(geoData, fuelTypes);
-            console.log("Generated dot density data with", dotData.features.length, "points");
-            setDotDensityData(dotData);
-        }
-    }, [isTask2Page, geoData, apiUrl]);
-
-    // Update the useEffect that adds the dot density layer
-    useEffect(() => {
-        // Only proceed if we have both the map initialized and dot data
-        if (isTask2Page && dotDensityData && map.current && layersInitialized) {
-            console.log("Map is initialized and dot data is ready, adding dot density layers");
-            
-            // Check if source already exists
-            if (!map.current.getSource('dot-density')) {
-                console.log("Adding dot density source");
-                map.current.addSource('dot-density', {
-                    type: 'geojson',
-                    data: dotDensityData
-                });
-            } else {
-                console.log("Updating existing dot density source");
-                map.current.getSource('dot-density').setData(dotDensityData);
-            }
-            
-            // Add layer if it doesn't exist - using data-driven styling for colors
-            if (!map.current.getLayer('state-dot-density-layer')) {
-                console.log("Adding dot density layer");
-                map.current.addLayer({
-                    id: 'state-dot-density-layer',
-                    type: 'circle',
-                    source: 'dot-density',
-                    paint: {
-                        'circle-radius': 2,
-                        'circle-color': ['get', 'color'], // Use the color property from each point
-                        'circle-opacity': 0.8
-                    }
-                }, 'state-borders'); // Make sure it's above other layers
-                console.log("Dot density layer added");
-            } else {
-                console.log("Dot density layer already exists");
-            }
-            
-            // Hide the choropleth layer for task2 but keep state borders visible
-            if (map.current.getLayer('state-choropleth')) {
-                map.current.setLayoutProperty('state-choropleth', 'visibility', 'none');
-            }
-            
-            // Make sure state borders are visible
-            if (map.current.getLayer('state-borders')) {
-                map.current.setPaintProperty('state-borders', 'line-opacity', 0.5);
-                map.current.setPaintProperty('state-borders', 'line-width', 1);
-                map.current.setPaintProperty('state-borders', 'line-color', '#000');
-            }
-        }
-    }, [isTask2Page, dotDensityData, layersInitialized]);
-
-    // Add a function to toggle between choropleth and dot density views
-    const toggleDotDensity = (show) => {
-        if (!map.current) return;
-        
-        if (show) {
-            // Hide choropleth layer
-            map.current.setLayoutProperty('state-choropleth', 'visibility', 'none');
-            // Show dot density layer
-            if (map.current.getLayer('state-dot-density-layer')) {
-                map.current.setLayoutProperty('state-dot-density-layer', 'visibility', 'visible');
-            }
-            // Make sure state borders are visible
-            if (map.current.getLayer('state-borders')) {
-                map.current.setPaintProperty('state-borders', 'line-opacity', 0.5);
-            }
-        } else {
-            // Show choropleth layer
-            map.current.setLayoutProperty('state-choropleth', 'visibility', 'visible');
-            // Hide dot density layer
-            if (map.current.getLayer('state-dot-density-layer')) {
-                map.current.setLayoutProperty('state-dot-density-layer', 'visibility', 'none');
-            }
-        }
-    };
-
-    // Add a useEffect to automatically show dot density for task2
-    useEffect(() => {
-        if (map.current && map.current.loaded()) {
-            toggleDotDensity(isTask2Page);
-        }
-    }, [isTask2Page, layersInitialized]);
-
-    // Add a cleanup effect to remove the dot density layer when component unmounts
-    useEffect(() => {
-        return () => {
-            if (map.current && map.current.getLayer('state-dot-density-layer')) {
-                map.current.removeLayer('state-dot-density-layer');
-                if (map.current.getSource('dot-density')) {
-                    map.current.removeSource('dot-density');
-                }
-            }
-        };
-    }, []);
-
     // Add this useEffect to sync the local state with the prop
     useEffect(() => {
         setSelectedDataset(dataset);
     }, [dataset]);
 
-    // Add mousemove handler for state borders (especially for Task2)
-    useEffect(() => {
-        if (map.current && layersInitialized) {
-            map.current.on('mousemove', 'state-borders', (e) => {
-            if (e.features.length > 0) {
-                map.current.getCanvas().style.cursor = 'pointer';
-                
-                const feature = e.features[0];
-                const stateName = feature.properties.state_name;
-                
-                // Format tooltip content based on dataset
-                let tooltipContent;
-                
-                if (isTask2Page) {
-                    // For Task2, use the actual fuel values
-                    const gas = feature.properties.gas || 0;
-                    const electricity = feature.properties.electricity || 0;
-                    const oil = feature.properties.oil || 0;
-                    
-                    tooltipContent = `
-                        <div class="text-xs font-semibold">${stateName}</div>
-                        <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
-                        <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
-                        <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
-                    `;
-                } else {
-                    // For other pages, show the current dataset value
-                    const value = feature.properties.value;
-                    
-                    tooltipContent = `
-                        <div class="text-xs font-semibold">${stateName}</div>
-                        <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
-                    `;
-                }
-
-                const coordinates = e.lngLat;
-
-                popup.current
-                    .setLngLat(coordinates)
-                    .setHTML(tooltipContent)
-                    .addTo(map.current);
-            }
-        });
-
-        // Add mouseleave handler for state borders
-        map.current.on('mouseleave', 'state-borders', () => {
-            map.current.getCanvas().style.cursor = '';
-            popup.current.remove();
-        });
-    }
-}, [selectedDataset, layersInitialized, isTask2Page]);
-
-    // Add mousemove handler for county dot density layer
-    useEffect(() => {
-        if (map.current && layersInitialized && isTask2Page) {
-            // Add mousemove handler for county dot density
-            map.current.on('mousemove', 'county-dot-density-layer', (e) => {
-                if (e.features.length > 0) {
-                    map.current.getCanvas().style.cursor = 'pointer';
-                    
-                    const feature = e.features[0];
-                    const county = feature.properties.county || 'Unknown County';
-                    const state = feature.properties.state || 'Unknown State';
-                    const attribute = feature.properties.attribute || 'Unknown';
-                    
-                    const tooltipContent = `
-                        <div class="text-xs font-semibold">${county}, ${state}</div>
-                        <div class="text-xs">Fuel type: ${attribute}</div>
-                    `;
-                    
-                    const coordinates = e.lngLat;
-                    
-                    popup.current
-                        .setLngLat(coordinates)
-                        .setHTML(tooltipContent)
-                        .addTo(map.current);
-                }
-            });
-            
-            map.current.on('mouseleave', 'county-dot-density-layer', () => {
-                map.current.getCanvas().style.cursor = '';
-                popup.current.remove();
-            });
-        }
-    }, [layersInitialized, isTask2Page]);
-
     // Add this to the useEffect that handles showSpatialClusters changes
     useEffect(() => {
         if (!map.current || !geoData) return;
 
-        // For Task2, show predominant fuel choropleth when showing patterns
-        if (isTask2Page && showSpatialClusters) {
-            
-            // Add or update predominant fuel layer
-            if (!map.current.getLayer('predominant-fuel')) {
-                map.current.addLayer({
-                    id: 'predominant-fuel',
-                    type: 'fill',
-                    source: 'population',
-                    paint: {
-                        'fill-color': [
-                            'match',
-                            ['get', 'main_fuel'],
-                            // 'gas', '#008A8A',
-                            'gas','#7e57c2' , 
-                            // 'electricity', '#0000ff',
-                            'electricity','#26a69a',
-                            // 'oil', '#00aa00',
-                            'oil','#f57f17',
-                            '#cccccc'   
-                        ],
-                        'fill-opacity': 0.2
-                    }
-                }, 'state-dot-density-layer'); // Place below dot density layer so dots are visible on top
-            } else {
-                map.current.setLayoutProperty('predominant-fuel', 'visibility', 'visible');
-            }
-            
-            // Add a legend for predominant fuel
-            setShowPredominantFuelLegend(true);
-            
-            // Make sure LISA clusters are hidden for Task2
-            if (map.current.getLayer('state-lisa-clusters-fill')) {
-                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'none');
-            }
-            if (map.current.getLayer('state-lisa-clusters-border')) {
-                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'none');
-            }
-        } else if (isTask2Page) {
-            // Hide predominant fuel layer when not showing patterns
-            if (map.current.getLayer('predominant-fuel')) {
-                map.current.setLayoutProperty('predominant-fuel', 'visibility', 'none');
-            }
-            
-            // Show dot density layer (this should already be visible)
-            if (map.current.getLayer('state-dot-density-layer')) {
-                map.current.setLayoutProperty('state-dot-density-layer', 'visibility', 'visible');
-            }
-            
-            // Hide the legend
-            setShowPredominantFuelLegend(false);
-        } else {
-            // Handle non-Task2 pages (original LISA clusters logic)
+            // original LISA clusters logic
             if (showSpatialClusters) {
                 // Show LISA clusters
                 map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'visible');
@@ -2123,12 +1514,12 @@ const ChoroplethMap = ({ dataset,
                 
                 // Reset state borders
                 if (!currentFocusedState) {
-                    map.current.setPaintProperty('state-borders', 'line-opacity', isTask2Page ? 0.5 : 0);
+                    map.current.setPaintProperty('state-borders', 'line-opacity', 0);
                     map.current.setPaintProperty('state-borders', 'line-width', 1);
                 }
             }
-        }
-    }, [showSpatialClusters, geoData, isTask2Page, currentFocusedState]);
+        
+    }, [showSpatialClusters, geoData, currentFocusedState]);
 
     useEffect(() => {
         if (map.current && layersInitialized && showSpatialClusters) {
@@ -2143,15 +1534,15 @@ const ChoroplethMap = ({ dataset,
                     .then(response => response.json())
                     .then(data => {
                         // Update county source with LISA classifications
-                        if (map.current.getSource('county-choropleth')) {
-                            map.current.getSource('county-choropleth').setData(data);
+                        if (map.current.getSource('counties')) {
+                            map.current.getSource('counties').setData(data);
                             
                             // Add county LISA cluster layers if they don't exist
                             if (!map.current.getLayer('county-lisa-clusters-fill')) {
                                 map.current.addLayer({
                                     id: 'county-lisa-clusters-fill',
                                     type: 'fill',
-                                    source: 'county-choropleth',
+                                    source: 'counties',
                                     paint: {
                                         'fill-color': [
                                             'match',
@@ -2174,7 +1565,7 @@ const ChoroplethMap = ({ dataset,
                                 map.current.addLayer({
                                     id: 'county-lisa-clusters-border',
                                     type: 'line',
-                                    source: 'county-choropleth',
+                                    source: 'counties',
                                     paint: {
                                         'line-color': [
                                             'match',
@@ -2205,7 +1596,7 @@ const ChoroplethMap = ({ dataset,
                     })
                     .catch(error => console.error('Error fetching county LISA clusters:', error));
             } else {
-                // We're at state level, show state LISA clusters
+                // Show state LISA clusters at state level
                 map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'visible');
                 map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'visible');
                 
@@ -2235,22 +1626,14 @@ const ChoroplethMap = ({ dataset,
     const resetToStateView = () => {
         if (map.current) {
             // Hide county layers if they exist
-            if (map.current.getLayer('county-base')) {
-                map.current.removeLayer('county-base');
-            }
             if (map.current.getLayer('county-borders')) {
                 map.current.removeLayer('county-borders');
             }
-            if (map.current.getSource('county-choropleth')) {
-                map.current.removeSource('county-choropleth');
+            if (map.current.getLayer('county-choropleth')) {
+                map.current.removeLayer('county-choropleth');
             }
-            
-            // Hide county dot density layers if they exist
-            if (map.current.getLayer('county-dot-density-layer')) {
-                map.current.removeLayer('county-dot-density-layer');
-            }
-            if (map.current.getSource('county-dot-density')) {
-                map.current.removeSource('county-dot-density');
+            if (map.current.getSource('counties')) {
+                map.current.removeSource('counties');
             }
             
             // Reset to US view
@@ -2356,7 +1739,6 @@ const ChoroplethMap = ({ dataset,
             <div className="absolute top-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90" 
                 tabIndex="-1">
                 {/* Dataset Selector */}
-                {!isTask2Page && (
                     <div className="mb-4">
                         <h3 className="text-sm font-bold mb-2">Dataset</h3>
                         <select
@@ -2382,10 +1764,8 @@ const ChoroplethMap = ({ dataset,
                             )}
                         </select>
                     </div>
-                )}
                 
-                {/* Legend - Show choropleth legend only for non-task2 pages */}
-                {!isTask2Page && (
+                {/* choropleth legend */}
                     <div className="flex flex-col gap-1">
                         {datasets[selectedDataset].breaks.map((value, i) => (
                             <div key={i} className="flex items-center">
@@ -2400,32 +1780,10 @@ const ChoroplethMap = ({ dataset,
                             </div>
                         ))}
                     </div>
-                )}
-                
-                {/* Dot Density Legend - Show only for task2 */}
-                {isTask2Page && (
-                    <div className="mt-2">
-                        <h3 className="text-sm font-bold mb-2">Heating Fuel Types</h3>
-                        <div className="flex flex-col gap-2">
-                            <div className="flex items-center">
-                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#7e57c2' }}></div>
-                                <span className="text-xs">Gas (1 dot = 100,000 households)</span>
-                            </div>
-                            <div className="flex items-center">
-                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#26a69a' }}></div>
-                                <span className="text-xs">Electricity (1 dot = 100,000 households)</span>
-                            </div>
-                            <div className="flex items-center">
-                                <div className="w-4 h-4 mr-2 rounded-full" style={{ backgroundColor: '#f57f17' }}></div>
-                                <span className="text-xs">Oil (1 dot = 100,000 households)</span>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
 
             {/* LISA Clusters Legend with close button */}
-            {showSpatialClusters && !isTask2Page &&(
+            {showSpatialClusters && (
                 <div className="absolute bottom-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90">
                     <div className="flex justify-between items-center mb-2">
                         <h3 className="text-sm font-bold">Hot and Cold Spots</h3>
@@ -2452,40 +1810,6 @@ const ChoroplethMap = ({ dataset,
                         <div className="flex items-center">
                             <div className="w-4 h-4 mr-2 border-2 border-[#00bcd4] bg-[#00bcd4] bg-opacity-20"></div>
                             <span className="text-xs">Low-High Outlier</span>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Predominant Fuel Legend - Show only for task2 when showing patterns */}
-            {isTask2Page && showPredominantFuelLegend && (
-                <div className="absolute bottom-10 left-4 bg-white p-3 rounded-md shadow-md z-10">
-                    <div className="flex justify-between items-center mb-2">
-                        <h3 className="text-sm font-bold">Predominant Heating Fuel</h3>
-                        <button 
-                            onClick={() => {
-                                setShowPredominantFuelLegend(false);
-                                // Also turn off the spatial clusters when closing the legend
-                                onSpatialClustersToggle(false);
-                            }}
-                            className="text-gray-500 hover:text-gray-700"
-                            aria-label="Close legend"
-                        >
-                            ×
-                        </button>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#7e57c2' }}></div>
-                            <span className="text-xs">Gas</span>
-                        </div>
-                        <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#26a69a' }}></div>
-                            <span className="text-xs">Electricity</span>
-                        </div>
-                        <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#f57f17' }}></div>
-                            <span className="text-xs">Oil</span>
                         </div>
                     </div>
                 </div>
