@@ -5,7 +5,21 @@ import * as turf from '@turf/turf';
 import { logMapInteraction } from '../utils/logger';
 import { generateDotDensityForFeatureCollection, generateMultiAttributeDotDensity } from '../utils/DotDensityGenerator';
 
-const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, focusedCity, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive, onMapClick, isTaskPage = false, isTask2Page = false, onShowingCountiesChange }) => {
+const ChoroplethMap = ({ dataset, 
+    showSpatialClusters, 
+    onSpatialClustersToggle, 
+    onDatasetChange, 
+    focusedState, 
+    focusedCity, 
+    onFocusedCountyChange, 
+    onStateFocus, 
+    apiUrl, 
+    isMapInteractive, 
+    onMapClick, 
+    isTaskPage = false, 
+    isTask2Page = false, 
+    onShowingCountiesChange }) => 
+        {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
@@ -19,13 +33,18 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const [lisaLayer, setLisaLayer] = useState(null);
     const [lisaLegend, setLisaLegend] = useState(null);
     const [layersInitialized, setLayersInitialized] = useState(false);
-    const [currentFocusedState, setCurrentFocusedState] = useState(null);
+
     const [stateAnnouncement, setStateAnnouncement] = useState('');
     const announcementRef = useRef(null);
+  
+    const [currentFocusedState, setCurrentFocusedState] = useState(null);
+   
     const [showingCounties, setShowingCounties] = useState(false);
-    const [countyData, setCountyData] = useState(null);
     const [currentFocusedCounty, setCurrentFocusedCounty] = useState(null);
+    const [countyData, setCountyData] = useState(null);
+    
     const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
+    
     const [dotDensityData, setDotDensityData] = useState(null);
     const [showPredominantFuelLegend, setShowPredominantFuelLegend] = useState(false);
 
@@ -50,8 +69,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         'ppl_densit': {
             name: 'Population Density',
             breaks: [10, 50, 100, 200, 500, 1000],
-            // colors: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5']
-            // colors: [ '#f3e0f7','#e4c7f1','#d1afe8','#b998dd','#9f82ce','#826dba','#63589f']
             colors: ["#fef6b5", "#ffdd9a", "#ffc285", "#ffa679", "#fa8a76", "#f16d7a", "#e15383"]
 
         },
@@ -170,15 +187,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 scaleElement.setAttribute('aria-hidden', 'true');
             }
 
-            // Add geolocate control
-            // map.current.addControl(
-            //     new mapboxgl.GeolocateControl({
-            //         positionOptions: { enableHighAccuracy: true },
-            //         trackUserLocation: true
-            //     }),
-            //     'top-right'
-            // );
-            // Make geolocate control inaccessible to screen readers
             const geolocateButton = mapContainer.current.getElementsByClassName('mapboxgl-ctrl-geolocate')[0];
             if (geolocateButton) {
                 geolocateButton.setAttribute('aria-hidden', 'true');
@@ -227,7 +235,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 type: 'fill',
                 source: 'population',
                 layout: {
-                    'visibility': 'none'  // Initially hidden
+                    'visibility': 'none'
                 },
                 paint: {
                     'fill-color': [
@@ -677,7 +685,11 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     }
                 }
 
-                // Rest of the focusing logic...
+                //show the state layer again if it was hidden
+                if (map.current.getLayer('population-density')) {
+                    map.current.setLayoutProperty('population-density', 'visibility', 'visible');
+                }
+                
                 const features = statesToFocus.map(state => 
                     geoData.features.find(f => 
                         f.properties.state_name.toLowerCase() === state.toLowerCase()
@@ -1665,7 +1677,9 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             setShowingCounties(false);
             setCurrentFocusedCounty(null);
             setCountyData(null);
-            onShowingCountiesChange(false, null);
+            if (onShowingCountiesChange) {
+                onShowingCountiesChange(false, null);
+            }
             
             // Clean up county layers
             if (map.current) {
@@ -1779,7 +1793,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [focusedState, focusStateOnMap]);
 
-    // In ChoroplethMap.js, add a useEffect to handle map interaction focus
+    //handle map interaction focus
     useEffect(() => {
         if (isMapInteractive && mapContainer.current) {
             // Focus on the map container when map interaction is enabled
@@ -1790,7 +1804,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [isMapInteractive]);
 
-    // Add these functions to track map viewport
+    // track map viewport
     useEffect(() => {
         if (map.current) {
             // Store map viewport in window for access by other components
@@ -2159,11 +2173,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 // Show LISA clusters
                 map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
                 map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
-                
-                // Don't make all state borders visible - only keep the current focused state highlighted
-                // Remove this code that was making all borders visible:
-                // map.current.setPaintProperty('state-borders', 'line-opacity', 0.8);
-                // map.current.setPaintProperty('state-borders', 'line-width', 1.5);
             } else {
                 // Hide LISA clusters
                 map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
