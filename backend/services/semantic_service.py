@@ -20,7 +20,7 @@ class SemanticService:
                 'unit': 'percent'
             },
             'pct_tot_co': {
-                'metric': 'priority population percentage',
+                'metric': 'underserved population percentage',
                 'unit': 'percent'
             },
             'pct_no_bb_': {

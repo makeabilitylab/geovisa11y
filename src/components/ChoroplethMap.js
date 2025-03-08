@@ -43,7 +43,7 @@ const ChoroplethMap = ({ dataset,
 
     const datasets = isTaskPage ? {
         'pct_tot_co': {
-            name: 'Priority Population',
+            name: 'Underserved Population',
             breaks: [75, 80, 85, 90, 95],
             colors: ['#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5']
         },
@@ -424,12 +424,6 @@ const ChoroplethMap = ({ dataset,
                     const legend = createLisaLegend();
                     map.current.getContainer().appendChild(legend);
                     setLisaLegend(legend);
-                    //return to original zoom and center
-                    map.current.flyTo({
-                        center: [-96, 37.8],
-                        zoom: 4,
-                        duration: 2000
-                    });
                 } else if (!showSpatialClusters && lisaLegend) {
                     lisaLegend.remove();
                     setLisaLegend(null);
@@ -657,8 +651,6 @@ const ChoroplethMap = ({ dataset,
                             <div class="text-xs font-semibold">${stateName}</div>
                             <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
                         `;
-                        
-
                         const coordinates = e.lngLat;
                         
                         popup.current
@@ -1758,7 +1750,7 @@ const ChoroplethMap = ({ dataset,
                         >
                             {isTaskPage ? (
                                 <>
-                                    <option value="pct_tot_co">Priority Population</option>
+                                    <option value="pct_tot_co">Underserved Population</option>
                                     <option value="pct_no_bb_">Lacking Broadband Access</option>
                                 </>
                             ) : (
