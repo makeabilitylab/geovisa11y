@@ -54,7 +54,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         if (isTaskPage) {
             switch(dataset) {
                 case 'pct_tot_co':
-                    return "This is a choropleth map of the United States showing the percentage of priority population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
+                    return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
                 case 'pct_no_bb_':
                     return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband in each state. Darker shades indicate higher percentages.";
                 default:
@@ -91,10 +91,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             // Task1-specific questions
             if (dataset === 'pct_tot_co') {
                 return [
-                    `What's the percentage of priority population in ${state1}?`,
-                    // `Which state has a higher percentage of priority population, ${state2} or ${state3}?`,
-                    `Which state has the ${extrema} percentage of priority population?`,
-                    // "What's the average percentage of priority population?",
+                    `What's the percentage of underserved population in ${state1}?`,
+                    // `Which state has a higher percentage of underserved population, ${state2} or ${state3}?`,
+                    `Which state has the ${extrema} percentage of underserved population?`,
+                    // "What's the average percentage of underserved population?",
                     "Is there a pattern in this map?",
                     // "Can you describe the pattern?"
                 ];
@@ -821,17 +821,17 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                         <li>
                             {"When focused on a state or county, you can ask specific questions like: "}
                             <span
-                                onClick={() => handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of priority population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?`)}
+                                onClick={() => handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?`)}
                                 className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
                                 role="text"
                                 tabIndex="0"
                                 onKeyPress={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of priority population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?`);
+                                        handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?`);
                                     }
                                 }}
                             >
-                                What's the {dataset === 'pct_tot_co' ? 'percentage of priority population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?
+                                What's the {dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?
                             </span>
                             {" or "}
                             <span

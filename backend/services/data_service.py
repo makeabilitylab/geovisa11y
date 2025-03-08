@@ -43,7 +43,7 @@ METRIC_MAPPING = {
         'verb': 'take public transit'
     },
     'pct_tot_co': {
-        'name': 'percentage of priority population',
+        'name': 'percentage of underserved population',
         'unit': '%',
         'is_percentage': True
     },
@@ -511,7 +511,7 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
                     }
                 elif dataset == 'pct_tot_co':
                     return {
-                        'result': f"{county} County in {state} has {value:.2f}{metric_info['unit']} priority population.",
+                        'result': f"{county} County in {state} has {value:.2f}{metric_info['unit']} underserved population.",
                         'county': county,
                         'state': state
                     }
@@ -544,7 +544,7 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
                     }
                 elif dataset == 'pct_tot_co':
                     return {
-                        'result': f"{state} has {value:.2f}{metric_info['unit']} priority population.",
+                        'result': f"{state} has {value:.2f}{metric_info['unit']} underserved population.",
                         'state': state
                     }
                 elif dataset == 'pct_no_bb_':
