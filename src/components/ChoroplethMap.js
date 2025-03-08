@@ -212,7 +212,7 @@ const ChoroplethMap = ({ dataset,
 
             // Add population density layer first (bottom layer)
             map.current.addLayer({
-                id: 'population-density',
+                id: 'state-choropleth',
                 type: 'fill',
                 source: 'population',
                 paint: {
@@ -231,7 +231,7 @@ const ChoroplethMap = ({ dataset,
 
             // Add LISA clusters layer next
             map.current.addLayer({
-                id: 'lisa-clusters-fill',
+                id: 'state-lisa-clusters-fill',
                 type: 'fill',
                 source: 'population',
                 layout: {
@@ -257,7 +257,7 @@ const ChoroplethMap = ({ dataset,
             });
             // Add LISA cluster outlines
             map.current.addLayer({
-                id: 'lisa-clusters',
+                id: 'state-lisa-clusters-border',
                 type: 'line',
                 source: 'population',
                 layout: {
@@ -302,7 +302,7 @@ const ChoroplethMap = ({ dataset,
             // For Task2, add a light grey fill layer behind the dots
             if (isTask2Page) {
                 map.current.addLayer({
-                    id: 'state-fills',
+                    id: 'state-base',
                     type: 'fill',
                     source: 'population',
                     paint: {
@@ -313,7 +313,7 @@ const ChoroplethMap = ({ dataset,
             }
 
             // Add mousemove handler for popup
-            map.current.on('mousemove', 'population-density', (e) => {
+            map.current.on('mousemove', 'state-choropleth', (e) => {
                 if (e.features.length > 0) {
                     map.current.getCanvas().style.cursor = 'pointer';
                     
@@ -338,7 +338,7 @@ const ChoroplethMap = ({ dataset,
                 }
             });
 
-            map.current.on('mouseleave', 'population-density', () => {
+            map.current.on('mouseleave', 'state-choropleth', () => {
                 map.current.getCanvas().style.cursor = '';
                 popup.current.remove();
             });
@@ -363,47 +363,42 @@ const ChoroplethMap = ({ dataset,
                         map.current.getSource('dot-density').setData(dotDensityData);
                     }
                     
-                    if (!map.current.getLayer('dot-density-layer')) {
+                    if (!map.current.getLayer('state-dot-density-layer')) {
                         map.current.addLayer({
-                            id: 'dot-density-layer',
+                            id: 'state-dot-density-layer',
                             type: 'circle',
                             source: 'dot-density',
                             paint: {
                                 'circle-radius': 2,
-                                'circle-color': ['get', 'color'], // Use the color property from each point
+                                'circle-color': ['get', 'color'],
                                 'circle-opacity': 0.8
                             },
                             filter: ['==', ['get', 'lisa_class'], 'HH']
                         }, 'state-borders');
-                    } else {
-                        console.log("Dot density layer already exists");
-                    }
-                } else {
-                    console.log("Map not fully loaded yet, waiting...");
+                    } 
                 }
             }
 
             // Set initial layer visibility based on page type
             if (isTask2Page) {
-                map.current.setLayoutProperty('population-density', 'visibility', 'none');
+                map.current.setLayoutProperty('state-choropleth', 'visibility', 'none');
             }
 
             // For Task2, add a transparent fill layer for better hover detection
             if (isTask2Page) {
-                if (!map.current.getLayer('state-hover-layer')) {
+                if (!map.current.getLayer('state-base')) {
                     map.current.addLayer({
-                        id: 'state-hover-layer',
+                        id: 'state-base',
                         type: 'fill',
                         source: 'population',
                         paint: {
-                            'fill-color': '#eceff1',
-                            'fill-opacity': 0// Completely transparent
+                            'fill-color': '#eceff1', //light grey
+                            'fill-opacity': 0.4// Completely transparent
                         },
-
-                    });
-                    
+                    }, 'state-dot-density-layer' //Add below dot density layer
+                );
                     // Add mousemove handler for this special hover layer
-                    map.current.on('mousemove', 'state-hover-layer', (e) => {
+                    map.current.on('mousemove', 'state-base', (e) => {
                         if (e.features.length > 0) {
                             map.current.getCanvas().style.cursor = 'pointer';
                             
@@ -431,32 +426,11 @@ const ChoroplethMap = ({ dataset,
                         }
                     });
                     
-                    map.current.on('mouseleave', 'state-hover-layer', () => {
+                    map.current.on('mouseleave', 'state-base', () => {
                         map.current.getCanvas().style.cursor = '';
                         popup.current.remove();
                     });
                 }
-            }
-
-            // Update the state borders layer for Task2
-            if (isTask2Page) {
-                // Add a light grey fill layer for states
-                if (!map.current.getLayer('state-fills')) {
-                    map.current.addLayer({
-                        id: 'state-fills',
-                        type: 'fill',
-                        source: 'population',
-                        paint: {
-                            'fill-color': '#f5f5f5', // Light grey fill
-                            'fill-opacity': 0.5
-                        }
-                    }, 'dot-density-layer'); // Add below dot density layer
-                }
-                
-                // Update state borders to be thicker and grey
-                map.current.setPaintProperty('state-borders', 'line-color', '#9e9e9e'); // Medium grey
-                map.current.setPaintProperty('state-borders', 'line-width', 1.5);
-                map.current.setPaintProperty('state-borders', 'line-opacity', 0.7);
             }
         } catch (error) {
             console.error('Error in initializeLayers:', error);
@@ -565,8 +539,8 @@ const ChoroplethMap = ({ dataset,
                 ])
             ];
             
-            map.current.setPaintProperty('population-density', 'fill-color', expression);
-            map.current.setPaintProperty('population-density', 'fill-opacity', 0.75);
+            map.current.setPaintProperty('state-choropleth', 'fill-color', expression);
+            map.current.setPaintProperty('state-choropleth', 'fill-opacity', 0.75);
         }
     }, [selectedDataset, geoData, layersInitialized]);
 
@@ -575,8 +549,8 @@ const ChoroplethMap = ({ dataset,
         if (map.current && layersInitialized) {
             try {
                 const visibility = showSpatialClusters ? 'visible' : 'none';
-                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', visibility);
-                map.current.setLayoutProperty('lisa-clusters', 'visibility', visibility);
+                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', visibility);
+                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', visibility);
                 
                 if (showSpatialClusters && !lisaLegend) {
                     const legend = createLisaLegend();
@@ -686,8 +660,8 @@ const ChoroplethMap = ({ dataset,
                 }
 
                 //show the state layer again if it was hidden
-                if (map.current.getLayer('population-density')) {
-                    map.current.setLayoutProperty('population-density', 'visibility', 'visible');
+                if (map.current.getLayer('state-choropleth')) {
+                    map.current.setLayoutProperty('state-choropleth', 'visibility', 'visible');
                 }
                 
                 const features = statesToFocus.map(state => 
@@ -744,9 +718,9 @@ const ChoroplethMap = ({ dataset,
     useEffect(() => {
         if (map.current && layersInitialized) {
             // Remove existing mousemove handlers
-            map.current.off('mousemove', 'population-density');
+            map.current.off('mousemove', 'state-choropleth');
             map.current.off('mousemove', 'state-borders');
-            map.current.off('mousemove', 'state-hover-layer');
+            map.current.off('mousemove', 'state-base');
             if (showingCounties) {
                 map.current.off('mousemove', 'county-fills');
                 map.current.off('mousemove', 'county-borders');
@@ -754,7 +728,7 @@ const ChoroplethMap = ({ dataset,
             
             // Add mousemove handler for states - only active when not showing counties
             if (!showingCounties) {
-                map.current.on('mousemove', 'population-density', (e) => {
+                map.current.on('mousemove', 'state-choropleth', (e) => {
                     if (e.features.length > 0) {
                         map.current.getCanvas().style.cursor = 'pointer';
                         
@@ -856,8 +830,8 @@ const ChoroplethMap = ({ dataset,
                 });
                 
                 // Add mousemove handler for state hover layer
-                if (map.current.getLayer('state-hover-layer')) {
-                    map.current.on('mousemove', 'state-hover-layer', (e) => {
+                if (map.current.getLayer('state-base')) {
+                    map.current.on('mousemove', 'state-base', (e) => {
                         if (e.features.length > 0) {
                             map.current.getCanvas().style.cursor = 'pointer';
                             
@@ -899,14 +873,14 @@ const ChoroplethMap = ({ dataset,
                     });
                     
                     // Add mouseleave handler for state hover layer
-                    map.current.on('mouseleave', 'state-hover-layer', () => {
+                    map.current.on('mouseleave', 'state-base', () => {
                         map.current.getCanvas().style.cursor = '';
                         popup.current.remove();
                     });
                 }
                 
                 // Add mouseleave handler for population density
-                map.current.on('mouseleave', 'population-density', () => {
+                map.current.on('mouseleave', 'state-choropleth', () => {
                     map.current.getCanvas().style.cursor = '';
                     popup.current.remove();
                 });
@@ -1436,8 +1410,8 @@ const ChoroplethMap = ({ dataset,
                 });
                 
                 // Hide the state-level dot density layer when showing counties
-                if (map.current.getLayer('dot-density-layer')) {
-                    map.current.setLayoutProperty('dot-density-layer', 'visibility', 'none');
+                if (map.current.getLayer('state-dot-density-layer')) {
+                    map.current.setLayoutProperty('state-dot-density-layer', 'visibility', 'none');
                 }
             } else {
                 // For non-Task2, use the original choropleth approach
@@ -1656,17 +1630,17 @@ const ChoroplethMap = ({ dataset,
                     setCurrentFocusedCounty(null);
                     
                     // Hide state-level choropleth when showing counties
-                    if (map.current && map.current.getLayer('population-density')) {
-                        map.current.setLayoutProperty('population-density', 'visibility', 'none');
+                    if (map.current && map.current.getLayer('state-choropleth')) {
+                        map.current.setLayoutProperty('state-choropleth', 'visibility', 'none');
                     }
                     
                     // Also hide state-level LISA clusters if they're visible
                     if (map.current && showSpatialClusters) {
-                        if (map.current.getLayer('lisa-clusters-fill')) {
-                            map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
+                        if (map.current.getLayer('state-lisa-clusters-fill')) {
+                            map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'none');
                         }
-                        if (map.current.getLayer('lisa-clusters')) {
-                            map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+                        if (map.current.getLayer('state-lisa-clusters-border')) {
+                            map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'none');
                         }
                     }
                 }
@@ -1698,16 +1672,16 @@ const ChoroplethMap = ({ dataset,
                 if (map.current.getLayer('county-lisa-clusters-fill')) {
                     map.current.removeLayer('county-lisa-clusters-fill');
                 }
-                if (map.current.getLayer('county-lisa-clusters')) {
-                    map.current.removeLayer('county-lisa-clusters');
+                if (map.current.getLayer('county-lisa-clusters-border')) {
+                    map.current.removeLayer('county-lisa-clusters-border');
                 }
                 if (map.current.getSource('counties')) {
                     map.current.removeSource('counties');
                 }
                 
                 // Show the state-level dot density layer again when returning to state view
-                if (isTask2Page && map.current.getLayer('dot-density-layer')) {
-                    map.current.setLayoutProperty('dot-density-layer', 'visibility', 'visible');
+                if (isTask2Page && map.current.getLayer('state-dot-density-layer')) {
+                    map.current.setLayoutProperty('state-dot-density-layer', 'visibility', 'visible');
                 }
                 
                 // For Task2, ensure state borders and fills are properly restored
@@ -1718,29 +1692,29 @@ const ChoroplethMap = ({ dataset,
                     map.current.setPaintProperty('state-borders', 'line-opacity', 0.7);
                     
                     // Restore state fills
-                    if (map.current.getLayer('state-fills')) {
-                        map.current.setPaintProperty('state-fills', 'fill-color', '#f5f5f5');
-                        map.current.setPaintProperty('state-fills', 'fill-opacity', 0.7);
+                    if (map.current.getLayer('state-base')) {
+                        map.current.setPaintProperty('state-base', 'fill-color', '#f5f5f5');
+                        map.current.setPaintProperty('state-base', 'fill-opacity', 0.7);
                     }
                     
                     // Hide choropleth layer for Task2
-                    if (map.current.getLayer('population-density')) {
-                        map.current.setLayoutProperty('population-density', 'visibility', 'none');
+                    if (map.current.getLayer('state-choropleth')) {
+                        map.current.setLayoutProperty('state-choropleth', 'visibility', 'none');
                     }
                 } else {
                     // Show state-level choropleth again when returning to state view for non-Task2
-                    if (map.current.getLayer('population-density')) {
-                        map.current.setLayoutProperty('population-density', 'visibility', 'visible');
+                    if (map.current.getLayer('state-choropleth')) {
+                        map.current.setLayoutProperty('state-choropleth', 'visibility', 'visible');
                     }
                 }
                 
                 // Show state-level LISA clusters again if they were visible
                 if (showSpatialClusters) {
-                    if (map.current.getLayer('lisa-clusters-fill')) {
-                        map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
+                    if (map.current.getLayer('state-lisa-clusters-fill')) {
+                        map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'visible');
                     }
-                    if (map.current.getLayer('lisa-clusters')) {
-                        map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
+                    if (map.current.getLayer('state-lisa-clusters-border')) {
+                        map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'visible');
                     }
                 }
             }
@@ -1946,10 +1920,10 @@ const ChoroplethMap = ({ dataset,
             }
             
             // Add layer if it doesn't exist - using data-driven styling for colors
-            if (!map.current.getLayer('dot-density-layer')) {
+            if (!map.current.getLayer('state-dot-density-layer')) {
                 console.log("Adding dot density layer");
                 map.current.addLayer({
-                    id: 'dot-density-layer',
+                    id: 'state-dot-density-layer',
                     type: 'circle',
                     source: 'dot-density',
                     paint: {
@@ -1964,8 +1938,8 @@ const ChoroplethMap = ({ dataset,
             }
             
             // Hide the choropleth layer for task2 but keep state borders visible
-            if (map.current.getLayer('population-density')) {
-                map.current.setLayoutProperty('population-density', 'visibility', 'none');
+            if (map.current.getLayer('state-choropleth')) {
+                map.current.setLayoutProperty('state-choropleth', 'visibility', 'none');
             }
             
             // Make sure state borders are visible
@@ -1983,10 +1957,10 @@ const ChoroplethMap = ({ dataset,
         
         if (show) {
             // Hide choropleth layer
-            map.current.setLayoutProperty('population-density', 'visibility', 'none');
+            map.current.setLayoutProperty('state-choropleth', 'visibility', 'none');
             // Show dot density layer
-            if (map.current.getLayer('dot-density-layer')) {
-                map.current.setLayoutProperty('dot-density-layer', 'visibility', 'visible');
+            if (map.current.getLayer('state-dot-density-layer')) {
+                map.current.setLayoutProperty('state-dot-density-layer', 'visibility', 'visible');
             }
             // Make sure state borders are visible
             if (map.current.getLayer('state-borders')) {
@@ -1994,10 +1968,10 @@ const ChoroplethMap = ({ dataset,
             }
         } else {
             // Show choropleth layer
-            map.current.setLayoutProperty('population-density', 'visibility', 'visible');
+            map.current.setLayoutProperty('state-choropleth', 'visibility', 'visible');
             // Hide dot density layer
-            if (map.current.getLayer('dot-density-layer')) {
-                map.current.setLayoutProperty('dot-density-layer', 'visibility', 'none');
+            if (map.current.getLayer('state-dot-density-layer')) {
+                map.current.setLayoutProperty('state-dot-density-layer', 'visibility', 'none');
             }
         }
     };
@@ -2012,8 +1986,8 @@ const ChoroplethMap = ({ dataset,
     // Add a cleanup effect to remove the dot density layer when component unmounts
     useEffect(() => {
         return () => {
-            if (map.current && map.current.getLayer('dot-density-layer')) {
-                map.current.removeLayer('dot-density-layer');
+            if (map.current && map.current.getLayer('state-dot-density-layer')) {
+                map.current.removeLayer('state-dot-density-layer');
                 if (map.current.getSource('dot-density')) {
                     map.current.removeSource('dot-density');
                 }
@@ -2139,7 +2113,7 @@ const ChoroplethMap = ({ dataset,
                         ],
                         'fill-opacity': 0.2
                     }
-                }, 'dot-density-layer'); // Place below dot density layer so dots are visible on top
+                }, 'state-dot-density-layer'); // Place below dot density layer so dots are visible on top
             } else {
                 map.current.setLayoutProperty('predominant-fuel', 'visibility', 'visible');
             }
@@ -2148,11 +2122,11 @@ const ChoroplethMap = ({ dataset,
             setShowPredominantFuelLegend(true);
             
             // Make sure LISA clusters are hidden for Task2
-            if (map.current.getLayer('lisa-clusters-fill')) {
-                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
+            if (map.current.getLayer('state-lisa-clusters-fill')) {
+                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'none');
             }
-            if (map.current.getLayer('lisa-clusters')) {
-                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+            if (map.current.getLayer('state-lisa-clusters-border')) {
+                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'none');
             }
         } else if (isTask2Page) {
             // Hide predominant fuel layer when not showing patterns
@@ -2161,8 +2135,8 @@ const ChoroplethMap = ({ dataset,
             }
             
             // Show dot density layer (this should already be visible)
-            if (map.current.getLayer('dot-density-layer')) {
-                map.current.setLayoutProperty('dot-density-layer', 'visibility', 'visible');
+            if (map.current.getLayer('state-dot-density-layer')) {
+                map.current.setLayoutProperty('state-dot-density-layer', 'visibility', 'visible');
             }
             
             // Hide the legend
@@ -2171,12 +2145,12 @@ const ChoroplethMap = ({ dataset,
             // Handle non-Task2 pages (original LISA clusters logic)
             if (showSpatialClusters) {
                 // Show LISA clusters
-                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
-                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
+                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'visible');
+                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'visible');
             } else {
                 // Hide LISA clusters
-                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
-                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'none');
+                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'none');
                 
                 // Reset state borders
                 if (!currentFocusedState) {
@@ -2192,8 +2166,8 @@ const ChoroplethMap = ({ dataset,
             // If we're showing counties, we need to fetch county-level LISA clusters
             if (showingCounties && currentFocusedState) {
                 // Hide state-level LISA clusters
-                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
-                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'none');
+                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'none');
                 
                 // Fetch county-level LISA clusters
                 fetch(`${apiUrl}/api/lisa_clusters/${currentFocusedState}?dataset=${selectedDataset}&level=county`)
@@ -2229,7 +2203,7 @@ const ChoroplethMap = ({ dataset,
                                 });
                                 
                                 map.current.addLayer({
-                                    id: 'county-lisa-clusters',
+                                    id: 'county-lisa-clusters-border',
                                     type: 'line',
                                     source: 'counties',
                                     paint: {
@@ -2256,34 +2230,34 @@ const ChoroplethMap = ({ dataset,
                             } else {
                                 // Show existing county LISA layers
                                 map.current.setLayoutProperty('county-lisa-clusters-fill', 'visibility', 'visible');
-                                map.current.setLayoutProperty('county-lisa-clusters', 'visibility', 'visible');
+                                map.current.setLayoutProperty('county-lisa-clusters-border', 'visibility', 'visible');
                             }
                         }
                     })
                     .catch(error => console.error('Error fetching county LISA clusters:', error));
             } else {
                 // We're at state level, show state LISA clusters
-                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'visible');
-                map.current.setLayoutProperty('lisa-clusters', 'visibility', 'visible');
+                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'visible');
+                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'visible');
                 
                 // Hide county LISA clusters if they exist
                 if (map.current.getLayer('county-lisa-clusters-fill')) {
                     map.current.setLayoutProperty('county-lisa-clusters-fill', 'visibility', 'none');
                 }
-                if (map.current.getLayer('county-lisa-clusters')) {
-                    map.current.setLayoutProperty('county-lisa-clusters', 'visibility', 'none');
+                if (map.current.getLayer('county-lisa-clusters-border')) {
+                    map.current.setLayoutProperty('county-lisa-clusters-border', 'visibility', 'none');
                 }
             }
         } else if (map.current && layersInitialized && !showSpatialClusters) {
             // Hide all LISA clusters
-            map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', 'none');
-            map.current.setLayoutProperty('lisa-clusters', 'visibility', 'none');
+            map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'none');
+            map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'none');
             
             if (map.current.getLayer('county-lisa-clusters-fill')) {
                 map.current.setLayoutProperty('county-lisa-clusters-fill', 'visibility', 'none');
             }
-            if (map.current.getLayer('county-lisa-clusters')) {
-                map.current.setLayoutProperty('county-lisa-clusters', 'visibility', 'none');
+            if (map.current.getLayer('county-lisa-clusters-border')) {
+                map.current.setLayoutProperty('county-lisa-clusters-border', 'visibility', 'none');
             }
         }
     }, [showSpatialClusters, showingCounties, currentFocusedState, selectedDataset, layersInitialized, apiUrl]);
@@ -2317,8 +2291,8 @@ const ChoroplethMap = ({ dataset,
             ]);
             
             // Show state layers again
-            if (map.current.getLayer('state-fills')) {
-                map.current.setLayoutProperty('state-fills', 'visibility', 'visible');
+            if (map.current.getLayer('state-base')) {
+                map.current.setLayoutProperty('state-base', 'visibility', 'visible');
             }
             if (map.current.getLayer('state-borders')) {
                 map.current.setLayoutProperty('state-borders', 'visibility', 'visible');
