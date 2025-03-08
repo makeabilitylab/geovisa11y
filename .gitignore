@@ -202,4 +202,3 @@ yarn-error.log*
 
 /backend/notebooks/data
 *.db
-/backend/notebooks
