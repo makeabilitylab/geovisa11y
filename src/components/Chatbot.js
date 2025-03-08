@@ -516,7 +516,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // input = input.trim();
         if (!input.trim()) return;
 
         // log 
@@ -527,6 +526,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
         const userMessage = input;
         setInput('');
+        // Reset to input field after sending a message
+        setUseTextarea(false);
         //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
         handleQuestionSubmit(userMessage, false);  // Explicitly pass false to disable speech
@@ -534,7 +535,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
     // Modify handleKeyDown for text input to ignore spacebar
     const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
             handleSubmit(e);
         }
         // Prevent spacebar from triggering in the input field
@@ -659,11 +660,35 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     // Add new state to track if we should use textarea instead of input
     const [useTextarea, setUseTextarea] = useState(false);
     
-    // Add effect to monitor input length and switch to textarea when needed
+    // Modify the useEffect for monitoring input length
     useEffect(() => {
         // Switch to textarea if input is longer than 50 characters
         setUseTextarea(input.length > 50);
+        // This will automatically switch back when input becomes empty after submission
     }, [input]);
+
+    // Add a new useEffect to maintain focus when switching between input types
+    useEffect(() => {
+        // After the component re-renders due to switching input types,
+        // restore focus to the new input element
+        if (isInputFocused) {
+            setTimeout(() => {
+                if (useTextarea) {
+                    const textarea = wrapperRef.current?.querySelector('textarea');
+                    if (textarea) {
+                        textarea.focus();
+                        // Place cursor at the end of the text
+                        textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
+                    }
+                } else {
+                    const input = wrapperRef.current?.querySelector('input');
+                    if (input) {
+                        input.focus();
+                    }
+                }
+            }, 0);
+        }
+    }, [useTextarea, isInputFocused]);
 
     // Add ref for the welcome section
     const welcomeRef = useRef(null);
