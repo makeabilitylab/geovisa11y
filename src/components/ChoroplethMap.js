@@ -424,6 +424,12 @@ const ChoroplethMap = ({ dataset,
                     const legend = createLisaLegend();
                     map.current.getContainer().appendChild(legend);
                     setLisaLegend(legend);
+                    //return to original zoom and center
+                    map.current.flyTo({
+                        center: [-96, 37.8],
+                        zoom: 4,
+                        duration: 2000
+                    });
                 } else if (!showSpatialClusters && lisaLegend) {
                     lisaLegend.remove();
                     setLisaLegend(null);
