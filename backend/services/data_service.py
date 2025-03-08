@@ -30,18 +30,6 @@ METRIC_MAPPING = {
         'unit': 'people per square mile',
         'is_percentage': False
     },
-    'walk_to_wo': {
-        'name': 'percentage of people walking to work',
-        'unit': '%',
-        'is_percentage': True,
-        'verb': 'walk'
-    },
-    'transit_to': {
-        'name': 'percentage of people using public transit',
-        'unit': '%',
-        'is_percentage': True,
-        'verb': 'take public transit'
-    },
     'pct_tot_co': {
         'name': 'percentage of underserved population',
         'unit': '%',
@@ -101,12 +89,8 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         county_column = "county_nam as county_name," if table_name == 'county' else ""
         
         query = f"""
-        SELECT GEOID, state_name, 
-               CASE 
-                   WHEN '{value_column}' IN ('walk_to_wo', 'transit_to')
-                   THEN COALESCE({value_column}, 0) * 100  -- Multiply percentages by 100
-                   ELSE COALESCE({value_column}, 0)
-               END as value,
+        SELECT GEOID, state_name,
+               COALESCE({value_column}, 0) as value,
                {county_column}
                ST_X(ST_Centroid(geom)) as c_lon,
                ST_Y(ST_Centroid(geom)) as c_lat,
@@ -466,22 +450,14 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
         if is_county:
             query = f"""
                 SELECT county_nam as county_name, state_name,
-                       CASE 
-                           WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                           THEN {dataset} * 100
-                           ELSE {dataset}
-                       END as value
+                       COALESCE({dataset}, 0) as value
                 FROM county
                 WHERE LOWER(county_nam) LIKE LOWER(?) || '%'
             """
         else:
             query = f"""
                 SELECT state_name,
-                       CASE 
-                           WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                           THEN {dataset} * 100
-                           ELSE {dataset}
-                       END as value
+                       COALESCE({dataset}, 0) as value
                 FROM state
                 WHERE LOWER(state_name) = LOWER(?)
             """
@@ -503,13 +479,7 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
                 }
             else:
                 # Handle different percentage datasets
-                if dataset in ['walk_to_wo', 'transit_to']:
-                    return {
-                        'result': f"{county} County in {state} has {value:.2f}{metric_info['unit']} of people who {metric_info.get('verb', 'commute')} to work.",
-                        'county': county,
-                        'state': state
-                    }
-                elif dataset == 'pct_tot_co':
+                if dataset == 'pct_tot_co':
                     return {
                         'result': f"{county} County in {state} has {value:.2f}{metric_info['unit']} underserved population.",
                         'county': county,
@@ -537,12 +507,7 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
                 }
             else:
                 # Handle different percentage datasets
-                if dataset in ['walk_to_wo', 'transit_to']:
-                    return {
-                        'result': f"{state} has {value:.2f}{metric_info['unit']} of people who {metric_info.get('verb', 'commute')} to work.",
-                        'state': state
-                    }
-                elif dataset == 'pct_tot_co':
+                if dataset == 'pct_tot_co':
                     return {
                         'result': f"{state} has {value:.2f}{metric_info['unit']} underserved population.",
                         'state': state
@@ -568,11 +533,7 @@ def compare_states(state1, state2, dataset):
     try:
         query = f"""
             SELECT state_name, 
-                   CASE 
-                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                       THEN {dataset} * 100
-                       ELSE {dataset}
-                   END as value
+                COALESCE({dataset}, 0) as value
             FROM state
             WHERE LOWER(state_name) IN (LOWER(?), LOWER(?))
         """
@@ -611,11 +572,7 @@ def get_extrema(question, dataset):
         
         query = f"""
             SELECT state_name, 
-                   CASE 
-                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                       THEN {dataset} * 100
-                       ELSE {dataset}
-                   END as value
+                COALESCE({dataset}, 0) as value
             FROM state
             ORDER BY value {'DESC' if is_highest else 'ASC'}
             LIMIT 1
@@ -646,11 +603,7 @@ def get_mean(dataset):
     try:
         query = f"""
             SELECT AVG(
-                CASE 
-                    WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                    THEN {dataset} * 100
-                    ELSE {dataset}
-                END
+                COALESCE({dataset}, 0)
             ) as avg_value
             FROM state
         """
@@ -955,11 +908,7 @@ def get_lisa_clusters(dataset, state_filter=None):
         query = f"""
             SELECT 
                 {'county_nam as name' if state_filter else 'state_name as name'}, 
-                CASE 
-                    WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                    THEN {dataset} * 100  -- Multiply percentages by 100
-                    ELSE {dataset}
-                END as value,
+                {dataset} as value,
                 ST_AsText(geom) as geometry,
                 c_lat, c_lon
             FROM {table_name}
