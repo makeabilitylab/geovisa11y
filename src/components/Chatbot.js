@@ -146,6 +146,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         //setUseSpeech(false);  // Reset speech mode when dataset changes
     }, [dataset]);
 
+    // Scroll to bottom of chat container when messages are updated
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -395,23 +396,23 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 mapViewport
             );
 
-            console.log('Sending input to analyze:', {
-                input,
-                previous_answer: previousAnswer,
-                current_focus: currentFocus,
-                raw_state: currentFocusedState,
-                raw_county: currentFocusedCounty,
-                conversation_history: messageHistory,
-                question_id: questionId
-            });
+            // console.log('Sending input to analyze:', {
+            //     input,
+            //     previous_answer: previousAnswer,
+            //     current_focus: currentFocus,
+            //     raw_state: currentFocusedState,
+            //     raw_county: currentFocusedCounty,
+            //     conversation_history: messageHistory,
+            //     question_id: questionId
+            // });
             
-            console.log('Conversation history:', messageHistory);
+            // console.log('Conversation history:', messageHistory);
 
-            // Prepare the request data - USE THE CURRENT FOCUS OBJECT WE CREATED
+            // Prepare the request data
             const requestData = {
                 input: input,
                 current_dataset: dataset,
-                current_focus: currentFocus,  // Use the object we created above
+                current_focus: currentFocus, 
                 previous_answer: previousAnswer,
                 conversation_history: messageHistory,
                 question_id: questionId,
@@ -518,24 +519,18 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         e.preventDefault();
         if (!input.trim()) return;
 
-        // log 
-        const log = {
-            input: input,
-        }
-        // console.log('Log:', log);
-
         const userMessage = input;
         setInput('');
         // Reset to input field after sending a message
         setUseTextarea(false);
         //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
-        handleQuestionSubmit(userMessage, false);  // Explicitly pass false to disable speech
+        handleQuestionSubmit(userMessage, false); 
     };
 
     // Modify handleKeyDown for text input to ignore spacebar
     const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter') {
             handleSubmit(e);
         }
         // Prevent spacebar from triggering in the input field
@@ -583,6 +578,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     "What's a choropleth map?",
                     "Is there a relationship between population density and public transit usage?"
                 ];
+
+            //TODO: Add general questions for other datasets
             default: // ppl_densit
                 return [
                     "What's a choropleth map?",
@@ -945,7 +942,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                                 <Typography 
                                     variant="small" 
                                     className="font-['Roboto'] font-normal leading-[1.2]"
-                                    dangerouslySetInnerHTML={{ __html: msg.text }}
+                                    dangerouslySetInnerHTML={{ __html: msg.text || ' ' }}
                                 />
                             </div>
                         </div>
@@ -972,7 +969,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 aria-atomic="true"
                 className="sr-only"
             >
-                {stateAnnouncement}
+                {stateAnnouncement || ' '}
             </div>
 
             {/* Input, Microphone, and Send Button */}

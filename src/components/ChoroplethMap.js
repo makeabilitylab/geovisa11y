@@ -301,7 +301,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                         'fill-color': '#f5f5f5', // Light grey fill
                         'fill-opacity': 0.7
                     }
-                }, 'state-borders'); // Add below state borders
+                }, 'state-borders'); 
             }
 
             // Add mousemove handler for popup
