@@ -38,11 +38,7 @@ def get_density_data(value_column):
     try:
         query = f"""
         SELECT GEOID, state_name, 
-               CASE 
-                   WHEN '{value_column}' IN ('walk_to_wo', 'transit_to')
-                   THEN COALESCE({value_column}, 0) * 100
-                   ELSE COALESCE({value_column}, 0)
-               END as value,
+               COALESCE({value_column}, 0) as value,
                ST_AsText(geom) AS geom_wkt
         FROM state
         """

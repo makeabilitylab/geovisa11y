@@ -58,16 +58,6 @@ const ChoroplethMap = ({ dataset,
             breaks: [10, 50, 100, 200, 500, 1000],
             colors: ["#fef6b5", "#ffdd9a", "#ffc285", "#ffa679", "#fa8a76", "#f16d7a", "#e15383"]
 
-        },
-        'walk_to_wo': {
-            name: 'Walking to Work',
-            breaks: [1, 2, 3, 4, 5, 6],
-            colors: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45']
-        },
-        'transit_to': {
-            name: 'Public Transit to Work',
-            breaks: [1, 2, 3, 4, 5, 6],
-            colors: ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d']
         }
     };
 
@@ -1756,8 +1746,6 @@ const ChoroplethMap = ({ dataset,
                             ) : (
                                 <>
                                     <option value="ppl_densit">Population Density</option>
-                                    <option value="walk_to_wo">Walking to Work</option>
-                                    <option value="transit_to">Public Transit to Work</option>
                                 </>
                             )}
                         </select>

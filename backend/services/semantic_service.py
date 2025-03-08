@@ -11,14 +11,6 @@ class SemanticService:
                 'metric': 'population density',
                 'unit': 'people per square mile'
             },
-            'walk_to_wo': {
-                'metric': 'walking to work percentage',
-                'unit': 'percent'
-            },
-            'transit_to': {
-                'metric': 'public transit usage',
-                'unit': 'percent'
-            },
             'pct_tot_co': {
                 'metric': 'underserved population percentage',
                 'unit': 'percent'

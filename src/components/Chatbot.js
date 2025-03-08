@@ -62,10 +62,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             }
         } else {
             switch(dataset) {
-                case 'walk_to_wo':
-                    return "This is a choropleth map of the United States showing the percentage of people who walk to work in each state. Darker shades indicate higher percentages of walking commuters.";
-                case 'transit_to':
-                    return "This is a choropleth map of the United States showing the percentage of people who use public transit in each state. Darker shades indicate higher percentages of public transit usage.";
                 default: // ppl_densit
                     return "This is an interactive choropleth map of the United States showing population density, optimized for screen reader users.";
             }
@@ -109,32 +105,12 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 ];
             }
         } else {
-            // Original dataset questions
-            if (dataset === 'walk_to_wo') {
-                return [
-                    `What percentage of people walk to work in ${state1}?`,
-                    `Which state has a higher percentage of people walking to work, ${state2} or ${state3}?`,
-                    `Which state has the ${extrema} percentage of people walking to work?`,
-                    "What's the average percentage of people who walk to work?",
-                    "Is there a pattern in this map?",
-                    // "Can you describe the pattern?"
-                ];
-            } else if (dataset === 'transit_to') {
-                return [
-                    `What percentage of people use public transit in ${state1}?`,
-                    `Which state has a higher percentage of public transit usage, ${state2} or ${state3}?`,
-                    `Which state has the ${extrema} percentage of public transit usage?`,
-                    "What's the average percentage of people who use public transit?",
-                    "Is there a pattern in this map?",
-                    // "Can you describe the pattern?"
-                ];
-            } else {  // ppl_densit
                 return [
                     `What's the population density of ${state1}?`,
                     `Which state has the ${extrema} population density?`,
                     "Is there a pattern in this map?",
                 ];
-            }
+            
         }
     };
 
@@ -568,15 +544,15 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     // Function to get general knowledge questions based on dataset
     const getGeneralQuestions = () => {
         switch(dataset) {
-            case 'walk_to_wo':
+            case 'pct_tot_co':
                 return [
                     "What's a choropleth map?",
-                    "Is there a relationship between population density and the percentage of people who walk to work?"
+                    "Is there a relationship between population density and the percentage of underserved population?"
                 ];
-            case 'transit_to':
+            case 'pct_no_bb_':
                 return [
                     "What's a choropleth map?",
-                    "Is there a relationship between population density and public transit usage?"
+                    "Is there a relationship between population density and the percentage of people lacking broadband or computer access?"
                 ];
 
             //TODO: Add general questions for other datasets
@@ -821,17 +797,17 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                         <li>
                             {"When focused on a state or county, you can ask specific questions like: "}
                             <span
-                                onClick={() => handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?`)}
+                                onClick={() => handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?`)}
                                 className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
                                 role="text"
                                 tabIndex="0"
                                 onKeyPress={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?`);
+                                        handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?`);
                                     }
                                 }}
                             >
-                                What's the {dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : dataset === 'walk_to_wo' ? 'percentage of people who walk to work' : dataset === 'transit_to' ? 'percentage of public transit usage' : 'population density'} here?
+                                What's the {dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?
                             </span>
                             {" or "}
                             <span
