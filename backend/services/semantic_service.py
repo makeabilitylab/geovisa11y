@@ -108,10 +108,12 @@ class SemanticService:
             print(f"Error extracting states: {str(e)}")
             return []
 
-    def is_out_of_scope(self, question, current_dataset):
+    def is_out_of_scope(self, question, current_dataset, available_datasets=None):
         """
-        Check if question is out of scope for the current dataset using GPT
-        Returns: bool - True if question should be handled by GPT directly
+        Check if question is out of scope for the current dataset and available datasets using GPT
+        Returns: 
+            - If no available_datasets provided: bool - True if question should be handled by GPT directly
+            - If available_datasets provided: (bool, str) - (is_out_of_scope, matching_dataset or None)
         """
         try:
             # Get the correct metric name from dataset_terms
@@ -120,8 +122,53 @@ class SemanticService:
 
             # Special case for urban-rural comparison in Task2
             if current_dataset in ['gas', 'electricity', 'oil'] and any(term in question.lower() for term in ['urban', 'rural', 'city', 'countryside']):
-                return False  # Keep these questions in scope
+                return False if available_datasets is None else (False, current_dataset)  # Keep these questions in scope
 
+            # If we have available_datasets, check if the question matches any of them
+            if available_datasets:
+                # Create a list of all available metrics for the prompt
+                available_metrics = [f"{self.dataset_terms[ds]['metric']} ({ds})" for ds in available_datasets]
+                metrics_list = ", ".join(available_metrics)
+                
+                system_prompt = f"""You are an expert at analyzing geographic data questions.
+                Determine which dataset would best answer this question.
+                
+                Available datasets:
+                {metrics_list}
+                
+                Return the dataset code in parentheses that best matches the question, or 'none' if the question:
+                1. Asks about a DIFFERENT metric than any available dataset
+                2. Asks about geographic units not available in the dataset (only state/county data available)
+                3. Asks conceptual questions about geography or metrics
+                
+                IMPORTANT: Return ONLY the dataset code or 'none' as a single word.
+                """
+
+                user_prompt = f"Question: {question}"
+
+                response = openai.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0
+                )
+                result = response.choices[0].message.content.strip().lower()
+                print(f"Dataset match check: {result}")
+                
+                # Clean up the result - remove any parentheses or extra characters
+                result = result.strip('()')
+                result = result.strip()
+                
+                if result != 'none' and result in available_datasets:
+                    # Question matches an available dataset
+                    return False, result
+                else:
+                    # Question doesn't match any available dataset
+                    return True, None
+            
+            # Original behavior when no available_datasets is provided
             system_prompt = """You are an expert at analyzing geographic data questions.
             Determine if this question can be answered using the current dataset.
             
@@ -163,7 +210,7 @@ class SemanticService:
 
         except Exception as e:
             print(f"Error in out_of_scope check: {str(e)}")
-            return False  # Default to keeping the question in scope if there's an error
+            return False if available_datasets is None else (False, None)  # Default to keeping the question in scope if there's an error
 
     def is_ambiguous_question(self, question, previous_answer=None, current_focus=None, conversation_history=None):
         """
@@ -220,8 +267,7 @@ class SemanticService:
                 location = current_focus.get('state') if isinstance(current_focus, dict) else current_focus
                 context_type = "state"
 
-            print(f"AHHHHH current_focus: {current_focus}")
-            print(f"Normalized location: {location}, type: {context_type}")
+            # print(f"Normalized location: {location}, type: {context_type}")
 
             # Format conversation history for context
             conversation_context = ""

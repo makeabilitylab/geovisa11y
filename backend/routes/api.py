@@ -116,6 +116,8 @@ def analyze_input():
             return jsonify({'error': 'No input provided'}), 400
             
         current_dataset = data.get('current_dataset', 'ppl_densit')
+        # Define all available datasets
+        available_datasets = ['ppl_densit', 'pct_tot_co', 'pct_no_bb_', 'gas', 'electricity', 'oil']
         current_focus = data.get('current_focus')
         previous_answer = data.get('previous_answer')
         conversation_history = data.get('conversation_history', [])
@@ -198,7 +200,7 @@ def analyze_input():
 
         # 2. If not action, treat as question and get question type
         question_type = semantic_service.identify_question_type(user_input)
-        print(f"Question type identified: {question_type}")
+        # print(f"Question type identified: {question_type}")
         logger.info(f"Question type identified: {question_type}")
         
         # Log question type
@@ -281,16 +283,18 @@ def analyze_input():
                 }), 200
             user_input = resolved_question
 
-        # 5. Check if question is out of scope
-        is_out_of_scope = semantic_service.is_out_of_scope(user_input, current_dataset)
+        # 5. Check if question is out of scope for current dataset but in scope for another dataset
+        is_out_of_scope, matching_dataset = semantic_service.is_out_of_scope(user_input, current_dataset, available_datasets)
         
         # Log out of scope check
         log_backend_processing(question_id, {
             'step': 'out_of_scope_check',
-            'is_out_of_scope': is_out_of_scope
+            'is_out_of_scope': is_out_of_scope,
+            'matching_dataset': matching_dataset
         })
         
-        if is_out_of_scope:
+        # If out of scope for all datasets, use OpenAI
+        if is_out_of_scope and matching_dataset is None:
             openai_response = get_openai_response(user_input)
             processing_time = time.time() - start_time
             
@@ -308,6 +312,9 @@ def analyze_input():
                 'processing_time_ms': processing_time * 1000,
                 'question_id': question_id
             }), 200
+        
+        # If we found a matching dataset different from current_dataset, use it
+        dataset_to_use = matching_dataset if matching_dataset else current_dataset
 
         # 6. Handle county-specific questions
         county_info = extract_county_info(user_input)
@@ -320,7 +327,7 @@ def analyze_input():
         
         if county_info:
             county_name, state_name = county_info
-            result = retrieve_value(county_name, current_dataset, is_county=True)
+            result = retrieve_value(county_name, dataset_to_use, is_county=True)
             if result:
                 processing_time = time.time() - start_time
                 
@@ -330,6 +337,7 @@ def analyze_input():
                     'result_type': 'county_question',
                     'county_name': county_name,
                     'state_name': state_name,
+                    'dataset_used': dataset_to_use,
                     'processing_time_ms': processing_time * 1000
                 })
                 
@@ -338,17 +346,20 @@ def analyze_input():
                     'question_type': 'retrieve',
                     'county': county_name,
                     'state': state_name,
+                    'dataset': dataset_to_use,  # Include the dataset used
+                    'dataset_changed': dataset_to_use != current_dataset,  # Flag if dataset changed TBD
                     'processing_time_ms': processing_time * 1000,
                     'question_id': question_id
                 }), 200
 
         # 7. Handle all other questions
-        analysis = answer_question(user_input, current_dataset, current_focus)
+        analysis = answer_question(user_input, dataset_to_use, current_focus)
         
         # Log answer generation
         log_backend_processing(question_id, {
             'step': 'answer_generation',
-            'analysis_success': analysis is not None
+            'analysis_success': analysis is not None,
+            'dataset_used': dataset_to_use
         })
         
         if analysis:
@@ -359,11 +370,13 @@ def analyze_input():
                 'step': 'final_result',
                 'result_type': 'standard_question',
                 'question_type': analysis.get('question_type'),
+                'dataset_used': dataset_to_use,
                 'processing_time_ms': processing_time * 1000
             })
             
             analysis['processing_time_ms'] = processing_time * 1000
             analysis['question_id'] = question_id
+            analysis['dataset_changed'] = dataset_to_use != current_dataset  # Flag if dataset changed TBD
             return jsonify(analysis), 200
 
         # 8. Fallback to GPT
