@@ -1121,6 +1121,14 @@ def find_outliers(lisa_results, dataset):
 def compare_urban_rural_heating_fuels(state_name=None):
     """Compare urban and rural counties' predominant heating fuel types within a specific state"""
     try:
+        # Handle state_name if it's a list or other non-string type
+        if state_name:
+            if isinstance(state_name, list):
+                # Take the first element if it's a list
+                state_name = state_name[0] if state_name else None
+            # Convert to string to ensure SQL safety
+            state_name = str(state_name)
+        
         # Add state filter if provided
         state_filter = f"AND LOWER(state_name) = LOWER('{state_name}')" if state_name else ""
         
@@ -1182,6 +1190,8 @@ def compare_urban_rural_heating_fuels(state_name=None):
         
     except Exception as e:
         print(f"Error comparing urban and rural heating fuels: {str(e)}")
-        state_phrase = f" in {state_name}" if state_name else ""
+        # Format the state name for error message
+        state_display = state_name if isinstance(state_name, str) else str(state_name)
+        state_phrase = f" in {state_display}" if state_name else ""
         return f"I couldn't analyze the difference between urban and rural counties{state_phrase} due to a technical issue."
 

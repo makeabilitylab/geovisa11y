@@ -132,6 +132,50 @@ class SemanticService:
             metric_name = self.dataset_terms[current_dataset]['metric']
             unit = self.dataset_terms[current_dataset]['unit']
 
+            # First, check if the question is about geographic units not available in the dataset
+            # This applies regardless of whether we're checking against available_datasets or not
+            geo_scope_prompt = """You are an expert at analyzing geographic data questions.
+            Determine if this question asks about geographic units that are NOT available in the dataset.
+            
+            The dataset ONLY contains data at the state and county levels.
+            
+            Return 'true' if the question asks about:
+            - Cities or towns
+            - Regions (Northeast, Midwest, South, West, etc.)
+            - The entire United States as a whole
+            - The world or other countries
+            - Census tracts, zip codes, or other sub-county areas
+            - Any other geographic unit that is NOT a state or county
+            
+            Examples:
+            - "What's the population density of Seattle?" -> true (city)
+            - "Which region of the United States has the highest population density?" -> true (region)
+            - "What's the population density of the United States?" -> true (country as a whole)
+            - "What's the population density of the Northeast region?" -> true (region)
+            - "What's the population density of Texas?" -> false (state)
+            - "What's the population density of Harris County?" -> false (county)
+            
+            IMPORTANT: Return ONLY 'true' or 'false' as a single word.
+            """
+
+            geo_user_prompt = f"Question: {question}"
+
+            geo_response = openai.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": geo_scope_prompt},
+                    {"role": "user", "content": geo_user_prompt}
+                ],
+                temperature=0
+            )
+            
+            geo_out_of_scope = geo_response.choices[0].message.content.strip().lower() == 'true'
+            print(f"Geographic scope check: {geo_out_of_scope}")
+            
+            # If the question is about geographic units not available, it's out of scope
+            if geo_out_of_scope:
+                return True if available_datasets is None else (True, None)
+
             # If we have available_datasets, check if the question matches any of them
             if available_datasets:
                 # Replace 'electricity' with 'electricit' in available_datasets if present
@@ -166,8 +210,7 @@ class SemanticService:
                 
                 Return the dataset code in parentheses that best matches the question, or 'none' if the question:
                 1. Asks about a DIFFERENT metric than any available dataset
-                2. Asks about geographic units not available in the dataset (only state/county data available)
-                3. Asks conceptual questions about geography or metrics
+                2. Asks conceptual questions about geography or metrics
                 
                 IMPORTANT: Return ONLY the dataset code or 'none' as a single word.
                 """
@@ -206,13 +249,7 @@ class SemanticService:
                - "What's the income level in Texas?" -> true (different metric)
                - "What's the population density in Texas?" -> false (same metric)
                - "What's the population of Illinois?" -> true (different metric, population and population density are different metrics)
-            2. Asks about geographic units not available in the dataset
-               Example: 
-               -"What's the population density of Seattle?" -> true (only state/county data available)
-               -"What's the population density of the United States?" -> true (only state/county data available)
-               -"What's the population density of the world?" -> true (only state/county data available)
-               -"What's the population density of the Northeast region?" -> true (only state/county data available)
-            3. Asks conceptual questions about geography or the metric
+            2. Asks conceptual questions about geography or the metric
                Example: "Why do some areas have higher density?" -> true
 
             IMPORTANT: Return ONLY 'true' or 'false' as a single word.
@@ -221,8 +258,7 @@ class SemanticService:
             user_prompt = f"""Question: {question}
             Current dataset information:
             - Metric: {metric_name}
-            - Unit: {unit}
-            - Geographic levels available: state and county only"""
+            - Unit: {unit}"""
 
             response = openai.chat.completions.create(
                 model="gpt-4o-mini",
@@ -233,7 +269,7 @@ class SemanticService:
                 temperature=0
             )
             result = response.choices[0].message.content.strip().lower() == 'true'
-            print(f"out_of_scope: {result}")
+            print(f"Metric match check: {result}")
             return result
 
         except Exception as e:
@@ -327,15 +363,19 @@ class SemanticService:
             
             # If ambiguous and we have context, provide it
             if result["is_ambiguous"] and location:
-                if "location_context" in result:
+                # Fix: Check if location_context exists and is not None before trying to assign to it
+                if result.get("ambiguity_type") in ["location_reference", "both"]:
+                    # Initialize location_context if it doesn't exist or is None
+                    if "location_context" not in result or result["location_context"] is None:
+                        result["location_context"] = {}
                     result["location_context"]["location"] = location
                     result["location_context"]["type"] = context_type
 
             # Prepare return values based on the new format
             ambiguity_type = result.get("ambiguity_type")
             context_needed = {
-                "location": result.get("location_context", {}).get("location"),
-                "type": result.get("location_context", {}).get("type"),
+                "location": result.get("location_context", {}).get("location") if result.get("location_context") else location if ambiguity_type in ["location_reference", "both"] else None,
+                "type": result.get("location_context", {}).get("type") if result.get("location_context") else context_type if ambiguity_type in ["location_reference", "both"] else None,
                 "subject": result.get("subject_context")
             }
 
