@@ -1653,6 +1653,32 @@ const ChoroplethMap = ({ dataset,
         }
     };
 
+    // Add this useEffect to handle keyboard shortcuts for dataset switching
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Check for Ctrl + / shortcut
+            if (e.ctrlKey && e.key === '/') {
+                e.preventDefault();
+                
+                // Toggle between available datasets
+                if (isTaskPage) {
+                    // For task page, toggle between the two datasets
+                    const newDataset = selectedDataset === 'pct_tot_co' ? 'pct_no_bb_' : 'pct_tot_co';
+                    setSelectedDataset(newDataset);
+                    onDatasetChange(newDataset);
+                    
+                    // Announce dataset change for accessibility
+                    const datasetName = datasets[newDataset]?.name || newDataset;
+                    setStateAnnouncement(`Dataset changed to ${datasetName}`);
+                }
+                // For non-task page, there's only one dataset option, so no toggle needed
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedDataset, isTaskPage, onDatasetChange, datasets]);
+
     return (
         <div className="relative h-full ">
             <div 
@@ -1729,26 +1755,57 @@ const ChoroplethMap = ({ dataset,
                 {/* Dataset Selector */}
                     <div className="mb-4">
                         <h3 className="text-sm font-bold mb-2">Dataset</h3>
-                        <select
-                            value={selectedDataset}
-                            onChange={(e) => {
-                                const newDataset = e.target.value;
-                                setSelectedDataset(newDataset);
-                                onDatasetChange(newDataset);
-                            }}
-                            className="block w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
+                        <div className="space-y-2">
                             {isTaskPage ? (
                                 <>
-                                    <option value="pct_tot_co">Underserved Population</option>
-                                    <option value="pct_no_bb_">Lacking Broadband Access</option>
+                                    <label className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            value="pct_tot_co"
+                                            checked={selectedDataset === "pct_tot_co"}
+                                            onChange={(e) => {
+                                                const newDataset = e.target.value;
+                                                setSelectedDataset(newDataset);
+                                                onDatasetChange(newDataset);
+                                            }}
+                                            className="mr-2 text-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm">Underserved Population</span>
+                                    </label>
+                                    <label className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            value="pct_no_bb_"
+                                            checked={selectedDataset === "pct_no_bb_"}
+                                            onChange={(e) => {
+                                                const newDataset = e.target.value;
+                                                setSelectedDataset(newDataset);
+                                                onDatasetChange(newDataset);
+                                            }}
+                                            className="mr-2 text-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm">Lacking Broadband Access</span>
+                                    </label>
                                 </>
                             ) : (
                                 <>
-                                    <option value="ppl_densit">Population Density</option>
+                                    <label className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            value="ppl_densit"
+                                            checked={selectedDataset === "ppl_densit"}
+                                            onChange={(e) => {
+                                                const newDataset = e.target.value;
+                                                setSelectedDataset(newDataset);
+                                                onDatasetChange(newDataset);
+                                            }}
+                                            className="mr-2 text-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm">Population Density</span>
+                                    </label>
                                 </>
                             )}
-                        </select>
+                        </div>
                     </div>
                 
                 {/* choropleth legend */}

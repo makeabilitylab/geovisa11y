@@ -529,11 +529,19 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
         # Get description using the helper function
         description = metric_info['get_description']()
         
-        return {
-            'result': f"{location_phrase} has {formatted_value} {description}.",
-            'county': county if is_county else None,
-            'state': state if is_county else result[0]
-        }
+        # Special case for population density to avoid redundancy
+        if dataset == 'ppl_densit':
+            return {
+                'result': f"{location_phrase} has {formatted_value}.",
+                'county': county if is_county else None,
+                'state': state if is_county else result[0]
+            }
+        else:
+            return {
+                'result': f"{location_phrase} has {formatted_value} {description}.",
+                'county': county if is_county else None,
+                'state': state if is_county else result[0]
+            }
             
     except Exception as e:
         print(f"Error retrieving value: {str(e)}")
