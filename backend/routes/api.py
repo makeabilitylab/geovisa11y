@@ -21,7 +21,7 @@ semantic_service = SemanticService()
 
 # Set up logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,  # Change from INFO to WARNING to reduce output
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         # Remove file handler that's causing permission issues
@@ -117,7 +117,7 @@ def analyze_input():
             
         current_dataset = data.get('current_dataset', 'ppl_densit')
         # Define all available datasets
-        available_datasets = ['ppl_densit', 'pct_tot_co', 'pct_no_bb_', 'gas', 'electricity', 'oil']
+        available_datasets = ['ppl_densit', 'pct_tot_co', 'pct_no_bb_', 'gas', 'electricity', 'oil', 'pct_gas', 'pct_electr', 'pct_oil']
         current_focus = data.get('current_focus')
         previous_answer = data.get('previous_answer')
         conversation_history = data.get('conversation_history', [])
@@ -210,7 +210,7 @@ def analyze_input():
         })
 
         # 3. Handle pattern-related questions directly
-        if question_type in ['get_pattern', 'find_outliers']:
+        if question_type in ['get_pattern', 'find_outliers', 'urban_rural_comparison']:
             analysis = answer_question(user_input, current_dataset, current_focus)
             if analysis:
                 processing_time = time.time() - start_time
@@ -284,6 +284,7 @@ def analyze_input():
             user_input = resolved_question
 
         # 5. Check if question is out of scope for current dataset but in scope for another dataset
+        print(f"Checking out of scope: {user_input}, Current dataset: {current_dataset}, Available datasets: {available_datasets}")
         is_out_of_scope, matching_dataset = semantic_service.is_out_of_scope(user_input, current_dataset, available_datasets)
         
         # Log out of scope check
@@ -292,7 +293,6 @@ def analyze_input():
             'is_out_of_scope': is_out_of_scope,
             'matching_dataset': matching_dataset
         })
-        
         # If out of scope for all datasets, use OpenAI
         if is_out_of_scope and matching_dataset is None:
             openai_response = get_openai_response(user_input)
@@ -316,6 +316,8 @@ def analyze_input():
         # If we found a matching dataset different from current_dataset, use it
         dataset_to_use = matching_dataset if matching_dataset else current_dataset
 
+        print(f"Dataset to use: {dataset_to_use}")
+        
         # 6. Handle county-specific questions
         county_info = extract_county_info(user_input)
         
