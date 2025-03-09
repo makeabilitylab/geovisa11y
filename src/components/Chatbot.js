@@ -497,8 +497,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
         const userMessage = input;
         setInput('');
-        // Reset to input field after sending a message
-        setUseTextarea(false);
         //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
         handleQuestionSubmit(userMessage, false); 
@@ -629,39 +627,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             }
         }
     }, [isInputFocused]);
-
-    // Add new state to track if we should use textarea instead of input
-    const [useTextarea, setUseTextarea] = useState(false);
-    
-    // Modify the useEffect for monitoring input length
-    useEffect(() => {
-        // Switch to textarea if input is longer than 50 characters
-        setUseTextarea(input.length > 50);
-        // This will automatically switch back when input becomes empty after submission
-    }, [input]);
-
-    // Add a new useEffect to maintain focus when switching between input types
-    useEffect(() => {
-        // After the component re-renders due to switching input types,
-        // restore focus to the new input element
-        if (isInputFocused) {
-            setTimeout(() => {
-                if (useTextarea) {
-                    const textarea = wrapperRef.current?.querySelector('textarea');
-                    if (textarea) {
-                        textarea.focus();
-                        // Place cursor at the end of the text
-                        textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
-                    }
-                } else {
-                    const input = wrapperRef.current?.querySelector('input');
-                    if (input) {
-                        input.focus();
-                    }
-                }
-            }, 0);
-        }
-    }, [useTextarea, isInputFocused]);
 
     // Add ref for the welcome section
     const welcomeRef = useRef(null);
@@ -956,43 +921,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             >
                 <div className="flex-grow">
                     <div ref={wrapperRef}>
-                        {useTextarea ? (
-                            <div className="relative w-full min-w-[200px]">
-                                <textarea
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleSubmit(e);
-                                        }
-                                        // Prevent spacebar from triggering in the input field
-                                        if (e.code === 'Space') {
-                                            e.stopPropagation();
-                                        }
-                                    }}
-                                    onClick={() => {
-                                        // Only change focus if it's not already on chat
-                                        if (!isInputFocused) {
-                                            onInputClick();
-                                        }
-                                    }}
-                                    onFocus={() => {
-                                        console.log('Textarea focused');
-                                    }}
-                                    onBlur={() => {
-                                        console.log('Textarea blurred');
-                                    }}
-                                    className={`peer h-full min-h-[100px] w-full resize-none rounded-[7px] border border-blue-gray-200 border-t-transparent bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 focus:border-2 focus:border-teal-500 focus:border-t-transparent focus:outline-0 disabled:resize-none disabled:border-0 disabled:bg-blue-gray-50 ${!isInputFocused ? 'opacity-50' : ''}`}
-                                    placeholder=" "
-                                    aria-label="Type your question here"
-                                    aria-description="Press Enter to submit your question, Shift+Enter for a new line"
-                                />
-                                <label className={`before:content[' '] after:content[' '] pointer-events-none absolute left-0 -top-1.5 flex h-full w-full select-none text-[11px] font-normal leading-tight text-teal-500 transition-all before:pointer-events-none before:mt-[6.5px] before:mr-1 before:box-border before:block before:h-1.5 before:w-2.5 before:rounded-tl-md before:border-t before:border-l before:border-blue-gray-200 before:transition-all after:pointer-events-none after:mt-[6.5px] after:ml-1 after:box-border after:block after:h-1.5 after:w-2.5 after:flex-grow after:rounded-tr-md after:border-t after:border-r after:border-blue-gray-200 after:transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:leading-[3.75] peer-placeholder-shown:text-blue-gray-500 peer-placeholder-shown:before:border-transparent peer-placeholder-shown:after:border-transparent peer-focus:text-[11px] peer-focus:leading-tight peer-focus:text-teal-500 peer-focus:before:border-t-2 peer-focus:before:border-l-2 peer-focus:before:border-teal-500 peer-focus:after:border-t-2 peer-focus:after:border-r-2 peer-focus:after:border-teal-500 peer-disabled:text-transparent peer-disabled:before:border-transparent peer-disabled:after:border-transparent peer-disabled:peer-placeholder-shown:text-blue-gray-500`}>
-                                    Ask MappieTalkie
-                                </label>
-                            </div>
-                        ) : (
                             <Input
                                 type="text"
                                 label="Ask MappieTalkie"
@@ -1020,7 +948,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                                 aria-description="Press Enter to submit your question"
                                 containerProps={{ ref: inputRef }}
                             />
-                        )}
                     </div>
                 </div>
                 <Button 
