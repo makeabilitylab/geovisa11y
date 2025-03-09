@@ -23,7 +23,7 @@ con.execute("LOAD 'spatial';")
 # Initialize the semantic service
 semantic_service = SemanticService()
 
-# Define a centralized metric mapping dictionary
+# Define a centralized metric mapping dictionary with simplified structure
 METRIC_MAPPING = {
     'ppl_densit': {
         'name': 'population density',
@@ -31,39 +31,88 @@ METRIC_MAPPING = {
         'is_percentage': False
     },
     'pct_tot_co': {
-        'name': 'percentage of underserved population',
+        'name': 'underserved population',
         'unit': '%',
         'is_percentage': True
     },
     'pct_no_bb_': {
-        'name': 'percentage of people lacking broadband or computer access',
+        'name': 'people lacking broadband or computer access',
         'unit': '%',
-        'is_percentage': True
+        'is_percentage': True,
+        'prefix': 'of'
     },
     'gas': {
-        'name': 'number of households with gas heating',
-        'unit': 'households with gas heating',
+        'name': 'households with gas heating',
+        'unit': 'households',
         'is_percentage': False
     },
     'electricit': {
-        'name': 'number of households with electricity heating',
-        'unit': 'households with electricity heating',
+        'name': 'households with electricity heating',
+        'unit': 'households',
         'is_percentage': False
     },
     'oil': {
-        'name': 'number of households with oil heating',
-        'unit': 'households with oil heating',
+        'name': 'households with oil heating',
+        'unit': 'households',
         'is_percentage': False
+    },
+    'pct_gas': {
+        'name': 'households that use gas heating',
+        'unit': '%',
+        'is_percentage': True,
+        'prefix': 'of'
+    },
+    'pct_electr': {
+        'name': 'households that use electricity heating',
+        'unit': '%',
+        'is_percentage': True,
+        'prefix': 'of'
+    },
+    'pct_oil': {
+        'name': 'households that use oil heating',
+        'unit': '%',
+        'is_percentage': True,
+        'prefix': 'of'
     }
 }
 
 def get_metric_info(dataset):
-    """Get metric information for a dataset"""
-    return METRIC_MAPPING.get(dataset, {
+    """Get metric information for a dataset and handle percentage formatting"""
+    # Get the base metric info or create a default one
+    metric_info = METRIC_MAPPING.get(dataset, {
         'name': dataset,
         'unit': '',
-        'is_percentage': False
+        'is_percentage': dataset.startswith('pct_')
     })
+    
+    # Add a formatting function to the metric info
+    def format_value(value):
+        if metric_info['is_percentage'] or dataset.startswith('pct_'):
+            # Multiply by 100 for percentage values if they're in decimal form (0-1 range)
+            if value < 1:
+                value = value * 100
+            return f"{value:.1f}%"
+        else:
+            # For non-percentage values, format based on the type of metric
+            if metric_info['unit'] == 'households':
+                # Format household counts as integers
+                return f"{int(value):,} {metric_info['unit']}"
+            elif metric_info['unit']:
+                # For other units like population density, use 2 decimal places
+                return f"{value:.2f} {metric_info['unit']}"
+            else:
+                return f"{value:.2f}"
+    
+    # Add a function to get the full description with optional prefix
+    def get_description():
+        prefix = metric_info.get('prefix', '')
+        if prefix:
+            return f"{prefix} {metric_info['name']}"
+        return metric_info['name']
+    
+    metric_info['format_value'] = format_value
+    metric_info['get_description'] = get_description
+    return metric_info
 
 # Convert the string representation of neighbors array to actual array
 def parse_neighbors(neighbors_str):
@@ -467,61 +516,24 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
             return None
             
         metric_info = get_metric_info(dataset)
+        formatted_value = metric_info['format_value'](result[-1])  # Last element is always the value
         
+        # Generate response based on location type and dataset
         if is_county:
             county, state, value = result
-            
-            if not metric_info['is_percentage']:
-                return {
-                    'result': f"{county} County in {state} has {value:.2f} {metric_info['unit']}.",
-                    'county': county,
-                    'state': state
-                }
-            else:
-                # Handle different percentage datasets
-                if dataset == 'pct_tot_co':
-                    return {
-                        'result': f"{county} County in {state} has {value:.2f}{metric_info['unit']} underserved population.",
-                        'county': county,
-                        'state': state
-                    }
-                elif dataset == 'pct_no_bb_':
-                    return {
-                        'result': f"{county} County in {state} has {value:.2f}{metric_info['unit']} of people lacking broadband or computer access.",
-                        'county': county,
-                        'state': state
-                    }
-                else:
-                    return {
-                        'result': f"{county} County in {state} has {value:.2f}{metric_info['unit']} {metric_info['name']}.",
-                        'county': county,
-                        'state': state
-                    }
+            location_phrase = f"{county} County in {state}"
         else:
             state, value = result
-            
-            if not metric_info['is_percentage']:
-                return {
-                    'result': f"{state} has {value:.2f} {metric_info['unit']}.",
-                    'state': state
-                }
-            else:
-                # Handle different percentage datasets
-                if dataset == 'pct_tot_co':
-                    return {
-                        'result': f"{state} has {value:.2f}{metric_info['unit']} underserved population.",
-                        'state': state
-                    }
-                elif dataset == 'pct_no_bb_':
-                    return {
-                        'result': f"{state} has {value:.2f}{metric_info['unit']} of people lacking broadband or computer access.",
-                        'state': state
-                    }
-                else:
-                    return {
-                        'result': f"{state} has {value:.2f}{metric_info['unit']} {metric_info['name']}.",
-                        'state': state
-                    }
+            location_phrase = f"{state}"
+        
+        # Get description using the helper function
+        description = metric_info['get_description']()
+        
+        return {
+            'result': f"{location_phrase} has {formatted_value} {description}.",
+            'county': county if is_county else None,
+            'state': state if is_county else result[0]
+        }
             
     except Exception as e:
         print(f"Error retrieving value: {str(e)}")

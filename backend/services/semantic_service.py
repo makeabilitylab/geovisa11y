@@ -23,13 +23,25 @@ class SemanticService:
                 'metric': 'number of households with gas heating',
                 'unit': 'count'
             },
-            'electricity': {
+            'electricit': {
                 'metric': 'number of households with electric heating',
                 'unit': 'count'
             },
             'oil': {
                 'metric': 'number of households with oil heating',
                 'unit': 'count'
+            },
+            'pct_gas': {
+                'metric': 'percentage of households with gas heating',
+                'unit': 'percent'
+            },
+            'pct_electr': {
+                'metric': 'percentage of households with electric heating',
+                'unit': 'percent'
+            },
+            'pct_oil': {
+                'metric': 'percentage of households with oil heating',
+                'unit': 'percent'
             }
         }
 
@@ -120,12 +132,12 @@ class SemanticService:
             metric_name = self.dataset_terms[current_dataset]['metric']
             unit = self.dataset_terms[current_dataset]['unit']
 
-            # Special case for urban-rural comparison in Task2
-            if current_dataset in ['gas', 'electricity', 'oil'] and any(term in question.lower() for term in ['urban', 'rural', 'city', 'countryside']):
-                return False if available_datasets is None else (False, current_dataset)  # Keep these questions in scope
-
             # If we have available_datasets, check if the question matches any of them
             if available_datasets:
+                # Replace 'electricity' with 'electricit' in available_datasets if present
+                if 'electricity' in available_datasets:
+                    available_datasets = [ds if ds != 'electricity' else 'electricit' for ds in available_datasets]
+                
                 # Create a list of all available metrics for the prompt
                 available_metrics = [f"{self.dataset_terms[ds]['metric']} ({ds})" for ds in available_datasets]
                 metrics_list = ", ".join(available_metrics)
@@ -135,6 +147,22 @@ class SemanticService:
                 
                 Available datasets:
                 {metrics_list}
+
+                
+                IMPORTANT RULES:
+                1. For questions about population density, return 'ppl_densit'
+                2. For questions about gas heating COUNTS or NUMBERS, return 'gas'
+                3. For questions about electric/electricity heating COUNTS or NUMBERS, return 'electricit'
+                4. For questions about oil heating COUNTS or NUMBERS, return 'oil'
+                5. For questions about PERCENTAGES or PROPORTIONS of households using gas heating, return 'pct_gas'
+                6. For questions about PERCENTAGES or PROPORTIONS of households using electric/electricity heating, return 'pct_electr'
+                7. For questions about PERCENTAGES or PROPORTIONS of households using oil heating, return 'pct_oil'
+                8. For questions about underserved populations, return 'pct_tot_co'
+                9. For questions about people lacking broadband or computer access, return 'pct_no_bb_'
+                
+                CRITICAL DISTINCTION:
+                - If the question asks about "how many households" use a heating type, use the COUNT datasets (gas, electricit, oil)
+                - If the question asks about "what percentage" or "what proportion" of households use a heating type, use the PERCENTAGE datasets (pct_gas, pct_electr, pct_oil)
                 
                 Return the dataset code in parentheses that best matches the question, or 'none' if the question:
                 1. Asks about a DIFFERENT metric than any available dataset
@@ -357,6 +385,7 @@ class SemanticService:
             - Use the conversation history to determine what subject the user is referring to
             - Replace vague references like "what about" with the specific subject from previous exchanges
             - For comparative questions, make both the subject and location explicit
+            - When the subject is a heating type (gas, electricity, oil), be specific about "households with [type] heating"
             
             Examples:
             
@@ -367,6 +396,10 @@ class SemanticService:
             Question: "What about Illinois?"
             Context: {"location": "Kansas", "type": "state", "conversation_history": "User: What's the income level of Kansas? Assistant: The median household income in Kansas is $59,597."}
             Resolved: "What's the income level of Illinois?"
+            
+            Question: "What about electricity?"
+            Context: {"location": "Michigan", "type": "state", "conversation_history": "User: How many households use gas heating in Michigan? Assistant: Michigan has 3,371,101 households with gas heating."}
+            Resolved: "How many households use electricity heating in Michigan?"
             
             Question: "How does it compare to its neighbors?"
             Context: {"location": "Kansas", "type": "state", "conversation_history": "User: What's the income level of Kansas? Assistant: The median household income in Kansas is $59,597."}
