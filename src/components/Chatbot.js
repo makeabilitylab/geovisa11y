@@ -348,7 +348,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                   };
 
             // Log the current focus for debugging
-            console.log("Sending current focus to backend:", currentFocus);
+            // console.log("Sending current focus to backend:", currentFocus);
 
             // Build conversation history from messages
             const messageHistory = messages.map(msg => msg.text);
@@ -934,10 +934,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                                     }
                                 }}
                                 onFocus={() => {
-                                    console.log('Input focused');
+                                    // console.log('Input focused');
                                 }}
                                 onBlur={() => {
-                                    console.log('Input blurred');
+                                    // console.log('Input blurred');
                                 }}
                                 className={`font-['Roboto'] ${!isInputFocused ? 'opacity-50' : ''}`}
                                 labelProps={{
