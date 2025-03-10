@@ -120,6 +120,67 @@ class SemanticService:
             print(f"Error extracting states: {str(e)}")
             return []
 
+    def extract_counties(self, question, current_focus=None):
+        """Extract county and state information from questions using GPT"""
+        try:
+            system_prompt = """You are a geographic data expert. Extract county and state names from the question.
+            Return ONLY a JSON array of objects with county and state names found, or "none" if no counties are mentioned.
+            
+            Rules:
+            1. Always include both county and state when available
+            2. For implicit state references (when state isn't mentioned), use null for state
+            3. Remove the word "County" from county names
+            4. Clean up any punctuation or extra spaces
+            
+            Examples:
+            "What's the population density of Hamilton County, Ohio?" -> [{"county": "Hamilton", "state": "Ohio"}]
+            "What's the population of Clark County in Washington?" -> [{"county": "Clark", "state": "Washington"}]
+            "What about Hamilton County?" -> [{"county": "Hamilton", "state": null}]
+            "Compare Clark County, Nevada and King County, Washington" -> [{"county": "Clark", "state": "Nevada"}, {"county": "King", "state": "Washington"}]
+            "What's the density of Texas?" -> "none"
+            """
+
+            openai.api_key = DevelopmentConfig.OPENAI_API_KEY
+            response = openai.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": question}
+                ],
+                temperature=0,
+                max_tokens=100
+            )
+
+            result = response.choices[0].message.content.strip()
+            if result.lower() == 'none':
+                return []
+
+            counties = json.loads(result)
+            
+            # If we have current_focus and any counties without state, fill in the state
+            if current_focus:
+                state = None
+                if isinstance(current_focus, dict) and current_focus.get('state'):
+                    state = current_focus['state']
+                elif isinstance(current_focus, str):
+                    state = current_focus
+                    
+                if state:
+                    # Handle case where state might be a list
+                    if isinstance(state, list) and len(state) > 0:
+                        state = state[0]
+                        
+                    for county in counties:
+                        if county['state'] is None:
+                            county['state'] = state
+
+            print(f"Debug - Extracted counties: {counties}")
+            return counties
+
+        except Exception as e:
+            print(f"Error extracting counties: {str(e)}")
+            return []
+
     def is_out_of_scope(self, question, current_dataset, available_datasets=None):
         """
         Check if question is out of scope for the current dataset and available datasets using GPT
@@ -314,7 +375,7 @@ class SemanticService:
 
             # Simplified context normalization
             if isinstance(current_focus, dict) and current_focus.get('county'):
-                # This is the key fix - properly format county context
+                # Ensure we keep both county and state information
                 county_name = current_focus['county']
                 state_name = current_focus['state']
                 
@@ -324,12 +385,24 @@ class SemanticService:
                 
                 location = f"{county_name} County, {state_name}"
                 context_type = "county"
+                # Store the components separately for better context handling
+                location_components = {
+                    "county": county_name,
+                    "state": state_name
+                }
             elif isinstance(current_focus, dict) and current_focus.get('city'):
                 location = f"{current_focus['city']}, {current_focus['state']}"
                 context_type = "city"
+                location_components = {
+                    "city": current_focus['city'],
+                    "state": current_focus['state']
+                }
             else:
                 location = current_focus.get('state') if isinstance(current_focus, dict) else current_focus
                 context_type = "state"
+                location_components = {
+                    "state": location
+                }
 
             # print(f"Normalized location: {location}, type: {context_type}")
 
@@ -343,6 +416,7 @@ class SemanticService:
             context = {
                 "current_location": location,
                 "location_type": context_type,
+                "location_components": location_components,  # Add the components to the context
                 "conversation_history": conversation_context,
                 "previous_answer": previous_answer
             }
@@ -363,19 +437,20 @@ class SemanticService:
             
             # If ambiguous and we have context, provide it
             if result["is_ambiguous"] and location:
-                # Fix: Check if location_context exists and is not None before trying to assign to it
                 if result.get("ambiguity_type") in ["location_reference", "both"]:
-                    # Initialize location_context if it doesn't exist or is None
                     if "location_context" not in result or result["location_context"] is None:
                         result["location_context"] = {}
                     result["location_context"]["location"] = location
                     result["location_context"]["type"] = context_type
+                    # Add the components to preserve the full context
+                    result["location_context"]["components"] = location_components
 
-            # Prepare return values based on the new format
+            # Prepare return values with the complete context
             ambiguity_type = result.get("ambiguity_type")
             context_needed = {
                 "location": result.get("location_context", {}).get("location") if result.get("location_context") else location if ambiguity_type in ["location_reference", "both"] else None,
                 "type": result.get("location_context", {}).get("type") if result.get("location_context") else context_type if ambiguity_type in ["location_reference", "both"] else None,
+                "components": result.get("location_context", {}).get("components") if result.get("location_context") else location_components if ambiguity_type in ["location_reference", "both"] else None,
                 "subject": result.get("subject_context")
             }
 
@@ -416,9 +491,10 @@ class SemanticService:
             to be explicit and unambiguous.
             
             For location references:
-            - Replace "here" with the specific location name
-            - Replace "it/its" referring to a location with the location name
+            - Replace "here" with the specific location name INCLUDING BOTH COUNTY AND STATE when applicable
+            - Replace "it/its" referring to a location with the complete location name
             - Replace "this/that state/county" with the specific location name
+            - For counties, ALWAYS include both county name AND state (e.g., "Clark County, Washington")
             - Add state context to city references when missing
             
             For subject references:
@@ -444,10 +520,18 @@ class SemanticService:
             Question: "How does it compare to its neighbors?"
             Context: {"location": "Kansas", "type": "state", "conversation_history": "User: What's the income level of Kansas? Assistant: The median household income in Kansas is $59,597."}
             Resolved: "How does the income level of Kansas compare to the income levels of Kansas's neighboring states?"
+
+            Question: "What's the population density here?"
+            Context: {"location": "Clark County, Washington", "type": "county"}
+            Resolved: "What's the population density in Clark County, Washington?"
             
             Question: "What's the biggest city?"
             Context: {"location": "New York", "type": "state"}
             Resolved: "What's the biggest city in New York state?"
+
+            Question: "What about its neighbors?"
+            Context: {"location": "Clark County, Washington", "type": "county"}
+            Resolved: "What about the neighboring counties of Clark County, Washington?"
             """
 
             # Format conversation history for context if available
