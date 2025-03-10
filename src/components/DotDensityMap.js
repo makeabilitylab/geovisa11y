@@ -839,10 +839,14 @@ const DotDensityMap = ({
     useEffect(() => {
         setStateAnnouncement(
             isMapInteractive 
-                ? 'Map interaction enabled. Press Tab to focus on a state.' 
+                ? currentFocusedCounty
+                    ? `Map interaction enabled. Focused on ${currentFocusedCounty} county in ${Array.isArray(currentFocusedState) ? currentFocusedState[0] : currentFocusedState} state.`
+                    : currentFocusedState
+                        ? `Map interaction enabled. Focused on ${Array.isArray(currentFocusedState) ? currentFocusedState[0] : currentFocusedState} state.`
+                        : 'Map interaction enabled. Press Tab to focus on a state.'
                 : 'Chat interaction enabled. Type a question to ask MappieTalkie.'
         );
-    }, [isMapInteractive]);
+    }, [isMapInteractive, currentFocusedState, currentFocusedCounty]);
 
     // Focus state on map
     const focusStateOnMap = useCallback((stateName) => {
