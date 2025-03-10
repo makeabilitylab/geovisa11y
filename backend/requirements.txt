@@ -18,3 +18,4 @@ python-dotenv==1.0.0
 gunicorn==21.2.0
 openai>=1.0.0
 scipy==1.10.1
+pymongo[srv]==4.0.1

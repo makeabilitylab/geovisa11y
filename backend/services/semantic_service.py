@@ -11,12 +11,36 @@ class SemanticService:
                 'metric': 'population density',
                 'unit': 'people per square mile'
             },
-            'walk_to_wo': {
-                'metric': 'walking to work percentage',
+            'pct_tot_co': {
+                'metric': 'underserved population percentage',
                 'unit': 'percent'
             },
-            'transit_to': {
-                'metric': 'public transit usage',
+            'pct_no_bb_': {
+                'metric': 'percentage of people lacking broadband and computer access',
+                'unit': 'percent'
+            },
+            'gas': {
+                'metric': 'number of households with gas heating',
+                'unit': 'count'
+            },
+            'electricit': {
+                'metric': 'number of households with electric heating',
+                'unit': 'count'
+            },
+            'oil': {
+                'metric': 'number of households with oil heating',
+                'unit': 'count'
+            },
+            'pct_gas': {
+                'metric': 'percentage of households with gas heating',
+                'unit': 'percent'
+            },
+            'pct_electr': {
+                'metric': 'percentage of households with electric heating',
+                'unit': 'percent'
+            },
+            'pct_oil': {
+                'metric': 'percentage of households with oil heating',
                 'unit': 'percent'
             }
         }
@@ -35,11 +59,11 @@ class SemanticService:
             6. sort - Ordering and ranking (e.g., "What are top 3 states with highest X?")
             7. data_ranges - Finding ranges (e.g., "What's the range of X values?")
             8. cluster - Finding similar values (e.g., "Which states have similar {values} to {state}?, Which states have {values} close to {state}?")
-            9. is_pattern - Pattern existence (e.g., "Is there a pattern in the map?")
-            10. describe_pattern - Pattern description (e.g., "Describe the pattern in the map")
-            11. find_outliers - Finding outliers (e.g., "What states have high X despite low surroundings?")
-            12. correlate - Relationship analysis (e.g., "Is there a relationship between X and Y?")
-            13. describe_shape - Shape description (e.g., "Can you describe the shape of X?")
+            9. get_pattern - Pattern analysis (e.g., "Is there a pattern in the map?", "Can you describe the pattern?")
+            10. find_outliers - Finding outliers (e.g., "What states have high X despite low surroundings?")
+            11. correlate - Relationship analysis (e.g., "Is there a relationship between X and Y?")
+            12. describe_shape - Shape description (e.g., "Can you describe the shape of X?")
+            13. urban_rural_comparison - Comparing urban vs rural areas (e.g., "Is there a difference between urban and rural counties regarding their predominant heating fuels?")
             14. others - Conceptual/invalid questions (e.g., "What is X?" or invalid queries)
 
             Respond with ONLY the category name, nothing else."""
@@ -96,16 +120,126 @@ class SemanticService:
             print(f"Error extracting states: {str(e)}")
             return []
 
-    def is_out_of_scope(self, question, current_dataset):
+    def is_out_of_scope(self, question, current_dataset, available_datasets=None):
         """
-        Check if question is out of scope for the current dataset using GPT
-        Returns: bool - True if question should be handled by GPT directly
+        Check if question is out of scope for the current dataset and available datasets using GPT
+        Returns: 
+            - If no available_datasets provided: bool - True if question should be handled by GPT directly
+            - If available_datasets provided: (bool, str) - (is_out_of_scope, matching_dataset or None)
         """
         try:
             # Get the correct metric name from dataset_terms
             metric_name = self.dataset_terms[current_dataset]['metric']
             unit = self.dataset_terms[current_dataset]['unit']
 
+            # First, check if the question is about geographic units not available in the dataset
+            # This applies regardless of whether we're checking against available_datasets or not
+            geo_scope_prompt = """You are an expert at analyzing geographic data questions.
+            Determine if this question asks about geographic units that are NOT available in the dataset.
+            
+            The dataset ONLY contains data at the state and county levels.
+            
+            Return 'true' if the question asks about:
+            - Cities or towns
+            - Regions (Northeast, Midwest, South, West, etc.)
+            - The entire United States as a whole
+            - The world or other countries
+            - Census tracts, zip codes, or other sub-county areas
+            - Any other geographic unit that is NOT a state or county
+            
+            Examples:
+            - "What's the population density of Seattle?" -> true (city)
+            - "Which region of the United States has the highest population density?" -> true (region)
+            - "What's the population density of the United States?" -> true (country as a whole)
+            - "What's the population density of the Northeast region?" -> true (region)
+            - "What's the population density of Texas?" -> false (state)
+            - "What's the population density of Harris County?" -> false (county)
+            
+            IMPORTANT: Return ONLY 'true' or 'false' as a single word.
+            """
+
+            geo_user_prompt = f"Question: {question}"
+
+            geo_response = openai.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": geo_scope_prompt},
+                    {"role": "user", "content": geo_user_prompt}
+                ],
+                temperature=0
+            )
+            
+            geo_out_of_scope = geo_response.choices[0].message.content.strip().lower() == 'true'
+            print(f"Geographic scope check: {geo_out_of_scope}")
+            
+            # If the question is about geographic units not available, it's out of scope
+            if geo_out_of_scope:
+                return True if available_datasets is None else (True, None)
+
+            # If we have available_datasets, check if the question matches any of them
+            if available_datasets:
+                # Replace 'electricity' with 'electricit' in available_datasets if present
+                if 'electricity' in available_datasets:
+                    available_datasets = [ds if ds != 'electricity' else 'electricit' for ds in available_datasets]
+                
+                # Create a list of all available metrics for the prompt
+                available_metrics = [f"{self.dataset_terms[ds]['metric']} ({ds})" for ds in available_datasets]
+                metrics_list = ", ".join(available_metrics)
+                
+                system_prompt = f"""You are an expert at analyzing geographic data questions.
+                Determine which dataset would best answer this question.
+                
+                Available datasets:
+                {metrics_list}
+
+                
+                IMPORTANT RULES:
+                1. For questions about population density, return 'ppl_densit'
+                2. For questions about gas heating COUNTS or NUMBERS, return 'gas'
+                3. For questions about electric/electricity heating COUNTS or NUMBERS, return 'electricit'
+                4. For questions about oil heating COUNTS or NUMBERS, return 'oil'
+                5. For questions about PERCENTAGES or PROPORTIONS of households using gas heating, return 'pct_gas'
+                6. For questions about PERCENTAGES or PROPORTIONS of households using electric/electricity heating, return 'pct_electr'
+                7. For questions about PERCENTAGES or PROPORTIONS of households using oil heating, return 'pct_oil'
+                8. For questions about underserved populations, return 'pct_tot_co'
+                9. For questions about people lacking broadband or computer access, return 'pct_no_bb_'
+                
+                CRITICAL DISTINCTION:
+                - If the question asks about "how many households" use a heating type, use the COUNT datasets (gas, electricit, oil)
+                - If the question asks about "what percentage" or "what proportion" of households use a heating type, use the PERCENTAGE datasets (pct_gas, pct_electr, pct_oil)
+                
+                Return the dataset code in parentheses that best matches the question, or 'none' if the question:
+                1. Asks about a DIFFERENT metric than any available dataset
+                2. Asks conceptual questions about geography or metrics
+                
+                IMPORTANT: Return ONLY the dataset code or 'none' as a single word.
+                """
+
+                user_prompt = f"Question: {question}"
+
+                response = openai.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0
+                )
+                result = response.choices[0].message.content.strip().lower()
+                print(f"Dataset match check: {result}")
+                
+                # Clean up the result - remove any parentheses or extra characters
+                result = result.strip('()')
+                result = result.strip()
+                
+                if result != 'none' and result in available_datasets:
+                    # Question matches an available dataset
+                    return False, result
+                else:
+                    # Question doesn't match any available dataset
+                    return True, None
+            
+            # Original behavior when no available_datasets is provided
             system_prompt = """You are an expert at analyzing geographic data questions.
             Determine if this question can be answered using the current dataset.
             
@@ -115,13 +249,7 @@ class SemanticService:
                - "What's the income level in Texas?" -> true (different metric)
                - "What's the population density in Texas?" -> false (same metric)
                - "What's the population of Illinois?" -> true (different metric, population and population density are different metrics)
-            2. Asks about geographic units not available in the dataset
-               Example: 
-               -"What's the population density of Seattle?" -> true (only state/county data available)
-               -"What's the population density of the United States?" -> true (only state/county data available)
-               -"What's the population density of the world?" -> true (only state/county data available)
-               -"What's the population density of the Northeast region?" -> true (only state/county data available)
-            3. Asks conceptual questions about geography or the metric
+            2. Asks conceptual questions about geography or the metric
                Example: "Why do some areas have higher density?" -> true
 
             IMPORTANT: Return ONLY 'true' or 'false' as a single word.
@@ -130,8 +258,7 @@ class SemanticService:
             user_prompt = f"""Question: {question}
             Current dataset information:
             - Metric: {metric_name}
-            - Unit: {unit}
-            - Geographic levels available: state and county only"""
+            - Unit: {unit}"""
 
             response = openai.chat.completions.create(
                 model="gpt-4o-mini",
@@ -141,28 +268,15 @@ class SemanticService:
                 ],
                 temperature=0
             )
-            print(f"Out of scope check raw response: {response.choices[0].message.content.strip().lower()}")
             result = response.choices[0].message.content.strip().lower() == 'true'
-            print(f"Out of scope check: {result}")
+            print(f"Metric match check: {result}")
             return result
 
         except Exception as e:
-            print(f"Error in out of scope check: {str(e)}")
-            # Fallback to basic check
-            question_lower = question.lower()
-            # Check for non-dataset metrics
-            # metric_terms = ['income', 'poverty', 'education', 'unemployment', 'gdp', 'crime']
-            # if any(term in question_lower for term in metric_terms):
-            #     return True
-            # Check for non-supported geographic units
-            geo_terms = ['region', 'city', 'town', 'metropolitan', 'urban', 'rural']
-            if any(term in question_lower for term in geo_terms):
-                return True
-            # Check for conceptual questions
-            concept_terms = ['why', 'how come', 'what causes', 'explain', 'theory', 'reason']
-            return any(term in question_lower for term in concept_terms)
+            print(f"Error in out_of_scope check: {str(e)}")
+            return False if available_datasets is None else (False, None)  # Default to keeping the question in scope if there's an error
 
-    def is_ambiguous_question(self, question, previous_answer=None, current_focus=None):
+    def is_ambiguous_question(self, question, previous_answer=None, current_focus=None, conversation_history=None):
         """
         Check if a question is ambiguous and needs context resolution using GPT
         Returns: (is_ambiguous: bool, ambiguity_type: str, context_needed: dict)
@@ -170,26 +284,67 @@ class SemanticService:
         try:
             system_prompt = """You are an expert at analyzing geographic questions for ambiguity.
             Analyze if the question contains any ambiguous "references" that require context to resolve.
-            A question is ambiguous only in these specific cases:
-            1. The input includes "here" (e.g., "What's the population density here?")
-            2. The input includes "this/that state/county" without naming it (e.g., "What's the population of this state?")
-            3. The input includes "it" referring to a location (e.g., "What does it look like?")
-
+            
+            There are two types of ambiguity:
+            
+            1. "location_reference" - when the location is ambiguous:
+               - The input includes "here" (e.g., "What's the population density here?")
+               - The input includes "it/its" referring to a location (e.g., "What does it look like?", "What are its neighbors?")
+               - The input includes "this/that state/county" without naming it (e.g., "What's the population of this state?")
+               - The input includes "the biggest/second largest city" without naming the state context (e.g., "What's the biggest city?")
+            
+            2. "subject_reference" - when the subject is ambiguous:
+               - The input refers to a previous question's subject without specifying it (e.g., "What about Illinois?")
+               - The input uses comparative terms without clear reference (e.g., "How does it compare to California?")
+               - The input uses ordinal references without context (e.g., "What's the third largest?")
+            
+            A question can have both types of ambiguity simultaneously.
+            
             Respond with ONLY a JSON string in this exact format:
-            {"is_ambiguous": true/false, "ambiguity_type": "location_reference" or null, "needs_context": {"location": string or null, "type": "state" or "county" or null}}
+            {
+                "is_ambiguous": true/false,
+                "ambiguity_type": "location_reference" or "subject_reference" or "both" or null,
+                "location_context": {
+                    "location": string or null,
+                    "type": "state" or "county" or "city" or null
+                },
+                "subject_context": string or null
+            }
             """
 
             # Simplified context normalization
             if isinstance(current_focus, dict) and current_focus.get('county'):
-                location = f"{current_focus['county']} County, {current_focus['state']}"
+                # This is the key fix - properly format county context
+                county_name = current_focus['county']
+                state_name = current_focus['state']
+                
+                # Handle array input for state
+                if isinstance(state_name, list) and len(state_name) > 0:
+                    state_name = state_name[0]
+                
+                location = f"{county_name} County, {state_name}"
                 context_type = "county"
+            elif isinstance(current_focus, dict) and current_focus.get('city'):
+                location = f"{current_focus['city']}, {current_focus['state']}"
+                context_type = "city"
             else:
                 location = current_focus.get('state') if isinstance(current_focus, dict) else current_focus
                 context_type = "state"
 
+            # print(f"Normalized location: {location}, type: {context_type}")
+
+            # Format conversation history for context
+            conversation_context = ""
+            if conversation_history and len(conversation_history) > 0:
+                # Take up to last 3 exchanges for context
+                recent_history = conversation_history[-6:] if len(conversation_history) > 6 else conversation_history
+                conversation_context = "\n".join([f"{'User' if i % 2 == 0 else 'Assistant'}: {msg}" for i, msg in enumerate(recent_history)])
+
             context = {
-                "current_state": location,
-                "type": context_type
+                "current_location": location,
+                "location_type": context_type,
+                "conversation_history": conversation_context,
+                "previous_answer": previous_answer
             }
 
             user_prompt = f"Question: {question}\nContext: {context}"
@@ -204,50 +359,106 @@ class SemanticService:
             )
 
             result = json.loads(response.choices[0].message.content.strip())
-            print(f"Ambiguity check: {result}")
+            print(f"ambiguity_check_result: {result}")
             
             # If ambiguous and we have context, provide it
             if result["is_ambiguous"] and location:
-                result["needs_context"]["location"] = location
-                result["needs_context"]["type"] = context_type
+                # Fix: Check if location_context exists and is not None before trying to assign to it
+                if result.get("ambiguity_type") in ["location_reference", "both"]:
+                    # Initialize location_context if it doesn't exist or is None
+                    if "location_context" not in result or result["location_context"] is None:
+                        result["location_context"] = {}
+                    result["location_context"]["location"] = location
+                    result["location_context"]["type"] = context_type
+
+            # Prepare return values based on the new format
+            ambiguity_type = result.get("ambiguity_type")
+            context_needed = {
+                "location": result.get("location_context", {}).get("location") if result.get("location_context") else location if ambiguity_type in ["location_reference", "both"] else None,
+                "type": result.get("location_context", {}).get("type") if result.get("location_context") else context_type if ambiguity_type in ["location_reference", "both"] else None,
+                "subject": result.get("subject_context")
+            }
 
             return (
                 result["is_ambiguous"],
-                result["ambiguity_type"],
-                result["needs_context"]
+                ambiguity_type,
+                context_needed
             )
 
         except Exception as e:
             print(f"Error in ambiguity check: {str(e)}")
             # Fallback to basic check
-            if any(word in question.lower() for word in ['here', 'this state', 'that state', 'it']):
+            if any(word in question.lower() for word in ['here', 'this state', 'that state', 'it', 'its']):
                 return True, 'location_reference', {
                     'location': location,
-                    'type': context_type
+                    'type': context_type,
+                    'subject': None
+                }
+            if any(word in question.lower() for word in ['what about', 'how about', 'compare', 'largest', 'biggest', 'smallest']):
+                return True, 'subject_reference', {
+                    'location': location,
+                    'type': context_type,
+                    'subject': None
                 }
             return False, None, None
 
-    def resolve_ambiguous_question(self, question, ambiguity_type, context):
+    def resolve_ambiguous_question(self, question, ambiguity_type, context, conversation_history=None):
         """
         Resolve ambiguous questions using provided context and GPT
         Returns: resolved question or None if can't resolve
         """
-        if not context or ambiguity_type != 'location_reference':
+        if not context:
             return None
 
         try:
             system_prompt = """You are an expert at resolving ambiguous geographic questions.
             Given a question with ambiguous references and the context, rewrite the question 
-            to be explicit and unambiguous. Replace pronouns and location references with 
-            the specific location names.
-
-            Example:
+            to be explicit and unambiguous.
+            
+            For location references:
+            - Replace "here" with the specific location name
+            - Replace "it/its" referring to a location with the location name
+            - Replace "this/that state/county" with the specific location name
+            - Add state context to city references when missing
+            
+            For subject references:
+            - Use the conversation history to determine what subject the user is referring to
+            - Replace vague references like "what about" with the specific subject from previous exchanges
+            - For comparative questions, make both the subject and location explicit
+            - When the subject is a heating type (gas, electricity, oil), be specific about "households with [type] heating"
+            
+            Examples:
+            
             Question: "What's the population density here?"
             Context: {"location": "California", "type": "state"}
             Resolved: "What's the population density in California?"
+            
+            Question: "What about Illinois?"
+            Context: {"location": "Kansas", "type": "state", "conversation_history": "User: What's the income level of Kansas? Assistant: The median household income in Kansas is $59,597."}
+            Resolved: "What's the income level of Illinois?"
+            
+            Question: "What about electricity?"
+            Context: {"location": "Michigan", "type": "state", "conversation_history": "User: How many households use gas heating in Michigan? Assistant: Michigan has 3,371,101 households with gas heating."}
+            Resolved: "How many households use electricity heating in Michigan?"
+            
+            Question: "How does it compare to its neighbors?"
+            Context: {"location": "Kansas", "type": "state", "conversation_history": "User: What's the income level of Kansas? Assistant: The median household income in Kansas is $59,597."}
+            Resolved: "How does the income level of Kansas compare to the income levels of Kansas's neighboring states?"
+            
+            Question: "What's the biggest city?"
+            Context: {"location": "New York", "type": "state"}
+            Resolved: "What's the biggest city in New York state?"
             """
 
-            user_prompt = f"Question: {question}\nContext: {context}"
+            # Format conversation history for context if available
+            if conversation_history and len(conversation_history) > 0:
+                # Take up to last 3 exchanges for context
+                recent_history = conversation_history[-6:] if len(conversation_history) > 6 else conversation_history
+                context_history = "\n".join([f"{'User' if i % 2 == 0 else 'Assistant'}: {msg}" for i, msg in enumerate(recent_history)])
+                context["conversation_history"] = context_history
+
+            user_prompt = f"Question: {question}\nContext: {context}\nAmbiguity Type: {ambiguity_type}"
+            print(f"ambiguious_question_resolution_prompt: {user_prompt}")
 
             response = openai.chat.completions.create(
                 model="gpt-4o-mini",
@@ -259,6 +470,7 @@ class SemanticService:
             )
 
             resolved_question = response.choices[0].message.content.strip()
+            print(f"ambiguious_question_resolution_result: {resolved_question}")
             return resolved_question
 
         except Exception as e:
@@ -303,6 +515,7 @@ class SemanticService:
             if result == "None":
                 return False, None
             
+            print(f"navigation_action_result: {result}")
             # Try to parse as JSON
             try:
                 location_info = json.loads(result)

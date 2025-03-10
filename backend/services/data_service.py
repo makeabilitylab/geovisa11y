@@ -11,6 +11,9 @@ import openai
 from config import DevelopmentConfig
 from services.semantic_service import SemanticService
 import traceback
+from scipy.stats import chi2_contingency
+import libpysal
+from scipy.spatial.distance import squareform, pdist
 
 # Initialize DuckDB connection
 con = duckdb.connect('database/spatial-db.db', read_only=True)
@@ -19,6 +22,112 @@ con.execute("LOAD 'spatial';")
 
 # Initialize the semantic service
 semantic_service = SemanticService()
+
+# Define a centralized metric mapping dictionary with simplified structure
+METRIC_MAPPING = {
+    'ppl_densit': {
+        'name': 'population density',
+        'unit': 'people per square mile',
+        'is_percentage': False
+    },
+    'pct_tot_co': {
+        'name': 'underserved population',
+        'unit': '%',
+        'is_percentage': True
+    },
+    'pct_no_bb_': {
+        'name': 'people lacking broadband or computer access',
+        'unit': '%',
+        'is_percentage': True,
+        'prefix': 'of'
+    },
+    'gas': {
+        'name': 'households with gas heating',
+        'unit': 'households',
+        'is_percentage': False
+    },
+    'electricit': {
+        'name': 'households with electricity heating',
+        'unit': 'households',
+        'is_percentage': False
+    },
+    'oil': {
+        'name': 'households with oil heating',
+        'unit': 'households',
+        'is_percentage': False
+    },
+    'pct_gas': {
+        'name': 'households that use gas heating',
+        'unit': '%',
+        'is_percentage': True,
+        'prefix': 'of'
+    },
+    'pct_electr': {
+        'name': 'households that use electricity heating',
+        'unit': '%',
+        'is_percentage': True,
+        'prefix': 'of'
+    },
+    'pct_oil': {
+        'name': 'households that use oil heating',
+        'unit': '%',
+        'is_percentage': True,
+        'prefix': 'of'
+    }
+}
+
+def get_metric_info(dataset):
+    """Get metric information for a dataset and handle percentage formatting"""
+    # Get the base metric info or create a default one
+    metric_info = METRIC_MAPPING.get(dataset, {
+        'name': dataset,
+        'unit': '',
+        'is_percentage': dataset.startswith('pct_')
+    })
+    
+    # Add a formatting function to the metric info
+    def format_value(value):
+        if metric_info['is_percentage'] or dataset.startswith('pct_'):
+            # Multiply by 100 for percentage values if they're in decimal form (0-1 range)
+            if value < 1:
+                value = value * 100
+            return f"{value:.1f}%"
+        else:
+            # For non-percentage values, format based on the type of metric
+            if metric_info['unit'] == 'households':
+                # Format household counts as integers
+                return f"{int(value):,} {metric_info['unit']}"
+            elif metric_info['unit']:
+                # For other units like population density, use 2 decimal places
+                return f"{value:.2f} {metric_info['unit']}"
+            else:
+                return f"{value:.2f}"
+    
+    # Add a function to get the full description with optional prefix
+    def get_description():
+        prefix = metric_info.get('prefix', '')
+        if prefix:
+            return f"{prefix} {metric_info['name']}"
+        return metric_info['name']
+    
+    metric_info['format_value'] = format_value
+    metric_info['get_description'] = get_description
+    return metric_info
+
+# Convert the string representation of neighbors array to actual array
+def parse_neighbors(neighbors_str):
+    if pd.isna(neighbors_str) or neighbors_str is None:
+        return [None, None, None, None]
+    try:
+        # Remove brackets and split by comma
+        neighbors = neighbors_str.strip('[]').split(',')
+         # Clean up each value and replace empty or 'none' with None
+        neighbors = [s.strip().strip("'\"") for s in neighbors]
+        neighbors = [s if s and s.lower() != 'none' else None for s in neighbors]
+        return neighbors
+    except:
+        return [None, None, None, None]
+
 
 def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=None):
     try:
@@ -29,12 +138,8 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         county_column = "county_nam as county_name," if table_name == 'county' else ""
         
         query = f"""
-        SELECT GEOID, state_name, 
-               CASE 
-                   WHEN '{value_column}' IN ('walk_to_wo', 'transit_to')
-                   THEN COALESCE({value_column}, 0) * 100  -- Multiply percentages by 100
-                   ELSE COALESCE({value_column}, 0)
-               END as value,
+        SELECT GEOID, state_name,
+               COALESCE({value_column}, 0) as value,
                {county_column}
                ST_X(ST_Centroid(geom)) as c_lon,
                ST_Y(ST_Centroid(geom)) as c_lat,
@@ -43,12 +148,8 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         FROM {table_name}
         {where_clause}
         """
-        # print(f"Executing query: {query}")  # Debug log
         
         query_result = con.execute(query).fetchdf()
-        # print(f"Query result shape: {query_result.shape}")  # Debug log
-        # print(f"Query result columns: {query_result.columns}")  # Debug log
-        # print(f"First few rows: {query_result.head()}")  # Debug log
         
         if query_result.empty:
             raise ValueError(f"No data found for state: {state_filter}")
@@ -56,7 +157,7 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         gdf = gpd.GeoDataFrame(query_result, geometry=gpd.GeoSeries.from_wkt(query_result['geom_wkt']))
         
         # LISA classifications
-        lisa_results = get_lisa_clusters(value_column)  # Pass the current dataset
+        lisa_results = get_lisa_clusters(value_column, state_filter)  # Pass the current dataset and state_filter
         if lisa_results:
             lisa_mapping = {}
             for state in lisa_results['HH']:
@@ -75,21 +176,6 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         gdf['c_lat'] = query_result['c_lat']
         if 'county_name' in query_result.columns:
             gdf['county_name'] = query_result['county_name']
-        
-        # Convert the string representation of neighbors array to actual array
-        def parse_neighbors(neighbors_str):
-            if pd.isna(neighbors_str) or neighbors_str is None:
-                return [None, None, None, None]
-            try:
-                # Remove brackets and split by comma
-                neighbors = neighbors_str.strip('[]').split(',')
-                # Clean up each value and replace empty or 'none' with None
-                neighbors = [s.strip().strip("'\"") for s in neighbors]
-                neighbors = [s if s and s.lower() != 'none' else None for s in neighbors]
-                return neighbors
-
-            except:
-                return [None, None, None, None]
 
         # Parse the neighbors column
         gdf['neighbors_'] = gdf['neighbors_'].apply(parse_neighbors)
@@ -108,6 +194,60 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         print(f"Error in fetch_data: {str(e)}")
         print(f"Full traceback: {traceback.format_exc()}")
         raise  # Re-raise the exception to be caught by the route handler
+
+def fetch_fuel_data(table_name, accuracy, state_filter=None):
+    """Fetch data for all fuel types (gas, electricity, oil) for the dot density map"""
+    try:
+        # Add state filter to query if provided
+        where_clause = f"WHERE LOWER(state_name) = LOWER('{state_filter}')" if state_filter else ""
+        
+        # Add county_name column if fetching county data
+        county_column = "county_nam as county_name," if table_name == 'county' else ""
+
+        ## Add rural column
+        rural_column = "rural," if table_name == 'county' else ""
+        
+        query = f"""
+        SELECT GEOID, state_name, 
+               {county_column}
+               COALESCE(gas, 0) as gas,
+               COALESCE(electricit, 0) as electricity,
+               COALESCE(oil, 0) as oil,
+               main_fuel,
+               {rural_column}
+               ST_X(ST_Centroid(geom)) as c_lon,
+               ST_Y(ST_Centroid(geom)) as c_lat,
+               ST_AsText(ST_Simplify(geom, {accuracy})) AS geom_wkt,
+               neighbors_
+        FROM {table_name}
+        {where_clause}
+        """
+        
+        query_result = con.execute(query).fetchdf()
+        
+        if query_result.empty:
+            raise ValueError(f"No data found in {table_name} {where_clause}")
+            
+        gdf = gpd.GeoDataFrame(query_result, geometry=gpd.GeoSeries.from_wkt(query_result['geom_wkt']))
+        
+        # Centroid coordinates
+        gdf['c_lon'] = query_result['c_lon']
+        gdf['c_lat'] = query_result['c_lat']
+        
+        # Parse the neighbors column
+        gdf['neighbors_'] = gdf['neighbors_'].apply(parse_neighbors)
+        
+        gdf.drop(columns=['geom_wkt'], inplace=True)
+        geojson_data = json.loads(gdf.to_json())
+        
+        # Return the GeoJSON as a proper Flask response
+        return jsonify(geojson_data)
+    
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error fetching fuel data: {str(e)}\n{error_details}")
+        raise e
 
 def execute_query(query):
     """Execute a DuckDB query and return results as a list of dictionaries"""
@@ -142,28 +282,90 @@ def check_location_exists(location):
 #######################################
 
 
-def answer_question(question, current_dataset):
+def answer_question(question, current_dataset, current_focus=None):
     """Answer any question for any dataset based on query type"""
     try:
         # Get the question type first
         question_type = semantic_service.identify_question_type(question, current_dataset)
-        #print(f"Debug - Question type identified in answer_question: {question_type}")
-
+        
+        # Extract state filter from current_focus if available
+        state_filter = None
+        county_view = False
+        if current_focus:
+            if isinstance(current_focus, dict):
+                if current_focus.get('state'):
+                    state_filter = current_focus.get('state')
+                # Check if we're in county view - either by having a county or by having showingCounties flag
+                if current_focus.get('county') or current_focus.get('showingCounties'):
+                    county_view = True
+            elif isinstance(current_focus, str):
+                state_filter = current_focus
+        
+        print(f"DEBUG - State filter extracted: {state_filter}, County view: {county_view}")
+        
         # Handle pattern questions before metric check
-        if question_type == 'is_pattern':
-            result = get_moran_i(current_dataset)
+        if question_type == 'get_pattern':
+            # For Task2, return hardcoded answer about heating fuel patterns
+            if current_dataset in ['gas', 'electricity', 'oil']:
+                # Use urban_rural_comparison when in county view OR when we have a state filter
+                if county_view and state_filter:
+                    result = compare_urban_rural_heating_fuels(state_filter)
+                    return {
+                        'result': result,
+                        'dataset': current_dataset,
+                        'question_type': 'urban_rural_comparison',
+                        'state': state_filter
+                    }
+                # For state level view, use the original hardcoded answer
+                else:
+                    pattern_result = 'Yes, there is a clustered pattern in the map; states with similar heating fuel composition tend to be located near each other.'
+                    description_result = 'Southern states like Florida, Texas, and Georgia use predominantly electricity, midwestern states like Minnesota, Illinois, and Wisconsin use predominantly gas, and northeastern states like Maine and Vermont use predominantly oil.'
+                    return {
+                        'result': f"{pattern_result} {description_result}",
+                        'dataset': current_dataset,
+                        'question_type': 'get_pattern'
+                    }
+            
+            # For other datasets, combine Moran's I and LISA analysis
+            moran_result = get_moran_i(current_dataset, state_filter)
+            
+            # If there's no pattern, just return that without the description
+            if moran_result['pattern'] == 'random':
+                return {
+                    'result': moran_result['description'],
+                    'dataset': current_dataset,
+                    'question_type': 'get_pattern'
+                }
+            
+            # Otherwise, add the pattern description
+            lisa_result = get_lisa_clusters(current_dataset, state_filter)
+            pattern_description = get_gpt_spatial_pattern_summary(lisa_result, current_dataset, state_filter)
+            
             return {
-                'result': result['description'],
+                'result': f"{moran_result['description']} {pattern_description}",
                 'dataset': current_dataset,
-                'question_type': 'is_pattern'
+                'question_type': 'get_pattern'
             }
             
-        elif question_type == 'describe_pattern':
-            result = get_lisa_clusters(current_dataset)
+        elif question_type == 'urban_rural_comparison' and current_dataset in ['gas', 'electricity', 'oil']:
+            # Extract state from the question or use the current focused state
+            states = semantic_service.extract_states(question)
+            state_name = states[0] if states else None
+            
+            # If no state was mentioned in the question but there's a focused state,
+            # use the focused state from the frontend
+            if not state_name and isinstance(current_focus, dict) and current_focus.get('state'):
+                state_name = current_focus.get('state')
+            elif not state_name and isinstance(current_focus, str) and current_focus:
+                state_name = current_focus
+            
+            # Handle urban vs rural comparison for heating fuels
+            result = compare_urban_rural_heating_fuels(state_name)
             return {
-                'result': get_gpt_spatial_pattern_summary(result, current_dataset),
+                'result': result,
                 'dataset': current_dataset,
-                'question_type': 'describe_pattern'
+                'question_type': 'urban_rural_comparison',
+                'state': state_name
             }
 
         if question_type == 'retrieve':
@@ -262,7 +464,7 @@ def answer_question(question, current_dataset):
             }
             
         elif question_type == 'find_outliers':
-            result = get_lisa_clusters(current_dataset)
+            result = get_lisa_clusters(current_dataset, current_focus)
             outliers = find_outliers(result, current_dataset)
             return {
                 'result': outliers,
@@ -297,22 +499,14 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
         if is_county:
             query = f"""
                 SELECT county_nam as county_name, state_name,
-                       CASE 
-                           WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                           THEN {dataset} * 100
-                           ELSE {dataset}
-                       END as value
+                       COALESCE({dataset}, 0) as value
                 FROM county
                 WHERE LOWER(county_nam) LIKE LOWER(?) || '%'
             """
         else:
             query = f"""
                 SELECT state_name,
-                       CASE 
-                           WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                           THEN {dataset} * 100
-                           ELSE {dataset}
-                       END as value
+                       COALESCE({dataset}, 0) as value
                 FROM state
                 WHERE LOWER(state_name) = LOWER(?)
             """
@@ -321,40 +515,33 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
         if not result:
             return None
             
+        metric_info = get_metric_info(dataset)
+        formatted_value = metric_info['format_value'](result[-1])  # Last element is always the value
+        
+        # Generate response based on location type and dataset
         if is_county:
             county, state, value = result
-            metric_name = semantic_service.dataset_terms[dataset]['metric']
-            unit = semantic_service.dataset_terms[dataset]['unit']
-            
-            if dataset == 'ppl_densit':
-                return {
-                    'result': f"{county} County in {state} has {value:.2f} {unit}.",
-                    'county': county,
-                    'state': state
-                }
-            else:
-                verb = 'walk' if dataset == 'walk_to_wo' else 'take public transit'
-                return {
-                    'result': f"{county} County in {state} has {value:.2f}{unit} of people who {verb} to work.",
-                    'county': county,
-                    'state': state
-                }
+            location_phrase = f"{county} County in {state}"
         else:
             state, value = result
-            metric_name = semantic_service.dataset_terms[dataset]['metric']
-            unit = semantic_service.dataset_terms[dataset]['unit']
-            
-            if dataset == 'ppl_densit':
-                return {
-                    'result': f"{state} has {value:.2f} {unit}.",
-                    'state': state
-                }
-            else:
-                verb = 'walk' if dataset == 'walk_to_wo' else 'take public transit'
-                return {
-                    'result': f"{state} has {value:.2f}{unit} of people who {verb} to work.",
-                    'state': state
-                }
+            location_phrase = f"{state}"
+        
+        # Get description using the helper function
+        description = metric_info['get_description']()
+        
+        # Special case for population density to avoid redundancy
+        if dataset == 'ppl_densit':
+            return {
+                'result': f"{location_phrase} has {formatted_value}.",
+                'county': county if is_county else None,
+                'state': state if is_county else result[0]
+            }
+        else:
+            return {
+                'result': f"{location_phrase} has {formatted_value} {description}.",
+                'county': county if is_county else None,
+                'state': state if is_county else result[0]
+            }
             
     except Exception as e:
         print(f"Error retrieving value: {str(e)}")
@@ -366,11 +553,7 @@ def compare_states(state1, state2, dataset):
     try:
         query = f"""
             SELECT state_name, 
-                   CASE 
-                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                       THEN {dataset} * 100
-                       ELSE {dataset}
-                   END as value
+                COALESCE({dataset}, 0) as value
             FROM state
             WHERE LOWER(state_name) IN (LOWER(?), LOWER(?))
         """
@@ -386,22 +569,16 @@ def compare_states(state1, state2, dataset):
         state1_data = next(r for r in results if r[0].lower() == state1.lower())
         state2_data = next(r for r in results if r[0].lower() == state2.lower())
         
-        metric_name = {
-            'ppl_densit': 'population density',
-            'walk_to_wo': 'percentage of people walking to work',
-            'transit_to': 'percentage of people using public transit'
-        }[dataset]
-        
-        unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
+        metric_info = get_metric_info(dataset)
         
         # Determine which state has higher value
         higher_state = state1_data[0] if state1_data[1] > state2_data[1] else state2_data[0]
         lower_state = state2_data[0] if state1_data[1] > state2_data[1] else state1_data[0]
         
         return (
-            f"{state1_data[0]} has {state1_data[1]:.2f} {unit} {metric_name} while "
-            f"{state2_data[0]} has {state2_data[1]:.2f} {unit}. "
-            f"{higher_state} has higher {metric_name} than {lower_state}."
+            f"{state1_data[0]} has {state1_data[1]:.2f} {metric_info['unit']} {metric_info['name']} while "
+            f"{state2_data[0]} has {state2_data[1]:.2f} {metric_info['unit']}. "
+            f"{higher_state} has higher {metric_info['name']} than {lower_state}."
         )
     except Exception as e:
         print(f"Error comparing states: {str(e)}")
@@ -415,11 +592,7 @@ def get_extrema(question, dataset):
         
         query = f"""
             SELECT state_name, 
-                   CASE 
-                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                       THEN {dataset} * 100
-                       ELSE {dataset}
-                   END as value
+                COALESCE({dataset}, 0) as value
             FROM state
             ORDER BY value {'DESC' if is_highest else 'ASC'}
             LIMIT 1
@@ -429,11 +602,7 @@ def get_extrema(question, dataset):
         if not result:
             return None
             
-        metric_name = {
-            'ppl_densit': 'population density',
-            'walk_to_wo': 'percentage of people walking to work',
-            'transit_to': 'percentage of people using public transit'
-        }[dataset]
+        metric_info = get_metric_info(dataset)
         
         unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
         
@@ -441,7 +610,7 @@ def get_extrema(question, dataset):
         value_str = f"{result[1]:.2f}{unit}" if unit == '%' else f"{result[1]:.2f} {unit}"
         
         return {
-            'result': f"{result[0]} has the {'highest' if is_highest else 'lowest'} {metric_name} of {value_str}.",
+            'result': f"{result[0]} has the {'highest' if is_highest else 'lowest'} {metric_info['name']} of {value_str}.",
             'state': result[0]  # Include the state name in response
         }
     except Exception as e:
@@ -454,11 +623,7 @@ def get_mean(dataset):
     try:
         query = f"""
             SELECT AVG(
-                CASE 
-                    WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                    THEN {dataset} * 100
-                    ELSE {dataset}
-                END
+                COALESCE({dataset}, 0)
             ) as avg_value
             FROM state
         """
@@ -467,15 +632,9 @@ def get_mean(dataset):
         if not result or result[0] is None:
             return None
             
-        metric_name = {
-            'ppl_densit': 'population density',
-            'walk_to_wo': 'percentage of people walking to work',
-            'transit_to': 'percentage of people using public transit'
-        }[dataset]
+        metric_info = get_metric_info(dataset)
         
-        unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
-        
-        return f"The average {metric_name} across all states is {result[0]:.2f} {unit}."
+        return f"The average {metric_info['name']} across all states is {result[0]:.2f} {metric_info['unit']}."
     except Exception as e:
         print(f"Error calculating average: {str(e)}")
         return None
@@ -516,8 +675,8 @@ def filter(question, dataset):
             return f"No states match the condition."
             
         states = [r[0] for r in results]
-        metric_name = semantic_service.dataset_terms[dataset]['metric']
-        return f"States with {metric_name} {operator} {value}: {', '.join(states)}"
+        metric_info = get_metric_info(dataset)
+        return f"States with {metric_info['name']} {operator} {value}: {', '.join(states)}"
         
     except Exception as e:
         print(f"Error in filter_states: {str(e)}")
@@ -551,12 +710,11 @@ def sort(question, dataset):
         """
         
         results = con.execute(query).fetchall()
-        metric_name = semantic_service.dataset_terms[dataset]['metric']
-        unit = semantic_service.dataset_terms[dataset]['unit']
+        metric_info = get_metric_info(dataset)
         
-        formatted_results = [f"{i+1}. {r[0]} ({r[1]:.2f} {unit})" 
+        formatted_results = [f"{i+1}. {r[0]} ({r[1]:.2f} {metric_info['unit']})" 
                            for i, r in enumerate(results)]
-        return f"Top {limit} states by {metric_name}:\n" + "\n".join(formatted_results)
+        return f"Top {limit} states by {metric_info['name']}:\n" + "\n".join(formatted_results)
         
     except Exception as e:
         print(f"Error in sort_states: {str(e)}")
@@ -574,10 +732,10 @@ def get_data_range(dataset):
         """
         
         result = con.execute(query).fetchone()
-        metric_name = semantic_service.dataset_terms[dataset]['metric']
-        unit = semantic_service.dataset_terms[dataset]['unit']
+        metric_info = get_metric_info(dataset)
+        unit = metric_info['unit']
         
-        return (f"The {metric_name} ranges from {result[0]:.2f} to {result[1]:.2f} {unit}, "
+        return (f"The {metric_info['name']} ranges from {result[0]:.2f} to {result[1]:.2f} {unit}, "
                 f"with an average of {result[2]:.2f} {unit}.")
                 
     except Exception as e:
@@ -618,18 +776,17 @@ def find_similar(state, dataset):
         results = con.execute(query, [ref_value - margin, ref_value + margin, 
                                     state, ref_value]).fetchall()
                                     
-        metric_name = semantic_service.dataset_terms[dataset]['metric']
-        unit = semantic_service.dataset_terms[dataset]['unit']
+        metric_info = get_metric_info(dataset)
         
         if not results:
             return {
-                'result': f"No states have similar {metric_name} to {state.title()}.",
+                'result': f"No states have similar {metric_info['name']} to {state.title()}.",
                 'state': state.title()
             }
             
-        similar_states = [f"{r[0].title()} ({r[1]:.2f} {unit})" for r in results]
+        similar_states = [f"{r[0].title()} ({r[1]:.2f} {metric_info['unit']})" for r in results]
         return {
-            'result': f"States with the closest {metric_name} to {state.title()}: " + ", ".join(similar_states),
+            'result': f"States with the closest {metric_info['name']} to {state.title()}: " + ", ".join(similar_states),
             'state': state.title()
         }
         
@@ -641,15 +798,34 @@ def find_similar(state, dataset):
         }
 
 #08_identify_pattern
-def get_moran_i(dataset):
-    """Analyze global spatial pattern using Moran's I"""
+def get_moran_i(dataset, state_filter=None):
+    """Analyze global spatial pattern using Moran's I, optionally filtered by state"""
     try:
-        # Get state geometries and data for the specified dataset
+        # Determine which table to use based on state_filter
+        table_name = 'county' if state_filter else 'state'
+        
+        # Build WHERE clause - simpler approach
+        where_clause = f"{dataset} IS NOT NULL"
+        if state_filter:
+            where_clause += f" AND LOWER(state_name) = LOWER('{state_filter}')"
+        
+        # Get geometries and data for the specified dataset
         query = f"""
-            SELECT state_name, {dataset} as value, ST_AsText(geom) as geometry
-            FROM state
+            SELECT 
+                {'county_nam as name' if state_filter else 'state_name as name'}, 
+                {dataset} as value, 
+                ST_AsText(geom) as geometry,
+                c_lat, c_lon
+            FROM {table_name}
+            WHERE {where_clause}
         """
         result = con.execute(query).fetchdf()
+        
+        if result.empty:
+            return {
+                'pattern': 'unknown',
+                'description': f"Unable to analyze pattern{' for ' + state_filter if state_filter else ''}. Not enough data available."
+            }
         
         # Convert to GeoDataFrame
         gdf = gpd.GeoDataFrame(
@@ -657,53 +833,116 @@ def get_moran_i(dataset):
             geometry=gpd.GeoSeries.from_wkt(result['geometry'])
         )
         
-        # Create spatial weights matrix using KNN
-        w = KNN.from_dataframe(gdf, k=10)
-        w.transform = 'r'  # Row-standardize weights
+        # Create spatial weights matrix based on geography level
+        if state_filter:
+            # For county level, use Queen contiguity weights
+            w = libpysal.weights.Queen.from_dataframe(gdf)
+        else:
+            # For state level, use distance band weights
+            # Extract centroids from the data
+            coords = np.array(list(zip(gdf['c_lon'], gdf['c_lat'])))
+            
+            # Compute distance matrix
+            distance_matrix = squareform(pdist(coords))
+            
+            # Find each state's closest neighbor's distance (ignoring self)
+            min_distances = np.min(distance_matrix + np.eye(len(gdf)) * 1e6, axis=1)
+            
+            # Max nearest-neighbor distance across all states
+            max_nn_distance = max(min_distances)
+            
+            # Define threshold (20% above max nearest-neighbor distance)
+            distance_threshold = max_nn_distance * 1.2
+            
+            # Create distance band weights
+            w = libpysal.weights.DistanceBand.from_array(
+                coords, 
+                threshold=distance_threshold, 
+                binary=True
+            )
+        
+        # Handle islands (locations with no neighbors)
+        if not w.islands:
+            w.transform = 'r'  # Row-standardize weights
+        else:
+            # If there are islands, we need to handle them
+            print(f"Warning: {len(w.islands)} locations have no neighbors")
+            # Use KNN as fallback for islands
+            knn = libpysal.weights.KNN.from_dataframe(gdf, k=1)
+            w = libpysal.weights.util.attach_islands(w, knn)
+            w.transform = 'r'
         
         # Calculate global Moran's I
         moran = Moran(gdf['value'], w)
+        print(f"Moran's I: {moran.I}")
+        print(f"Moran's p-value: {moran.p_sim}")
+        
+        # Get the metric name for better descriptions
+        metric_info = get_metric_info(dataset)
+        metric_name = metric_info['name']
         
         # Interpret the results and provide simple response
-        if moran.p_sim < 0.05:  # Statistically significant
+        if moran.p_sim < 0.1:  # Statistically significant
             if moran.I > 0:
+                scope = f"in {state_filter}" if state_filter else "across the United States"
                 response = {
                     'pattern': 'clustered',
-                    'description': 'Yes, there is a clustered pattern in the map, similar values tend to be located near each other.'
+                    'description': f"Yes, there is a clustered pattern of {metric_name} {scope}. Similar values tend to be located near each other."
                 }
             else:
+                scope = f"in {state_filter}" if state_filter else "across the United States"
                 response = {
                     'pattern': 'dispersed',
-                    'description': 'Yes, there is a dispersed pattern in the map, dissimilar values tend to be located near each other.'
+                    'description': f"Yes, there is a dispersed pattern of {metric_name} {scope}. Dissimilar values tend to be located near each other."
                 }
         else:
+            scope = f"in {state_filter}" if state_filter else "in this map"
             response = {
                 'pattern': 'random',
-                'description': 'No, there is no obvious spatial pattern in this map.'
+                'description': f"No, there is no obvious spatial pattern of {metric_name} {scope}."
             }
         
         return response
         
     except Exception as e:
         print(f"Error analyzing global pattern: {str(e)}")
-        return None
+        print(f"Full traceback: {traceback.format_exc()}")
+        return {
+            'pattern': 'error',
+            'description': "I couldn't analyze the spatial pattern due to a technical issue."
+        }
 
 #09_describe_pattern
-def get_lisa_clusters(dataset):
-    """Analyze spatial patterns using Local Moran's I and return cluster classifications"""
+def get_lisa_clusters(dataset, state_filter=None):
+    """Analyze spatial patterns using Local Moran's I and return cluster classifications, optionally filtered by state"""
     try:
-        # Get state geometries and data for the specified dataset
+        # Determine which table to use based on state_filter
+        table_name = 'county' if state_filter else 'state'
+        
+        # Build WHERE clause - simpler approach
+        where_clause = f"{dataset} IS NOT NULL"
+        if state_filter:
+            where_clause += f" AND LOWER(state_name) = LOWER('{state_filter}')"
+        
+        # Get geometries and data for the specified dataset
         query = f"""
-            SELECT state_name, 
-                   CASE 
-                       WHEN '{dataset}' IN ('walk_to_wo', 'transit_to')
-                       THEN {dataset} * 100  -- Multiply percentages by 100
-                       ELSE {dataset}
-                   END as value,
-                   ST_AsText(geom) as geometry
-            FROM state
+            SELECT 
+                {'county_nam as name' if state_filter else 'state_name as name'}, 
+                {dataset} as value,
+                ST_AsText(geom) as geometry,
+                c_lat, c_lon
+            FROM {table_name}
+            WHERE {where_clause}
         """
         result = con.execute(query).fetchdf()
+        
+        if result.empty:
+            return {
+                'HH': [],
+                'LL': [],
+                'HL': [],
+                'LH': []
+            }
         
         # Convert to GeoDataFrame
         gdf = gpd.GeoDataFrame(
@@ -711,9 +950,44 @@ def get_lisa_clusters(dataset):
             geometry=gpd.GeoSeries.from_wkt(result['geometry'])
         )
         
-        # Create spatial weights matrix using KNN
-        w = KNN.from_dataframe(gdf, k=10)
-        w.transform = 'r'  # Normalize weights
+        # Create spatial weights matrix based on geography level
+        if state_filter:
+            # For county level, use Queen contiguity weights
+            w = libpysal.weights.Queen.from_dataframe(gdf)
+        else:
+            # For state level, use distance band weights
+            # Extract centroids from the data
+            coords = np.array(list(zip(gdf['c_lon'], gdf['c_lat'])))
+            
+            # Compute distance matrix
+            distance_matrix = squareform(pdist(coords))
+            
+            # Find each state's closest neighbor's distance (ignoring self)
+            min_distances = np.min(distance_matrix + np.eye(len(gdf)) * 1e6, axis=1)
+            
+            # Max nearest-neighbor distance across all states
+            max_nn_distance = max(min_distances)
+            
+            # Define threshold (20% above max nearest-neighbor distance)
+            distance_threshold = max_nn_distance * 1.2
+            
+            # Create distance band weights
+            w = libpysal.weights.DistanceBand.from_array(
+                coords, 
+                threshold=distance_threshold, 
+                binary=True
+            )
+        
+        # Handle islands (locations with no neighbors)
+        if not w.islands:
+            w.transform = 'r'  # Row-standardize weights
+        else:
+            # If there are islands, we need to handle them
+            print(f"Warning: {len(w.islands)} locations have no neighbors in LISA analysis")
+            # Use KNN as fallback for islands
+            knn = libpysal.weights.KNN.from_dataframe(gdf, k=1)
+            w = libpysal.weights.util.attach_islands(w, knn)
+            w.transform = 'r'
         
         # Calculate local Moran's I
         moran = Moran_Local(gdf['value'], w, permutations=999)
@@ -724,49 +998,63 @@ def get_lisa_clusters(dataset):
         # Assign cluster categories where p < 0.05
         significant = gdf['LISA_P'] < 0.05
         
-        # Create lists of states in each category
-        hh_states = gdf[significant & (moran.q == 1)]['state_name'].tolist()
-        lh_states = gdf[significant & (moran.q == 2)]['state_name'].tolist()
-        ll_states = gdf[significant & (moran.q == 3)]['state_name'].tolist()
-        hl_states = gdf[significant & (moran.q == 4)]['state_name'].tolist()
+        # Create lists of locations in each category
+        hh_locations = gdf[significant & (moran.q == 1)]['name'].tolist()
+        lh_locations = gdf[significant & (moran.q == 2)]['name'].tolist()
+        ll_locations = gdf[significant & (moran.q == 3)]['name'].tolist()
+        hl_locations = gdf[significant & (moran.q == 4)]['name'].tolist()
         
         return {
-            'HH': hh_states,
-            'LL': ll_states,
-            'HL': hl_states,
-            'LH': lh_states
+            'HH': hh_locations,
+            'LL': ll_locations,
+            'HL': hl_locations,
+            'LH': lh_locations
         }
         
     except Exception as e:
         print(f"Error analyzing spatial patterns: {str(e)}")
-        return None
+        print(f"Full traceback: {traceback.format_exc()}")
+        return {
+            'HH': [],
+            'LL': [],
+            'HL': [],
+            'LH': []
+        }
         
-def get_gpt_spatial_pattern_summary(lisa_clusters, dataset):
+def get_gpt_spatial_pattern_summary(lisa_clusters, dataset, state_filter=None):
     """Get a natural language summary of spatial patterns using GPT"""
     try:
-        metric_name = {
-            'ppl_densit': 'population density',
-            'walk_to_wo': 'walking to work percentage',
-            'transit_to': 'public transit usage'
-        }.get(dataset, 'value')
-
+        metric_info = get_metric_info(dataset)
+        metric_name = metric_info['name']
+        
+        # Check if we have any significant clusters
+        has_clusters = any(len(cluster) > 0 for cluster in lisa_clusters.values())
+        if not has_clusters:
+            if state_filter:
+                return f"There are no statistically significant clusters or outliers of {metric_name} among counties in {state_filter}."
+            else:
+                return f"There are no statistically significant clusters or outliers of {metric_name} among states."
+        
         # Create description from LISA clusters
         description = []
+        location_type = "counties" if state_filter else "states"
+        
         if lisa_clusters['HH']:
-            description.append(f"High-High clusters (states with high {metric_name} surrounded by high-{metric_name} neighbors): {', '.join(lisa_clusters['HH'])}")
+            description.append(f"High-High clusters ({location_type} with high {metric_name} surrounded by high-{metric_name} neighbors): {', '.join(lisa_clusters['HH'])}")
         if lisa_clusters['LL']:
-            description.append(f"Low-Low clusters (states with low {metric_name} surrounded by low-{metric_name} neighbors): {', '.join(lisa_clusters['LL'])}")
+            description.append(f"Low-Low clusters ({location_type} with low {metric_name} surrounded by low-{metric_name} neighbors): {', '.join(lisa_clusters['LL'])}")
         if lisa_clusters['HL']:
-            description.append(f"High-Low outliers (states with high {metric_name} surrounded by low-{metric_name} neighbors): {', '.join(lisa_clusters['HL'])}")
+            description.append(f"High-Low outliers ({location_type} with high {metric_name} surrounded by low-{metric_name} neighbors): {', '.join(lisa_clusters['HL'])}")
         if lisa_clusters['LH']:
-            description.append(f"Low-High outliers (states with low {metric_name} surrounded by high-{metric_name} neighbors): {', '.join(lisa_clusters['LH'])}")
+            description.append(f"Low-High outliers ({location_type} with low {metric_name} surrounded by high-{metric_name} neighbors): {', '.join(lisa_clusters['LH'])}")
         
         raw_description = '. '.join(description)
         
+        scope = f"in {state_filter}" if state_filter else "across the United States"
         prompt = f"""
-        Summarize the following US {metric_name} patterns in a single, concise paragraph following this structure:
-        1. First mention high-value clusters with 1-2 example states
-        2. Then mention low-value clusters with 1-2 example states
+        Summarize the following {metric_name} patterns {scope} in a single, concise paragraph following this structure:
+        1. First mention high-value clusters with 1-2 example {location_type}
+        2. Then mention low-value clusters with 1-2 example {location_type}
         3. Finally, mention any notable outliers (high values surrounded by low or vice versa)
         
         Keep the summary brief and focused on the most significant patterns.
@@ -781,9 +1069,9 @@ def get_gpt_spatial_pattern_summary(lisa_clusters, dataset):
             messages=[
                 {
                     "role": "system", 
-                    "content": """You are a spatial analysis expert who provides concise summaries for the general public. 
+                    "content": f"""You are a spatial analysis expert who provides concise summaries for the general public. 
                     Focus on the most significant patterns and use clear geographic references. 
-                    Keep responses to within 50 words and always include example states.
+                    Keep responses to within 50 words and always include example {location_type}.
                     Pick examples that makes the most sense for the metric."""
                 },
                 {"role": "user", "content": prompt}
@@ -794,29 +1082,32 @@ def get_gpt_spatial_pattern_summary(lisa_clusters, dataset):
         
     except Exception as e:
         print(f"Error getting GPT summary: {str(e)}")
-        return None
+        if state_filter:
+            return f"I found some patterns in {metric_name} among counties in {state_filter}, but couldn't generate a detailed summary."
+        else:
+            return f"I found some patterns in {metric_name} across states, but couldn't generate a detailed summary."
 
 #10_find_outliers
 def find_outliers(lisa_results, dataset):
     """Format outlier results from LISA analysis with natural language description (max 3 examples)"""
     try:
-        metric_name = semantic_service.dataset_terms[dataset]['metric']
+        metric_info = get_metric_info(dataset)
         
         if not (lisa_results['HL'] or lisa_results['LH']):
-            return f"No significant outliers found in {metric_name}."
+            return f"No significant outliers found in {metric_info['name']}."
         
         parts = []
         if lisa_results['HL']:
             states = ', '.join(lisa_results['HL'][:3]) 
             if len(lisa_results['HL']) > 3:
                 states
-            parts.append(f"{states}, where {metric_name} is relatively high compared to its neighbors")
+            parts.append(f"{states}, where {metric_info['name']} is relatively high compared to its neighbors")
             
         if lisa_results['LH']:
             states = ', '.join(lisa_results['LH'][:3])
             if len(lisa_results['LH']) > 3:
                 states 
-            parts.append(f"{states}, where {metric_name} is relatively low compared to its neighbors")
+            parts.append(f"{states}, where {metric_info['name']} is relatively low compared to its neighbors")
         
         if len(parts) == 2:
             return f"Outliers include states like {parts[0]}. There are also {parts[1]}."
@@ -827,4 +1118,80 @@ def find_outliers(lisa_results, dataset):
         print(f"Error formatting outliers: {str(e)}")
         return None
 
+def compare_urban_rural_heating_fuels(state_name=None):
+    """Compare urban and rural counties' predominant heating fuel types within a specific state"""
+    try:
+        # Handle state_name if it's a list or other non-string type
+        if state_name:
+            if isinstance(state_name, list):
+                # Take the first element if it's a list
+                state_name = state_name[0] if state_name else None
+            # Convert to string to ensure SQL safety
+            state_name = str(state_name)
+        
+        # Add state filter if provided
+        state_filter = f"AND LOWER(state_name) = LOWER('{state_name}')" if state_name else ""
+        
+        # Query to get county data with urban/rural classification and predominant fuel
+        query = f"""
+        SELECT 
+            rural,  -- 'Rural' or 'Not rural'
+            main_fuel,
+            COUNT(*) as count
+        FROM county
+        WHERE rural IS NOT NULL AND main_fuel IS NOT NULL
+        {state_filter}
+        GROUP BY rural, main_fuel
+        ORDER BY rural, main_fuel
+        """
+        
+        result = con.execute(query).fetchdf()
+        
+        if result.empty:
+            return f"I couldn't find data on urban and rural counties' heating fuel usage{' in ' + state_name if state_name else ''}."
+        
+        # Create a contingency table
+        contingency_table = result.pivot(index='rural', columns='main_fuel', values='count').fillna(0)
+        
+        # Check if we have both rural and non-rural counties
+        if 'Rural' not in contingency_table.index or 'Not rural' not in contingency_table.index:
+            return f"I couldn't compare urban and rural counties in {state_name} because there aren't enough counties of both types."
+        
+        # Calculate percentages for each fuel type
+        urban_total = contingency_table.loc['Not rural'].sum()
+        rural_total = contingency_table.loc['Rural'].sum()
+        
+        urban_percentages = (contingency_table.loc['Not rural'] / urban_total * 100).round(1)
+        rural_percentages = (contingency_table.loc['Rural'] / rural_total * 100).round(1)
+        
+        # Prepare the response with the new first sentence
+        state_phrase = f" in {state_name}" if state_name else ""
+        response = f"Here's a breakdown of predominantly used heating fuels{state_phrase}.\n\n"
+        
+        # Add detailed breakdown for urban counties
+        urban_breakdown = []
+        for fuel_type in contingency_table.columns:
+            if urban_percentages[fuel_type] > 0:
+                urban_breakdown.append(f"{urban_percentages[fuel_type]}% predominantly use {fuel_type}")
+        
+        if urban_breakdown:
+            response += f"For urban counties: {', '.join(urban_breakdown)}.\n"
+        
+        # Add detailed breakdown for rural counties
+        rural_breakdown = []
+        for fuel_type in contingency_table.columns:
+            if rural_percentages[fuel_type] > 0:
+                rural_breakdown.append(f"{rural_percentages[fuel_type]}% predominantly use {fuel_type}")
+        
+        if rural_breakdown:
+            response += f"For rural counties: {', '.join(rural_breakdown)}."
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error comparing urban and rural heating fuels: {str(e)}")
+        # Format the state name for error message
+        state_display = state_name if isinstance(state_name, str) else str(state_name)
+        state_phrase = f" in {state_display}" if state_name else ""
+        return f"I couldn't analyze the difference between urban and rural counties{state_phrase} due to a technical issue."
 
