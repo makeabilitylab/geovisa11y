@@ -7,9 +7,15 @@ import {
     Input,
     Button,
 } from '@material-tailwind/react';
+import { 
+    logQuestionData, 
+    logProcessingData, 
+    logAnswerData, 
+    generateQuestionId 
+} from '../utils/logger';
 
 
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus }) => {
+const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus, isTaskPage = false, isTask2Page = false, showingCounties = false, countyViewState = null }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -23,6 +29,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     const inputRef = useRef(null);
     const wrapperRef = useRef(null);
     const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
+    const [stateAnnouncement, setStateAnnouncement] = useState('');
 
     // List of US states
     const states = [
@@ -42,39 +49,68 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         return shuffled.slice(0, n);
     };
 
-    // Function to get random example questions
+    // Function to get map description based on dataset
+    const getMapDescription = () => {
+        if (isTaskPage) {
+            switch(dataset) {
+                case 'pct_tot_co':
+                    return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
+                case 'pct_no_bb_':
+                    return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband in each state. Darker shades indicate higher percentages.";
+                default:
+                    return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
+            }
+        } else {
+            switch(dataset) {
+                default: // ppl_densit
+                    return "This is an interactive choropleth map of the United States showing population density, optimized for screen reader users.";
+            }
+        }
+    };
+
+    // Function to get example questions based on dataset
     const getExampleQuestions = () => {
         const [state1, state2, state3] = getRandomStates(3);
         const extrema = Math.random() < 0.5 ? 'highest' : 'lowest';
         
-        // Dataset-specific questions
-        if (dataset === 'walk_to_wo') {
+        if (isTask2Page) {
+            // Task2-specific questions
             return [
-                `What percentage of people walk to work in ${state1}?`,
-                `Which state has a higher percentage of people walking to work, ${state2} or ${state3}?`,
-                `Which state has the ${extrema} percentage of people walking to work?`,
-                "What's the average percentage of people who walk to work?",
+                `How many households use gas heating in ${state1}?`,
+                // `Which state has more households using gas heating, ${state2} or ${state3}?`,
+                `Which state has the ${extrema} number of households using gas heating?`,
+                // "What's the average number of households using gas heating?",
                 "Is there a pattern in this map?",
-                "Can you describe the pattern?"
+                // "Can you describe the pattern?"
             ];
-        } else if (dataset === 'transit_to') {
-            return [
-                `What percentage of people use public transit in ${state1}?`,
-                `Which state has a higher percentage of public transit usage, ${state2} or ${state3}?`,
-                `Which state has the ${extrema} percentage of public transit usage?`,
-                "What's the average percentage of people who use public transit?",
-                "Is there a pattern in this map?",
-                "Can you describe the pattern?"
-            ];
-        } else {  // ppl_densit
-            return [
-                `What's the population density of ${state1}?`,
-                // `Which state has higher population density, ${state2} or ${state3}?`,
-                `Which state has the ${extrema} population density?`,
-                // "What's the average population density in this map?",
-                "Is there a pattern in this map?",
-                // "Can you describe the pattern?",
-            ];
+        } else if (isTaskPage) {
+            // Task1-specific questions
+            if (dataset === 'pct_tot_co') {
+                return [
+                    `What's the percentage of underserved population in ${state1}?`,
+                    // `Which state has a higher percentage of underserved population, ${state2} or ${state3}?`,
+                    `Which state has the ${extrema} percentage of underserved population?`,
+                    // "What's the average percentage of underserved population?",
+                    "Is there a pattern in this map?",
+                    // "Can you describe the pattern?"
+                ];
+            } else { // pct_no_bb_
+                return [
+                    `What percentage of people lack broadband or computer access in ${state1}?`,
+                    // `Which state has a higher percentage lacking broadband or computer access, ${state2} or ${state3}?`,
+                    `Which state has the ${extrema} percentage of peoplelacking broadband or computer access?`,
+                    // "What's the average percentage of people lacking broadband or computer access?",
+                    "Is there a pattern in this map?",
+                    // "Can you describe the pattern?"
+                ];
+            }
+        } else {
+                return [
+                    `What's the population density of ${state1}?`,
+                    `Which state has the ${extrema} population density?`,
+                    "Is there a pattern in this map?",
+                ];
+            
         }
     };
 
@@ -86,6 +122,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         //setUseSpeech(false);  // Reset speech mode when dataset changes
     }, [dataset]);
 
+    // Scroll to bottom of chat container when messages are updated
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -262,54 +299,102 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
     // Add state for tracking previous answer
     const [previousAnswer, setPreviousAnswer] = useState(null);
+    const [conversationHistory, setConversationHistory] = useState([]);
 
     const handleQuestionSubmit = async (input, useSpeech = false) => {
         try {
+            const startTime = Date.now();
             setIsLoading(true);
             
-            // Add special case for "What else can you do?"
-            if (input.toLowerCase().trim() === "what else can you do?") {
+            // Add more flexible matching for "What else can you do?"
+            const whatElseRegex = /^what\s+(else|more)\s+(can|could)\s+(you|i)\s+(do|ask|say).*$/i;
+            if (whatElseRegex.test(input.trim()) || 
+                input.toLowerCase().includes("what can you do") || 
+                input.toLowerCase().includes("what else can you do")) {
                 setMessages(prev => [...prev, { 
                     text: `For the current dataset, I can:<br>
-• Compare and sort data<br>
-• Filter information<br>
-• Find similar values and outliers<br>
-• Describe patterns on the map<br>
-• Describe state shapes<br>
-• Identify neighboring states`, 
+                            • Compare and sort data<br>
+                            • Filter information<br>
+                            • Find similar values and outliers<br>
+                            • Describe patterns on the map<br>
+                            • Describe state shapes<br>
+                            • Identify neighboring states`, 
                     sender: 'bot' 
                 }]);
                 setIsLoading(false);
                 return;
             }
 
-            // Create focus object that includes state, county, and city
+            // Create focus object that includes state, county, and showingCounties flag
             const currentFocus = currentFocusedCity 
                 ? {
                     city: currentFocusedCity.name,
                     state: currentFocusedCity.state,
                     coordinates: currentFocusedCity.coordinates,
-                    full: `${currentFocusedCity.name}, ${currentFocusedCity.state}`
+                    full: `${currentFocusedCity.name}, ${currentFocusedCity.state}`,
+                    showingCounties: showingCounties
                   }
                 : currentFocusedCounty 
                 ? {
                     county: currentFocusedCounty,
                     state: currentFocusedState,
-                    full: `${currentFocusedCounty} County, ${currentFocusedState}`
+                    full: `${currentFocusedCounty} County, ${currentFocusedState}`,
+                    showingCounties: showingCounties
                   }
                 : {
-                    state: currentFocusedState,
-                    full: currentFocusedState
+                    state: currentFocusedState || countyViewState, // Use countyViewState as fallback
+                    full: currentFocusedState || countyViewState,
+                    showingCounties: showingCounties
                   };
 
-            console.log('Sending input to analyze:', {
-                input,
+            // Log the current focus for debugging
+            // console.log("Sending current focus to backend:", currentFocus);
+
+            // Build conversation history from messages
+            const messageHistory = messages.map(msg => msg.text);
+            
+            // Get map viewport information (you'll need to pass this from the Map component)
+            const mapViewport = {
+                zoom: window.mapZoomLevel || null,
+                center: window.mapCenter || null,
+                bounds: window.mapBounds || null
+            };
+
+            // Log the question data and get a question ID
+            const questionId = await logQuestionData(
+                input, 
+                previousAnswer, 
+                currentFocus, 
+                currentFocusedState, 
+                currentFocusedCounty, 
+                messageHistory,
+                dataset,
+                mapViewport
+            );
+
+            // console.log('Sending input to analyze:', {
+            //     input,
+            //     previous_answer: previousAnswer,
+            //     current_focus: currentFocus,
+            //     raw_state: currentFocusedState,
+            //     raw_county: currentFocusedCounty,
+            //     conversation_history: messageHistory,
+            //     question_id: questionId
+            // });
+            
+            // console.log('Conversation history:', messageHistory);
+
+            // Prepare the request data
+            const requestData = {
+                input: input,
+                current_dataset: dataset,
+                current_focus: currentFocus, 
                 previous_answer: previousAnswer,
-                current_focus: currentFocus,
-                raw_state: currentFocusedState,
-                raw_county: currentFocusedCounty
-            });
-            // ROCK log input
+                conversation_history: messageHistory,
+                question_id: questionId,
+                raw_county: currentFocusedCounty,
+                raw_state: currentFocusedState
+            };
 
             const response = await fetch(`${apiUrl}/api/analyze-input`, {
                 method: 'POST',
@@ -319,14 +404,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 },
                 credentials: 'include',
                 mode: 'cors',
-                body: JSON.stringify({
-                    input,
-                    previous_answer: previousAnswer,
-                    current_focus: currentFocus,
-                    raw_state: currentFocusedState,
-                    raw_county: currentFocusedCounty,
-                    current_dataset: dataset
-                })
+                body: JSON.stringify(requestData)
             });
 
             if (!response.ok) {
@@ -334,8 +412,24 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             }
 
             const data = await response.json();
-            console.log('Response:', data);
-            // ROCK log response
+            const processingTime = Date.now() - startTime;
+            
+            console.log('Response:', {
+                "dataset": dataset,
+                "question_type": data.question_type,
+                "result": data.result,
+                "processing_time_ms": processingTime
+            });
+            
+            // Log the answer data
+            await logAnswerData(
+                questionId, 
+                data.result, 
+                processingTime, 
+                dataset, 
+                data.question_type
+            );
+
             // Handle action responses
             if (data.is_action) {
                 if (data.action_type === 'focus_city') {
@@ -363,12 +457,11 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             // Handle question responses
             if (data.result) {
                 setPreviousAnswer(data.result); // Store the answer for context
+                setConversationHistory(prev => [...prev, input, data.result]); // Update conversation history
 
-                // Update map for pattern questions
-                if (data.question_type === 'describe_pattern') {
+
+                if (data.question_type === 'get_pattern') {
                     onPatternQuestion(true);
-                } else if (data.question_type === 'is_pattern') {
-                    onPatternQuestion(false);
                 }
 
                 // Handle state/county focusing for relevant question types
@@ -400,20 +493,13 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // input = input.trim();
         if (!input.trim()) return;
-
-        // log 
-        const log = {
-            input: input,
-        }
-        // console.log('Log:', log);
 
         const userMessage = input;
         setInput('');
         //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
-        handleQuestionSubmit(userMessage, false);  // Explicitly pass false to disable speech
+        handleQuestionSubmit(userMessage, false); 
     };
 
     // Modify handleKeyDown for text input to ignore spacebar
@@ -452,32 +538,22 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         };
     }, [isRecording, isInputFocused]);
 
-    // Function to get map description based on dataset
-    const getMapDescription = () => {
-        switch(dataset) {
-            case 'walk_to_wo':
-                return "This is a choropleth map of the United States showing the percentage of people who walk to work in each state. Darker shades indicate higher percentages of walking commuters.";
-            case 'transit_to':
-                return "This is a choropleth map of the United States showing the percentage of people who use public transit in each state. Darker shades indicate higher percentages of public transit usage.";
-            default: // ppl_densit
-                // return "This is a choropleth map of the United States showing population density for each state. Darker shades indicate higher population density.";
-                return "This is an interactive choropleth map of the United States showing population density, optimized for screen reader users.";
-        }
-    };
 
     // Function to get general knowledge questions based on dataset
     const getGeneralQuestions = () => {
         switch(dataset) {
-            case 'walk_to_wo':
+            case 'pct_tot_co':
                 return [
                     "What's a choropleth map?",
-                    "Is there a relationship between population density and the percentage of people who walk to work?"
+                    "Is there a relationship between population density and the percentage of underserved population?"
                 ];
-            case 'transit_to':
+            case 'pct_no_bb_':
                 return [
                     "What's a choropleth map?",
-                    "Is there a relationship between population density and public transit usage?"
+                    "Is there a relationship between population density and the percentage of people lacking broadband or computer access?"
                 ];
+
+            //TODO: Add general questions for other datasets
             default: // ppl_densit
                 return [
                     "What's a choropleth map?",
@@ -552,6 +628,59 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         }
     }, [isInputFocused]);
 
+    // Add ref for the welcome section
+    const welcomeRef = useRef(null);
+    
+    // Add effect for Ctrl+H hotkey
+    useEffect(() => {
+        const handleHelpHotkey = (e) => {
+            // Handle Ctrl+H to focus on welcome section
+            if (e.ctrlKey && e.key.toLowerCase() === 'h') {
+                e.preventDefault();
+                
+                // Create a clone of the welcome content
+                if (welcomeRef.current) {
+                    // First, focus on the welcome section
+                    welcomeRef.current.focus();
+                    
+                    // Clone the welcome content for announcement
+                    const welcomeContent = welcomeRef.current.cloneNode(true);
+                    
+                    // Extract text content from the welcome section
+                    const textContent = welcomeRef.current.textContent;
+                    
+                    // Set the announcement with the full text content
+                    setStateAnnouncement("Help information: " + textContent);
+                    
+                    // Optional: Scroll to top of chat container
+                    if (chatContainerRef.current) {
+                        chatContainerRef.current.scrollTop = 0;
+                    }
+                    
+                    // Force the screen reader to re-read by temporarily removing and re-adding the content
+                    const parent = welcomeRef.current.parentNode;
+                    const nextSibling = welcomeRef.current.nextSibling;
+                    
+                    // Remove from DOM briefly
+                    parent.removeChild(welcomeRef.current);
+                    
+                    // Re-add to DOM after a short delay
+                    setTimeout(() => {
+                        if (nextSibling) {
+                            parent.insertBefore(welcomeRef.current, nextSibling);
+                        } else {
+                            parent.appendChild(welcomeRef.current);
+                        }
+                        welcomeRef.current.focus();
+                    }, 50);
+                }
+            }
+        };
+        
+        window.addEventListener('keydown', handleHelpHotkey);
+        return () => window.removeEventListener('keydown', handleHelpHotkey);
+    }, []);
+
     return (
         <CardBody 
             className="flex flex-col h-full p-2 overflow-y-auto max-h-screen min-w-[300px]"
@@ -561,6 +690,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         >
             <div 
                 id="welcome"  
+                ref={welcomeRef}
                 aria-live="polite" 
                 role="region"
                 tabIndex="0"
@@ -626,24 +756,23 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                                     }
                                 }}
                             >
-                                Go to Washington.
-                            </span>
+                                Go to Washington</span>
                             {" to focus on Washington or any other state."}
                         </li>
                         <li>
                             {"When focused on a state or county, you can ask specific questions like: "}
                             <span
-                                onClick={() => handleExampleClick("What's the population density here?")}
+                                onClick={() => handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?`)}
                                 className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
                                 role="text"
                                 tabIndex="0"
                                 onKeyPress={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick("What's the population density here?");
+                                        handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?`);
                                     }
                                 }}
                             >
-                                What's the population density here?
+                                What's the {dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?
                             </span>
                             {" or "}
                             <span
@@ -692,6 +821,9 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                                 What else can you do?
                             </span>
                             {" to hear a list of all the things I can do."}
+                        </li>
+                        <li>
+                            {"Press Ctrl+H anytime to hear this information again."}
                         </li>
                     </ul>
                 </Typography>
@@ -751,7 +883,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                                 <Typography 
                                     variant="small" 
                                     className="font-['Roboto'] font-normal leading-[1.2]"
-                                    dangerouslySetInnerHTML={{ __html: msg.text }}
+                                    dangerouslySetInnerHTML={{ __html: msg.text || ' ' }}
                                 />
                             </div>
                         </div>
@@ -771,6 +903,16 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 </div>
             </div>
 
+            {/* Live region for announcements */}
+            <div
+                role="alert"
+                aria-live="assertive"
+                aria-atomic="true"
+                className="sr-only"
+            >
+                {stateAnnouncement || ' '}
+            </div>
+
             {/* Input, Microphone, and Send Button */}
             <div 
                 className="flex gap-2 items-center"
@@ -779,33 +921,33 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             >
                 <div className="flex-grow">
                     <div ref={wrapperRef}>
-                        <Input
-                            type="text"
-                            label="Ask MappieTalkie"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            onClick={() => {
-                                // Only change focus if it's not already on chat
-                                if (!isInputFocused) {
-                                    onInputClick();
-                                }
-                            }}
-                            onFocus={() => {
-                                console.log('Input focused');
-                            }}
-                            onBlur={() => {
-                                console.log('Input blurred');
-                            }}
-                            className={`font-['Roboto'] ${!isInputFocused ? 'opacity-50' : ''}`}
-                            labelProps={{
-                                className: "!text-teal-500"
-                            }}
-                            color="teal"
-                            aria-label="Type your question here"
-                            aria-description="Press Enter to submit your question"
-                            containerProps={{ ref: inputRef }}
-                        />
+                            <Input
+                                type="text"
+                                label="Ask MappieTalkie"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                onClick={() => {
+                                    // Only change focus if it's not already on chat
+                                    if (!isInputFocused) {
+                                        onInputClick();
+                                    }
+                                }}
+                                onFocus={() => {
+                                    // console.log('Input focused');
+                                }}
+                                onBlur={() => {
+                                    // console.log('Input blurred');
+                                }}
+                                className={`font-['Roboto'] ${!isInputFocused ? 'opacity-50' : ''}`}
+                                labelProps={{
+                                    className: "!text-teal-500"
+                                }}
+                                color="teal"
+                                aria-label="Type your question here"
+                                aria-description="Press Enter to submit your question"
+                                containerProps={{ ref: inputRef }}
+                            />
                     </div>
                 </div>
                 <Button 

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
-import ChoroplethMap from './components/ChoroplethMap';
-import Chatbot from './components/Chatbot';
-import { logSessionEnd } from './utils/logger';
+import '../App.css';
+import ChoroplethMap from './ChoroplethMap';
+import Chatbot from './Chatbot';
+import { logSessionEnd } from '../utils/logger';
 
-function App() {
-  const [currentDataset, setCurrentDataset] = useState('ppl_densit');
+function TaskPage() {
+  const [currentDataset, setCurrentDataset] = useState('pct_tot_co');
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
   const [focusedState, setFocusedState] = useState(null);
   const [focusedCounty, setFocusedCounty] = useState(null);
@@ -15,13 +15,6 @@ function App() {
   const API_URL = process.env.NODE_ENV === 'production'
     ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
     : 'http://localhost:5000';
-
-  // console.log('App initialization:', {
-  //   nodeEnv: process.env.NODE_ENV,
-  //   apiUrl: process.env.NODE_ENV === 'production' 
-  //       ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
-  //       : 'http://localhost:5000'
-  // });
 
   const handleDatasetChange = (dataset) => {
     setCurrentDataset(dataset);
@@ -115,6 +108,7 @@ function App() {
           onMapClick={() => setInteractionFocus('map')}
           focusedCity={focusedCity}
           onCityFocus={setFocusedCity}
+          isTaskPage={true}
         />
       </div>
       <div className="w-1/3 h-full">
@@ -130,11 +124,11 @@ function App() {
           isInputFocused={interactionFocus === 'chat'}
           onInputClick={() => setInteractionFocus('chat')}
           onCityFocus={handleCityFocus}
+          isTaskPage={true}
         />
       </div>
     </div>
   );
 }
 
-export default App;
-
+export default TaskPage; 

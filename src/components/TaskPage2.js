@@ -1,27 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
-import ChoroplethMap from './components/ChoroplethMap';
-import Chatbot from './components/Chatbot';
-import { logSessionEnd } from './utils/logger';
+import '../App.css';
+import DotDensityMap from './DotDensityMap';
+import Chatbot from './Chatbot';
+import { logSessionEnd } from '../utils/logger';
 
-function App() {
-  const [currentDataset, setCurrentDataset] = useState('ppl_densit');
+function TaskPage2() {
+  const [currentDataset, setCurrentDataset] = useState('gas');
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
   const [focusedState, setFocusedState] = useState(null);
   const [focusedCounty, setFocusedCounty] = useState(null);
   const [focusedCity, setFocusedCity] = useState(null);
   const [interactionFocus, setInteractionFocus] = useState('none'); // 'none', 'map', or 'chat'
+  const [showingCounties, setShowingCounties] = useState(false);
+  const [countyViewState, setCountyViewState] = useState(null);
 
   const API_URL = process.env.NODE_ENV === 'production'
     ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
     : 'http://localhost:5000';
-
-  // console.log('App initialization:', {
-  //   nodeEnv: process.env.NODE_ENV,
-  //   apiUrl: process.env.NODE_ENV === 'production' 
-  //       ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
-  //       : 'http://localhost:5000'
-  // });
 
   const handleDatasetChange = (dataset) => {
     setCurrentDataset(dataset);
@@ -69,6 +64,12 @@ function App() {
     setFocusedCity(cityInfo);
   };
 
+  const handleCountyViewChange = (isShowing, stateName) => {
+    console.log(`County view changed: ${isShowing}, state: ${stateName}`);
+    setShowingCounties(isShowing);
+    setCountyViewState(stateName);
+  };
+
   useEffect(() => {
     const globalHandler = (e) => {
       // Handle Ctrl+M to toggle between map and chat focus
@@ -93,6 +94,9 @@ function App() {
   }, []);
 
   useEffect(() => {
+    // Set the initial dataset to 'gas' for Task2
+    setCurrentDataset('gas');
+    
     // Log session end when the component unmounts
     return () => {
       logSessionEnd();
@@ -102,7 +106,7 @@ function App() {
   return (
     <div className="flex h-screen w-screen overflow-hidden">
       <div className="w-2/3 h-full relative">
-        <ChoroplethMap
+        <DotDensityMap
           dataset={currentDataset}
           showSpatialClusters={showSpatialClusters}
           onSpatialClustersToggle={setShowSpatialClusters}
@@ -114,7 +118,8 @@ function App() {
           isMapInteractive={interactionFocus === 'map'}
           onMapClick={() => setInteractionFocus('map')}
           focusedCity={focusedCity}
-          onCityFocus={setFocusedCity}
+          onCityFocus={handleCityFocus}
+          onShowingCountiesChange={handleCountyViewChange}
         />
       </div>
       <div className="w-1/3 h-full">
@@ -130,11 +135,14 @@ function App() {
           isInputFocused={interactionFocus === 'chat'}
           onInputClick={() => setInteractionFocus('chat')}
           onCityFocus={handleCityFocus}
+          isTaskPage={true}
+          isTask2Page={true}
+          showingCounties={showingCounties}
+          countyViewState={countyViewState}
         />
       </div>
     </div>
   );
 }
 
-export default App;
-
+export default TaskPage2;

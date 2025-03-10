@@ -1,44 +1,63 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import * as turf from '@turf/turf';
+import { logMapInteraction } from '../utils/logger';
 
-const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, onDatasetChange, focusedState, focusedCity, onFocusedCountyChange, onStateFocus, apiUrl, isMapInteractive, onMapClick }) => {
+const ChoroplethMap = ({ dataset, 
+    showSpatialClusters, 
+    onSpatialClustersToggle, 
+    onDatasetChange, 
+    focusedState, 
+    focusedCity, 
+    onFocusedCountyChange, 
+    onStateFocus, 
+    apiUrl, 
+    isMapInteractive, 
+    onMapClick, 
+    isTaskPage = false, 
+    onShowingCountiesChange }) => 
+        {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
-    const [selectedDataset, setSelectedDataset] = useState('ppl_densit');
+    const [selectedDataset, setSelectedDataset] = useState(
+        isTaskPage ? 'pct_tot_co' : 
+        'ppl_densit'
+    );
     const [geoData, setGeoData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [lisaLayer, setLisaLayer] = useState(null);
     const [lisaLegend, setLisaLegend] = useState(null);
     const [layersInitialized, setLayersInitialized] = useState(false);
-    const [currentFocusedState, setCurrentFocusedState] = useState(null);
+
     const [stateAnnouncement, setStateAnnouncement] = useState('');
     const announcementRef = useRef(null);
+  
+    const [currentFocusedState, setCurrentFocusedState] = useState(null);
+   
     const [showingCounties, setShowingCounties] = useState(false);
-    const [countyData, setCountyData] = useState(null);
     const [currentFocusedCounty, setCurrentFocusedCounty] = useState(null);
+    const [countyData, setCountyData] = useState(null);
+    
     const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
 
-    const datasets = {
-        ppl_densit: {
+    const datasets = isTaskPage ? {
+        'pct_tot_co': {
+            name: 'Underserved Population',
+            breaks: [75, 80, 85, 90, 95],
+            colors: ['#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5']
+        },
+        'pct_no_bb_': {
+            name: 'Lacking Broadband Access',
+            breaks: [5, 7.5, 10, 12.5, 15,],
+            colors: ['#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45']
+        }
+    } : {
+        'ppl_densit': {
             name: 'Population Density',
-            unit: 'people per square mile',
-            breaks: [0, 100, 1000, 8000, 12000],
-            colors: ['#F2F12D', '#E6B71E', '#CA8323', '#8B4225', '#723122']
-        },
-        walk_to_wo: {
-            name: 'Walking to Work',
-            unit: 'percent',
-            breaks: [0, 1, 2.5, 5, 10],
-            colors: ['#edf8fb', '#b2e2e2', '#66c2a4', '#2ca25f', '#006d2c']
-        },
-        transit_to: {
-            name: 'Public Transit to Work',
-            unit: 'percent',
-            breaks: [0, 1, 2.5, 5, 10],
-            colors: ['#f1eef6', '#bdc9e1', '#74a9cf', '#2b8cbe', '#045a8d']
+            breaks: [10, 50, 100, 200, 500, 1000],
+            colors: ["#fef6b5", "#ffdd9a", "#ffc285", "#ffa679", "#fa8a76", "#f16d7a", "#e15383"]
+
         }
     };
 
@@ -53,22 +72,11 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         });
     }, [apiUrl]);
 
-    const fetchGeoJSON = async () => {
+    const fetchData = async () => {
         setIsLoading(true);
         try {
-            const url = `${apiUrl}/api/geojson/${selectedDataset}`;
-            console.log('Fetch attempt:', {
-                url,
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Origin': window.location.origin
-                },
-                credentials: 'include',
-                mode: 'cors'
-            });
             
-            const response = await fetch(url, {
+            const response = await fetch(`${apiUrl}/api/geojson/${selectedDataset}`, {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -80,53 +88,24 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             });
 
             if (!response.ok) {
-                const text = await response.text();
-                console.error('Error response:', text);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('GeoJSON data received:', {
-                type: data.type,
-                featureCount: data.features?.length,
-                firstFeature: data.features?.[0],
-                properties: data.features?.[0]?.properties
-            });
-
-            if (!data.features || data.features.length === 0) {
-                throw new Error('No features in GeoJSON response');
-            }
-
+            console.log('Fetched data:', data);
             setGeoData(data);
 
             if (map.current) {
-                const source = map.current.getSource('population');
+                const source = map.current.getSource('states');
                 if (source) {
                     source.setData(data);
                     console.log('Source data updated successfully');
                 } else {
-                    console.error('Population source not found. Available sources:', 
-                        Object.keys(map.current.getStyle().sources || {}));
+                    console.error('Population source not found');
                 }
-            } else {
-                console.error('Map not initialized');
             }
-
-            // Add this after data is received
-            console.log('Data check:', {
-                sourceExists: map.current?.getSource('population') ? 'yes' : 'no',
-                layerExists: map.current?.getLayer('population-density') ? 'yes' : 'no',
-                dataFeatures: data.features?.length,
-                firstFeatureProperties: data.features?.[0]?.properties
-            });
-
         } catch (error) {
-            console.error('Fetch error details:', {
-                error: error.message,
-                type: error.name,
-                url: `${apiUrl}/api/geojson/${selectedDataset}`,
-                stack: error.stack
-            });
+            console.error('Error fetching data:', error);
         } finally {
             setIsLoading(false);
         }
@@ -165,15 +144,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 scaleElement.setAttribute('aria-hidden', 'true');
             }
 
-            // Add geolocate control
-            // map.current.addControl(
-            //     new mapboxgl.GeolocateControl({
-            //         positionOptions: { enableHighAccuracy: true },
-            //         trackUserLocation: true
-            //     }),
-            //     'top-right'
-            // );
-            // Make geolocate control inaccessible to screen readers
             const geolocateButton = mapContainer.current.getElementsByClassName('mapboxgl-ctrl-geolocate')[0];
             if (geolocateButton) {
                 geolocateButton.setAttribute('aria-hidden', 'true');
@@ -189,7 +159,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             }
 
             // Add the population source
-            map.current.addSource('population', {
+            map.current.addSource('states', {
                 type: 'geojson',
                 data: {
                     type: 'FeatureCollection',
@@ -199,9 +169,9 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
             // Add population density layer first (bottom layer)
             map.current.addLayer({
-                id: 'population-density',
+                id: 'state-choropleth',
                 type: 'fill',
-                source: 'population',
+                source: 'states',
                 paint: {
                     'fill-color': [
                         'interpolate',
@@ -218,11 +188,11 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
 
             // Add LISA clusters layer next
             map.current.addLayer({
-                id: 'lisa-clusters-fill',
+                id: 'state-lisa-clusters-fill',
                 type: 'fill',
-                source: 'population',
+                source: 'states',
                 layout: {
-                    'visibility': 'none'  // Initially hidden
+                    'visibility': 'none'
                 },
                 paint: {
                     'fill-color': [
@@ -242,12 +212,11 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     ]
                 }
             });
-
             // Add LISA cluster outlines
             map.current.addLayer({
-                id: 'lisa-clusters',
+                id: 'state-lisa-clusters-border',
                 type: 'line',
-                source: 'population',
+                source: 'states',
                 layout: {
                     'visibility': 'none'
                 },
@@ -277,18 +246,18 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             map.current.addLayer({
                 id: 'state-borders',
                 type: 'line',
-                source: 'population',
+                source: 'states',
                 paint: {
                     'line-color': '#000',
-                    'line-width': 2,
-                    'line-opacity': 0
+                    'line-width': 1,
+                    'line-opacity': 0.7,
                 },
                 // Ensure this layer is always on top
                 maxzoom: 24
             });
 
             // Add mousemove handler for popup
-            map.current.on('mousemove', 'population-density', (e) => {
+            map.current.on('mousemove', 'state-choropleth', (e) => {
                 if (e.features.length > 0) {
                     map.current.getCanvas().style.cursor = 'pointer';
                     
@@ -296,7 +265,11 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     const value = feature.properties.value;
                     const stateName = feature.properties.state_name;
                     
-                    const formattedValue = `${value.toFixed(2)} ${datasets[selectedDataset].unit}`;
+                    // Check if value is defined before calling toFixed()
+                    const formattedValue = value !== undefined && value !== null 
+                        ? `${value.toFixed(2)} ${datasets[selectedDataset].unit || ''}`
+                        : 'N/A';
+                    
                     const coordinates = e.lngLat;
 
                     popup.current
@@ -309,13 +282,14 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 }
             });
 
-            map.current.on('mouseleave', 'population-density', () => {
+            map.current.on('mouseleave', 'state-choropleth', () => {
                 map.current.getCanvas().style.cursor = '';
                 popup.current.remove();
             });
 
             // Fetch initial data
-            fetchGeoJSON();
+            fetchData();
+
         } catch (error) {
             console.error('Error in initializeLayers:', error);
         }
@@ -343,7 +317,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 });
 
                 // Set up layers once when style loads
-                map.current.on('style.load', () => {
+                map.current.once('style.load', () => {
                     console.log('Style loaded, initializing layers...');
                     initializeLayers();
                     setLayersInitialized(true);
@@ -365,7 +339,47 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     // Update data when dataset changes
     useEffect(() => {
         if (map.current && map.current.loaded()) {
-            fetchGeoJSON();
+            // Turn off LISA layers when dataset changes
+            if (showSpatialClusters) {
+                onSpatialClustersToggle(false);
+            }
+            
+            // Reset to default view
+            map.current.flyTo({
+                center: [-96, 37.8],
+                zoom: 4,
+                duration: 2000
+            });
+            
+            // Clear state highlights
+            map.current.setPaintProperty('state-borders', 'line-opacity', 0);
+            
+            // Clear county view if showing
+            if (showingCounties) {
+                setShowingCounties(false);
+                setCurrentFocusedCounty(null);
+                setCountyData(null);
+                if (map.current.getLayer('county-borders')) {
+                    map.current.removeLayer('county-borders');
+                }
+                if (map.current.getLayer('county-choropleth')) {
+                    map.current.removeLayer('county-choropleth');
+                }
+                if (map.current.getSource('counties')) {
+                    map.current.removeSource('counties');
+                }
+            }
+            
+            // Announce dataset change
+            const datasetName = datasets[selectedDataset]?.name || selectedDataset;
+            setStateAnnouncement(`Dataset changed to ${datasetName}`);
+            
+            // Reset focused state
+            setCurrentFocusedState(null);
+            onStateFocus(null);
+            
+            // Fetch new data
+            fetchData();
         }
     }, [selectedDataset]);
 
@@ -383,8 +397,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 ])
             ];
             
-            map.current.setPaintProperty('population-density', 'fill-color', expression);
-            map.current.setPaintProperty('population-density', 'fill-opacity', 0.75);
+            map.current.setPaintProperty('state-choropleth', 'fill-color', expression);
+            map.current.setPaintProperty('state-choropleth', 'fill-opacity', 0.75);
         }
     }, [selectedDataset, geoData, layersInitialized]);
 
@@ -393,8 +407,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         if (map.current && layersInitialized) {
             try {
                 const visibility = showSpatialClusters ? 'visible' : 'none';
-                map.current.setLayoutProperty('lisa-clusters-fill', 'visibility', visibility);
-                map.current.setLayoutProperty('lisa-clusters', 'visibility', visibility);
+                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', visibility);
+                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', visibility);
                 
                 if (showSpatialClusters && !lisaLegend) {
                     const legend = createLisaLegend();
@@ -422,8 +436,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     if (map.current.getLayer('county-borders')) {
                         map.current.removeLayer('county-borders');
                     }
-                    if (map.current.getLayer('county-fills')) {
-                        map.current.removeLayer('county-fills');
+                    if (map.current.getLayer('county-choropleth')) {
+                        map.current.removeLayer('county-choropleth');
                     }
                     if (map.current.getSource('counties')) {
                         map.current.removeSource('counties');
@@ -453,8 +467,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     if (map.current.getLayer('county-borders')) {
                         map.current.removeLayer('county-borders');
                     }
-                    if (map.current.getLayer('county-fills')) {
-                        map.current.removeLayer('county-fills');
+                    if (map.current.getLayer('county-choropleth')) {
+                        map.current.removeLayer('county-choropleth');
                     }
                     if (map.current.getSource('counties')) {
                         map.current.removeSource('counties');
@@ -495,15 +509,19 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     if (map.current.getLayer('county-borders')) {
                         map.current.removeLayer('county-borders');
                     }
-                    if (map.current.getLayer('county-fills')) {
-                        map.current.removeLayer('county-fills');
+                    if (map.current.getLayer('county-choropleth')) {
+                        map.current.removeLayer('county-choropleth');
                     }
                     if (map.current.getSource('counties')) {
                         map.current.removeSource('counties');
                     }
                 }
 
-                // Rest of the focusing logic...
+                //show the state layer again if it was hidden
+                if (map.current.getLayer('state-choropleth')) {
+                    map.current.setLayoutProperty('state-choropleth', 'visibility', 'visible');
+                }
+                
                 const features = statesToFocus.map(state => 
                     geoData.features.find(f => 
                         f.properties.state_name.toLowerCase() === state.toLowerCase()
@@ -554,96 +572,210 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [focusedState, focusedCity, geoData, layersInitialized]);
 
-    // Update mousemove handler effect
+    // Update mousemove handlers to handle county-level data properly
     useEffect(() => {
         if (map.current && layersInitialized) {
             // Remove existing mousemove handlers
-            map.current.off('mousemove', 'population-density');
+            map.current.off('mousemove', 'state-choropleth');
+            map.current.off('mousemove', 'state-borders');
+            map.current.off('mousemove', 'state-base');
             if (showingCounties) {
-                map.current.off('mousemove', 'county-fills');
+                map.current.off('mousemove', 'county-choropleth');
+                map.current.off('mousemove', 'county-borders');
             }
             
-            // Add mousemove handler for states
-            map.current.on('mousemove', 'population-density', (e) => {
-                if (e.features.length > 0) {
-                    map.current.getCanvas().style.cursor = 'pointer';
-                    
-                    const feature = e.features[0];
-                    const value = feature.properties.value;
-                    const stateName = feature.properties.state_name;
-                    
-                    // Format value based on current dataset
-                    let formattedValue;
-                    if (dataset === 'ppl_densit') {
-                        formattedValue = `${value.toFixed(2)} people per square mile`;
-                    } else {
-                        formattedValue = `${value.toFixed(2)}%`;
-                    }
-
-                    const coordinates = e.lngLat;
-
-                    popup.current
-                        .setLngLat(coordinates)
-                        .setHTML(`
-                            <div class="text-xs font-semibold">${stateName}</div>
-                            <div class="text-xs">${formattedValue}</div>
-                        `)
-                        .addTo(map.current);
-                }
-            });
-
-            // Add mousemove handler for counties when showing counties
-            if (showingCounties) {
-                map.current.on('mousemove', 'county-fills', (e) => {
+            // Add mousemove handler for states - only active when not showing counties
+            if (!showingCounties) {
+                map.current.on('mousemove', 'state-choropleth', (e) => {
                     if (e.features.length > 0) {
                         map.current.getCanvas().style.cursor = 'pointer';
                         
                         const feature = e.features[0];
-                        const value = feature.properties.value;
-                        const countyName = feature.properties.county_name;
                         const stateName = feature.properties.state_name;
                         
-                        // Format value based on current dataset
-                        let formattedValue;
-                        if (dataset === 'ppl_densit') {
-                            formattedValue = `${value.toFixed(2)} people per square mile`;
-                        } else {
-                            formattedValue = `${value.toFixed(2)}%`;
-                        }
+                        // Format tooltip content based on dataset
+                        let tooltipContent;
+                        
+                            // For other pages, show the current dataset value
+                            const value = feature.properties.value;
+                            
+                            // Format value based on current dataset
+                            let formattedValue;
+                            if (selectedDataset === 'ppl_densit') {
+                                formattedValue = `${value.toFixed(2)} people per square mile`;
+                            } else if (selectedDataset === 'gas') {
+                                formattedValue = `${value} households with gas heating`;
+                            } else {
+                                formattedValue = `${value.toFixed(2)}%`;
+                            }
+                            
+                            tooltipContent = `
+                                <div class="text-xs font-semibold">${stateName}</div>
+                            <div class="text-xs">${formattedValue}</div>
+                        `;
 
                         const coordinates = e.lngLat;
 
                         popup.current
                             .setLngLat(coordinates)
-                            .setHTML(`
-                                <div class="text-xs font-semibold">${countyName} County</div>
-                                <div class="text-xs">${stateName}</div>
-                                <div class="text-xs">${formattedValue}</div>
-                            `)
+                            .setHTML(tooltipContent)
                             .addTo(map.current);
                     }
                 });
 
-                // Add mouseleave handler for counties
-                map.current.on('mouseleave', 'county-fills', () => {
+                // Add mousemove handler for state borders
+                map.current.on('mousemove', 'state-borders', (e) => {
+                    if (e.features.length > 0) {
+                        map.current.getCanvas().style.cursor = 'pointer';
+                        
+                        const feature = e.features[0];
+                        const stateName = feature.properties.state_name;
+                        
+                        // Format tooltip content based on dataset
+                        let tooltipContent;
+
+                        // For other pages, show the current dataset value
+                        const value = feature.properties.value;
+                            
+                        tooltipContent = `
+                            <div class="text-xs font-semibold">${stateName}</div>
+                            <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
+                        `;
+                        const coordinates = e.lngLat;
+                        
+                        popup.current
+                            .setLngLat(coordinates)
+                            .setHTML(tooltipContent)
+                            .addTo(map.current);
+                    }
+                });
+                
+                // Add mouseleave handler for state borders
+                map.current.on('mouseleave', 'state-borders', () => {
+                    map.current.getCanvas().style.cursor = '';
+                    popup.current.remove();
+                });
+                
+                // Add mousemove handler for state hover layer
+                if (map.current.getLayer('state-base')) {
+                    map.current.on('mousemove', 'state-base', (e) => {
+                        if (e.features.length > 0) {
+                            map.current.getCanvas().style.cursor = 'pointer';
+                            
+                            const feature = e.features[0];
+                            const stateName = feature.properties.state_name;
+                            
+                            // Format tooltip content based on dataset
+                            let tooltipContent;
+                            
+                            // For other pages, show the current dataset value
+                            const value = feature.properties.value;
+                            
+                            tooltipContent = `
+                                <div class="text-xs font-semibold">${stateName}</div>
+                                <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
+                            `;
+
+                            const coordinates = e.lngLat;
+                            
+                            popup.current
+                                .setLngLat(coordinates)
+                                .setHTML(tooltipContent)
+                                .addTo(map.current);
+                        }
+                    });
+                    
+                    // Add mouseleave handler for state hover layer
+                    map.current.on('mouseleave', 'state-base', () => {
+                        map.current.getCanvas().style.cursor = '';
+                        popup.current.remove();
+                    });
+                }
+                
+                // Add mouseleave handler for population density
+                map.current.on('mouseleave', 'state-choropleth', () => {
                     map.current.getCanvas().style.cursor = '';
                     popup.current.remove();
                 });
             }
-
-            // Add mouseleave handler for states
-            map.current.on('mouseleave', 'population-density', () => {
-                map.current.getCanvas().style.cursor = '';
-                popup.current.remove();
-            });
+            
+            // Add mousemove handler for county fills
+            if (showingCounties) {
+                map.current.on('mousemove', 'county-choropleth', (e) => {
+                    if (e.features.length > 0) {
+                        map.current.getCanvas().style.cursor = 'pointer';
+                        
+                        const feature = e.features[0];
+                        const countyName = feature.properties.county_name;
+                        const stateName = feature.properties.state_name;
+                        
+                        // Format tooltip content based on dataset
+                        let tooltipContent;
+                        
+                            // For other pages, show the current dataset value
+                            const value = feature.properties.value;
+                            
+                            tooltipContent = `
+                                <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
+                                <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
+                            `;
+                        
+                        const coordinates = e.lngLat;
+                        
+                        popup.current
+                            .setLngLat(coordinates)
+                            .setHTML(tooltipContent)
+                            .addTo(map.current);
+                    }
+                });
+                
+                map.current.on('mouseleave', 'county-choropleth', () => {
+                    map.current.getCanvas().style.cursor = '';
+                    popup.current.remove();
+                });
+                
+                // Keep the existing county-borders handler for completeness
+                map.current.on('mousemove', 'county-borders', (e) => {
+                    if (e.features.length > 0) {
+                        map.current.getCanvas().style.cursor = 'pointer';
+                        
+                        const feature = e.features[0];
+                        const countyName = feature.properties.county_name;
+                        const stateName = feature.properties.state_name;
+                        
+                        // Format tooltip content based on dataset
+                        let tooltipContent;
+                        
+                        // For other pages, show the current dataset value
+                        const value = feature.properties.value;
+                        
+                            tooltipContent = `
+                                <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
+                                <div class="text-xs">${value ? value.toFixed(2) : 'N/A'}</div>
+                        `;
+                        
+                        const coordinates = e.lngLat;
+                        
+                        popup.current
+                            .setLngLat(coordinates)
+                            .setHTML(tooltipContent)
+                            .addTo(map.current);
+                    }
+                });
+                
+                map.current.on('mouseleave', 'county-borders', () => {
+                    map.current.getCanvas().style.cursor = '';
+                    popup.current.remove();
+                });
+            }
         }
-    }, [dataset, layersInitialized, showingCounties]);
+    }, [selectedDataset, layersInitialized, showingCounties]);
 
     const removeLisaLayer = () => {
         if (lisaLayer) {
             map.current.removeLayer(lisaLayer);
             setLisaLayer(null);
-            setLisaLegend(null);  // Also remove the legend when layer is removed
+            setLisaLegend(null);
         }
     };
 
@@ -672,58 +804,6 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     const handleCloseLisaClusters = () => {
         onSpatialClustersToggle(false); 
     };
-
-    // Debug layer code should stay
-    useEffect(() => {
-        // Debug function available in console
-        window.debugMap = {
-            addTestLayer: () => {
-                if (map.current && map.current.isStyleLoaded()) {
-                    // Add a simple rectangle
-                    map.current.addSource('debug', {
-                        type: 'geojson',
-                        data: {
-                            type: 'Polygon',
-                            coordinates: [[
-                                [-100, 40],
-                                [-90, 40],
-                                [-90, 35],
-                                [-100, 35],
-                                [-100, 40]
-                            ]]
-                        }
-                    });
-
-                    map.current.addLayer({
-                        id: 'debug-layer',
-                        type: 'fill',
-                        source: 'debug',
-                        paint: {
-                            'fill-color': '#ff0000',
-                            'fill-opacity': 0.5
-                        }
-                    });
-                    
-                    console.log('Debug layer added');
-                } else {
-                    console.log('Map not ready');
-                }
-            },
-            getMapState: () => {
-                if (map.current) {
-                    return {
-                        loaded: map.current.loaded(),
-                        styleLoaded: map.current.isStyleLoaded(),
-                        sources: Object.keys(map.current.getStyle().sources || {}),
-                        layers: map.current.getStyle().layers?.map(l => l.id),
-                        center: map.current.getCenter(),
-                        zoom: map.current.getZoom()
-                    };
-                }
-                return 'Map not initialized';
-            }
-        };
-    }, []);
 
     // Add new useEffect for accessibility
     useEffect(() => {
@@ -773,7 +853,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         return state;
     };
 
-    // Replace the existing findAdjacentStates function with this new version
+    // Find adjacent states
     const findAdjacentStates = useCallback((stateName) => {
         if (!geoData) return null;
 
@@ -825,8 +905,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 1,
                 0
             ]);
-            map.current.setPaintProperty('state-borders', 'line-color', '#000000');
-            map.current.setPaintProperty('state-borders', 'line-width', 1);
+            map.current.setPaintProperty('state-borders', 'line-color', '#3b4252');
+            map.current.setPaintProperty('state-borders', 'line-width', 2);
             map.current.setLayoutProperty('state-borders', 'line-cap', 'round');
         } else if (map.current && layersInitialized) {
             // Reset the highlight when no state is focused
@@ -863,21 +943,27 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     const bounds = new mapboxgl.LngLatBounds();
                     
                     features.forEach(feature => {
-                        if (feature.geometry) {
-                            // Handle both Polygon and MultiPolygon
-                            const coordinates = feature.geometry.type === 'Polygon' 
-                                ? [feature.geometry.coordinates[0]] // Wrap in array for consistent handling
-                                : feature.geometry.coordinates;
-                            
-                            coordinates.forEach(polygon => {
-                                // Ensure we're working with valid coordinates
-                                polygon[0].forEach(coord => {
+                        if (feature.geometry && feature.geometry.coordinates) {
+                            if (feature.geometry.type === 'Polygon') {
+                                // For Polygon, get the outer ring coordinates
+                                feature.geometry.coordinates[0].forEach(coord => {
                                     if (Array.isArray(coord) && coord.length >= 2 && 
                                         !isNaN(coord[0]) && !isNaN(coord[1])) {
                                         bounds.extend(coord);
                                     }
                                 });
-                            });
+                            } else if (feature.geometry.type === 'MultiPolygon') {
+                                // For MultiPolygon, iterate through each polygon
+                                feature.geometry.coordinates.forEach(polygon => {
+                                    // Get the outer ring of each polygon
+                                    polygon[0].forEach(coord => {
+                                        if (Array.isArray(coord) && coord.length >= 2 && 
+                                            !isNaN(coord[0]) && !isNaN(coord[1])) {
+                                            bounds.extend(coord);
+                                        }
+                                    });
+                                });
+                            }
                         }
                     });
 
@@ -905,20 +991,26 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                 try {
                     const bounds = new mapboxgl.LngLatBounds();
                     
-                    // Handle both Polygon and MultiPolygon
-                    const coordinates = feature.geometry.type === 'Polygon'
-                        ? [feature.geometry.coordinates[0]] // Wrap in array for consistent handling
-                        : feature.geometry.coordinates;
-                        
-                    coordinates.forEach(polygon => {
-                        // Ensure we're working with valid coordinates
-                        polygon[0].forEach(coord => {
+                    if (feature.geometry.type === 'Polygon') {
+                        // For Polygon, get the outer ring coordinates
+                        feature.geometry.coordinates[0].forEach(coord => {
                             if (Array.isArray(coord) && coord.length >= 2 && 
                                 !isNaN(coord[0]) && !isNaN(coord[1])) {
                                 bounds.extend(coord);
                             }
                         });
-                    });
+                    } else if (feature.geometry.type === 'MultiPolygon') {
+                        // For MultiPolygon, iterate through each polygon
+                        feature.geometry.coordinates.forEach(polygon => {
+                            // Get the outer ring of each polygon
+                            polygon[0].forEach(coord => {
+                                if (Array.isArray(coord) && coord.length >= 2 && 
+                                    !isNaN(coord[0]) && !isNaN(coord[1])) {
+                                    bounds.extend(coord);
+                                }
+                            });
+                        });
+                    }
 
                     // Only fit bounds if we have valid coordinates
                     if (!bounds.isEmpty()) {
@@ -943,7 +1035,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             setIsLoading(true);
             // Normalize state name input
             stateName = normalizeStateName(stateName);
-
+            
+            // Add the current dataset as a query parameter
             const response = await fetch(`${apiUrl}/api/counties/${stateName}`, {
                 method: 'GET',
                 headers: {
@@ -960,37 +1053,49 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             }
 
             const data = await response.json();
-            console.log('County data received:', data);
+        
+            
             setCountyData(data);
             
             if (!map.current || !map.current.isStyleLoaded()) {
-                console.error('Map or style not loaded');
+                setIsLoading(false);
                 return;
             }
 
             // Remove existing layers and source if they exist
-            if (map.current.getLayer('county-fills')) {
-                map.current.removeLayer('county-fills');
-            }
             if (map.current.getLayer('county-borders')) {
                 map.current.removeLayer('county-borders');
+            }
+            if (map.current.getLayer('county-choropleth')) {
+                map.current.removeLayer('county-choropleth');
             }
             if (map.current.getSource('counties')) {
                 map.current.removeSource('counties');
             }
-
-            // Add new source and layers
+            // Add new source for counties
             map.current.addSource('counties', {
                 type: 'geojson',
                 data: data
             });
 
+          
             // Get current dataset configuration
             const dataset = datasets[selectedDataset];
 
-            // Add fill layer with choropleth colors
+            // Add county borders layer
             map.current.addLayer({
-                id: 'county-fills',
+                id: 'county-borders',
+                type: 'line',
+                source: 'counties',
+                paint: {
+                    'line-color': '#fff',
+                    'line-width': 0.5,
+                 }
+            });
+
+                // Add fill layer with choropleth colors
+            map.current.addLayer({
+                id: 'county-choropleth',
                 type: 'fill',
                 source: 'counties',
                 paint: {
@@ -1005,39 +1110,50 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     ],
                     'fill-opacity': 0.75
                 }
-            });
+            }, 'state-borders');// Place below state-borders layer and a
 
-            // Add thin border layer
-            map.current.addLayer({
-                id: 'county-borders',
-                type: 'line',
-                source: 'counties',
-                paint: {
-                    'line-color': '#fff',
-                    'line-width': 0.5,
-                    'line-opacity': 0.5
-                }
-            });
+
 
             // Zoom to the state's counties
             const bounds = new mapboxgl.LngLatBounds();
             data.features.forEach(feature => {
-                const coordinates = feature.geometry.type === 'Polygon'
-                    ? feature.geometry.coordinates[0]
-                    : feature.geometry.coordinates.flat(1);
-                coordinates.forEach(coord => bounds.extend(coord));
+                if (feature.geometry && feature.geometry.coordinates) {
+                    if (feature.geometry.type === 'Polygon') {
+                        // For Polygon, get the outer ring coordinates
+                        feature.geometry.coordinates[0].forEach(coord => {
+                            bounds.extend(coord);
+                        });
+                    } else if (feature.geometry.type === 'MultiPolygon') {
+                        // For MultiPolygon, iterate through each polygon
+                        feature.geometry.coordinates.forEach(polygon => {
+                            // Get the outer ring of each polygon
+                            polygon[0].forEach(coord => {
+                                bounds.extend(coord);
+                            });
+                        });
+                    }
+                }
             });
 
-            map.current.fitBounds(bounds, {
-                padding: 100,
-                duration: 1000,
-                maxZoom: 7
-            });
+            // Only fit bounds if we have valid coordinates
+            if (!bounds.isEmpty()) {
+                map.current.fitBounds(bounds, {
+                    padding: 100,
+                    duration: 1000,
+                    maxZoom: 7
+                });
+            }
 
             setShowingCounties(true);
+            
+            // Notify parent component about county view
+            if (onShowingCountiesChange) {
+                onShowingCountiesChange(true, stateName);
+            }
+            
+            setIsLoading(false);
         } catch (error) {
             console.error('Error fetching county data:', error);
-        } finally {
             setIsLoading(false);
         }
     };
@@ -1087,27 +1203,30 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     'case',
                     ['==', ['get', 'county_name'], countyName],
                     '#000',
-                    '#fff'
+                    '#37474f'
                 ]);
                 map.current.setPaintProperty('county-borders', 'line-width', [
                     'case',
                     ['==', ['get', 'county_name'], countyName],
-                    2,
-                    0.5
+                    3,
+                    0
                 ]);
             }
         }
     }, [countyData]);
 
-    // Remove the local Ctrl+M handler useEffect and instead add an effect to announce map interaction changes
+    // Announce map interaction state changes
     useEffect(() => {
-        // Announce map interaction state changes
         setStateAnnouncement(
             isMapInteractive 
-                ? 'Map interaction enabled. Press Tab to focus on a state.' 
+                ? currentFocusedCounty
+                    ? `Map interaction enabled. Focused on ${currentFocusedCounty} county in ${Array.isArray(currentFocusedState) ? currentFocusedState[0] : currentFocusedState} state.`
+                    : currentFocusedState
+                        ? `Map interaction enabled. Focused on ${Array.isArray(currentFocusedState) ? currentFocusedState[0] : currentFocusedState} state.`
+                        : 'Map interaction enabled. Press Tab to focus on a state.'
                 : 'Chat interaction enabled. Type a question to ask MappieTalkie.'
         );
-    }, [isMapInteractive]);
+    }, [isMapInteractive, currentFocusedState, currentFocusedCounty]);
 
     // Keep the keyboard navigation effect
     useEffect(() => {
@@ -1190,6 +1309,21 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
                     fetchCountyData(currentFocusedState);
                     setStateAnnouncement(`Showing counties in ${currentFocusedState}. Press Tab to focus on a county.`);
                     setCurrentFocusedCounty(null);
+                    
+                    // Hide state-level choropleth when showing counties
+                    if (map.current && map.current.getLayer('state-choropleth')) {
+                        map.current.setLayoutProperty('state-choropleth', 'visibility', 'none');
+                    }
+                    
+                    // Also hide state-level LISA clusters if they're visible
+                    if (map.current && showSpatialClusters) {
+                        if (map.current.getLayer('state-lisa-clusters-fill')) {
+                            map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'none');
+                        }
+                        if (map.current.getLayer('state-lisa-clusters-border')) {
+                            map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'none');
+                        }
+                    }
                 }
             }
 
@@ -1198,17 +1332,45 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             setShowingCounties(false);
             setCurrentFocusedCounty(null);
             setCountyData(null);
+            if (onShowingCountiesChange) {
+                onShowingCountiesChange(false, null);
+            }
+            
+            // Clean up county layers
             if (map.current) {
                 if (map.current.getLayer('county-borders')) {
                     map.current.removeLayer('county-borders');
                 }
-                if (map.current.getLayer('county-fills')) {
-                    map.current.removeLayer('county-fills');
+                if (map.current.getLayer('county-lisa-clusters-fill')) {
+                    map.current.removeLayer('county-lisa-clusters-fill');
+                }
+                if (map.current.getLayer('county-lisa-clusters-border')) {
+                    map.current.removeLayer('county-lisa-clusters-border');
+                }
+                if (map.current.getLayer('county-choropleth')) {
+                    map.current.removeLayer('county-choropleth');
                 }
                 if (map.current.getSource('counties')) {
                     map.current.removeSource('counties');
                 }
+
+            // show state-level choropleth
+            if (map.current.getLayer('state-choropleth')) {
+                map.current.setLayoutProperty('state-choropleth', 'visibility', 'visible');
             }
+                
+                
+                // Show state-level LISA clusters again if they were visible
+                if (showSpatialClusters) {
+                    if (map.current.getLayer('state-lisa-clusters-fill')) {
+                        map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'visible');
+                    }
+                    if (map.current.getLayer('state-lisa-clusters-border')) {
+                        map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'visible');
+                    }
+                }
+            }
+            
             // Normalize currentFocusedState before using it
             const stateName = Array.isArray(currentFocusedState) 
                 ? currentFocusedState[0] 
@@ -1234,7 +1396,8 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
     onFocusedCountyChange,
     onStateFocus,
     normalizeStateName,
-    fetchCountyData
+    fetchCountyData,
+    showSpatialClusters
 ]);
 
     // Update effect to sync with parent's state
@@ -1256,7 +1419,7 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
         }
     }, [focusedState, focusStateOnMap]);
 
-    // In ChoroplethMap.js, add a useEffect to handle map interaction focus
+    //handle map interaction focus
     useEffect(() => {
         if (isMapInteractive && mapContainer.current) {
             // Focus on the map container when map interaction is enabled
@@ -1266,6 +1429,259 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             mapContainer.current.blur();
         }
     }, [isMapInteractive]);
+
+    // track map viewport
+    useEffect(() => {
+        if (map.current) {
+            // Store map viewport in window for access by other components
+            window.mapZoomLevel = map.current.getZoom();
+            window.mapCenter = map.current.getCenter();
+            window.mapBounds = map.current.getBounds();
+            
+            // Set up event listeners for map interactions
+            map.current.on('zoomend', () => {
+                try {
+                    window.mapZoomLevel = map.current.getZoom();
+                    window.mapCenter = map.current.getCenter();
+                    window.mapBounds = map.current.getBounds();
+                    
+                    // Log the map interaction
+                    logMapInteraction(
+                        'zoom', 
+                        {
+                            zoom: map.current.getZoom(),
+                            center: map.current.getCenter(),
+                            bounds: map.current.getBounds()
+                        },
+                        currentFocusedState,
+                        currentFocusedCounty,
+                        'map'
+                    ).catch(err => console.error('Failed to log map interaction:', err));
+                } catch (error) {
+                    console.error('Error in zoom event handler:', error);
+                }
+            });
+            
+            map.current.on('moveend', () => {
+                window.mapZoomLevel = map.current.getZoom();
+                window.mapCenter = map.current.getCenter();
+                window.mapBounds = map.current.getBounds();
+                
+                // Log the map interaction if it's not from a zoom
+                if (!map.current._zooming) {
+                    logMapInteraction(
+                        'pan', 
+                        {
+                            zoom: map.current.getZoom(),
+                            center: map.current.getCenter(),
+                            bounds: map.current.getBounds()
+                        },
+                        currentFocusedState,
+                        currentFocusedCounty,
+                        'map'
+                    );
+                }
+            });
+        }
+    }, [map.current]);
+
+    // Add this useEffect to sync the local state with the prop
+    useEffect(() => {
+        setSelectedDataset(dataset);
+    }, [dataset]);
+
+    // Add this to the useEffect that handles showSpatialClusters changes
+    useEffect(() => {
+        if (!map.current || !geoData) return;
+
+            // original LISA clusters logic
+            if (showSpatialClusters) {
+                // Show LISA clusters
+                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'visible');
+                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'visible');
+            } else {
+                // Hide LISA clusters
+                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'none');
+                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'none');
+                
+                // Reset state borders
+                if (!currentFocusedState) {
+                    map.current.setPaintProperty('state-borders', 'line-opacity', 0);
+                    map.current.setPaintProperty('state-borders', 'line-width', 1);
+                }
+            }
+        
+    }, [showSpatialClusters, geoData, currentFocusedState]);
+
+    useEffect(() => {
+        if (map.current && layersInitialized && showSpatialClusters) {
+            // If we're showing counties, we need to fetch county-level LISA clusters
+            if (showingCounties && currentFocusedState) {
+                // Hide state-level LISA clusters
+                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'none');
+                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'none');
+                
+                // Fetch county-level LISA clusters
+                fetch(`${apiUrl}/api/lisa_clusters/${currentFocusedState}?dataset=${selectedDataset}&level=county`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update county source with LISA classifications
+                        if (map.current.getSource('counties')) {
+                            map.current.getSource('counties').setData(data);
+                            
+                            // Add county LISA cluster layers if they don't exist
+                            if (!map.current.getLayer('county-lisa-clusters-fill')) {
+                                map.current.addLayer({
+                                    id: 'county-lisa-clusters-fill',
+                                    type: 'fill',
+                                    source: 'counties',
+                                    paint: {
+                                        'fill-color': [
+                                            'match',
+                                            ['get', 'lisa_class'],
+                                            'LL', '#01579b',  // Blue for Low-Low
+                                            'HL', '#f06292',  // Pink for High-Low
+                                            'LH', '#00bcd4',  // Light Blue for Low-High
+                                            'HH', '#d81b60',  // Red for High-High
+                                            'transparent'
+                                        ],
+                                        'fill-opacity': [
+                                            'case',
+                                            ['has', 'lisa_class'],
+                                            0.2, 
+                                            0
+                                        ]
+                                    }
+                                });
+                                
+                                map.current.addLayer({
+                                    id: 'county-lisa-clusters-border',
+                                    type: 'line',
+                                    source: 'counties',
+                                    paint: {
+                                        'line-color': [
+                                            'match',
+                                            ['get', 'lisa_class'],
+                                            'LL', '#01579b',
+                                            'HL', '#f06292',
+                                            'LH', '#00bcd4',
+                                            'HH', '#d81b60',
+                                            'transparent'
+                                        ],
+                                        'line-width': 2,
+                                        'line-opacity': [
+                                            'case',
+                                            ['has', 'lisa_class'],
+                                            0.8,
+                                            0
+                                        ],
+                                        'line-offset': 1,
+                                        'line-join': 'round',
+                                    }
+                                });
+                            } else {
+                                // Show existing county LISA layers
+                                map.current.setLayoutProperty('county-lisa-clusters-fill', 'visibility', 'visible');
+                                map.current.setLayoutProperty('county-lisa-clusters-border', 'visibility', 'visible');
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error fetching county LISA clusters:', error));
+            } else {
+                // Show state LISA clusters at state level
+                map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'visible');
+                map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'visible');
+                
+                // Hide county LISA clusters if they exist
+                if (map.current.getLayer('county-lisa-clusters-fill')) {
+                    map.current.setLayoutProperty('county-lisa-clusters-fill', 'visibility', 'none');
+                }
+                if (map.current.getLayer('county-lisa-clusters-border')) {
+                    map.current.setLayoutProperty('county-lisa-clusters-border', 'visibility', 'none');
+                }
+            }
+        } else if (map.current && layersInitialized && !showSpatialClusters) {
+            // Hide all LISA clusters
+            map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'none');
+            map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'none');
+            
+            if (map.current.getLayer('county-lisa-clusters-fill')) {
+                map.current.setLayoutProperty('county-lisa-clusters-fill', 'visibility', 'none');
+            }
+            if (map.current.getLayer('county-lisa-clusters-border')) {
+                map.current.setLayoutProperty('county-lisa-clusters-border', 'visibility', 'none');
+            }
+        }
+    }, [showSpatialClusters, showingCounties, currentFocusedState, selectedDataset, layersInitialized, apiUrl]);
+
+    // Update the resetToStateView function to properly reset the map and notify parent
+    const resetToStateView = () => {
+        if (map.current) {
+            // Hide county layers if they exist
+            if (map.current.getLayer('county-borders')) {
+                map.current.removeLayer('county-borders');
+            }
+            if (map.current.getLayer('county-choropleth')) {
+                map.current.removeLayer('county-choropleth');
+            }
+            if (map.current.getSource('counties')) {
+                map.current.removeSource('counties');
+            }
+            
+            // Reset to US view
+            map.current.fitBounds([
+                [-125.0, 24.0], // Southwest coordinates
+                [-66.0, 50.0]   // Northeast coordinates
+            ]);
+            
+            // Show state layers again
+            if (map.current.getLayer('state-base')) {
+                map.current.setLayoutProperty('state-base', 'visibility', 'visible');
+            }
+            if (map.current.getLayer('state-borders')) {
+                map.current.setLayoutProperty('state-borders', 'visibility', 'visible');
+            }
+            
+            // Reset state
+            setShowingCounties(false);
+            setCurrentFocusedCounty(null);
+            setCurrentFocusedState(null);
+            
+            // Notify parent component
+            if (onShowingCountiesChange) {
+                console.log('Notifying parent that counties are no longer showing');
+                onShowingCountiesChange(false, null);
+            }
+            
+            setStateAnnouncement('Returned to national view.');
+        }
+    };
+
+    // Add this useEffect to handle keyboard shortcuts for dataset switching
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            // Check for Ctrl + / shortcut
+            if (e.ctrlKey && e.key === '/') {
+                e.preventDefault();
+                
+                // Toggle between available datasets
+                if (isTaskPage) {
+                    // For task page, toggle between the two datasets
+                    const newDataset = selectedDataset === 'pct_tot_co' ? 'pct_no_bb_' : 'pct_tot_co';
+                    setSelectedDataset(newDataset);
+                    onDatasetChange(newDataset);
+                    
+                    // Announce dataset change for accessibility
+                    const datasetName = datasets[newDataset]?.name || newDataset;
+                    setStateAnnouncement(`Dataset changed to ${datasetName}`);
+                }
+                // For non-task page, there's only one dataset option, so no toggle needed
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedDataset, isTaskPage, onDatasetChange, datasets]);
 
     return (
         <div className="relative h-full ">
@@ -1341,38 +1757,76 @@ const ChoroplethMap = ({ dataset, showSpatialClusters, onSpatialClustersToggle, 
             <div className="absolute top-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90" 
                 tabIndex="-1">
                 {/* Dataset Selector */}
-                <div className="mb-4">
-                    <h3 className="text-sm font-bold mb-2">Dataset</h3>
-                    <select
-                        value={selectedDataset}
-                        onChange={(e) => {
-                            setSelectedDataset(e.target.value);
-                            onDatasetChange(e.target.value);
-                        }}
-                        className="block w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="ppl_densit">Population Density</option>
-                        <option value="walk_to_wo">Walking to Work</option>
-                        <option value="transit_to">Public Transit to Work</option>
-                    </select>
-                </div>
-
-                {/* Legend */}
-                {/* <h3 className="text-sm font-bold mb-2">{datasets[selectedDataset].name}</h3> */}
-                <div className="flex flex-col gap-1">
-                    {datasets[selectedDataset].breaks.map((value, i) => (
-                        <div key={i} className="flex items-center">
-                            <div 
-                                className="w-4 h-4 mr-2" 
-                                style={{ backgroundColor: datasets[selectedDataset].colors[i] }}
-                            />
-                            <span className="text-xs">
-                                {value}{i === datasets[selectedDataset].breaks.length - 1 ? '+' : ''}
-                                {selectedDataset === 'ppl_densit' ? '' : '%'}
-                            </span>
+                    <div className="mb-4">
+                        <h3 className="text-sm font-bold mb-2">Dataset</h3>
+                        <div className="space-y-2">
+                            {isTaskPage ? (
+                                <>
+                                    <label className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            value="pct_tot_co"
+                                            checked={selectedDataset === "pct_tot_co"}
+                                            onChange={(e) => {
+                                                const newDataset = e.target.value;
+                                                setSelectedDataset(newDataset);
+                                                onDatasetChange(newDataset);
+                                            }}
+                                            className="mr-2 text-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm">Underserved Population</span>
+                                    </label>
+                                    <label className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            value="pct_no_bb_"
+                                            checked={selectedDataset === "pct_no_bb_"}
+                                            onChange={(e) => {
+                                                const newDataset = e.target.value;
+                                                setSelectedDataset(newDataset);
+                                                onDatasetChange(newDataset);
+                                            }}
+                                            className="mr-2 text-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm">Lacking Broadband Access</span>
+                                    </label>
+                                </>
+                            ) : (
+                                <>
+                                    <label className="flex items-center">
+                                        <input
+                                            type="radio"
+                                            value="ppl_densit"
+                                            checked={selectedDataset === "ppl_densit"}
+                                            onChange={(e) => {
+                                                const newDataset = e.target.value;
+                                                setSelectedDataset(newDataset);
+                                                onDatasetChange(newDataset);
+                                            }}
+                                            className="mr-2 text-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm">Population Density</span>
+                                    </label>
+                                </>
+                            )}
                         </div>
-                    ))}
-                </div>
+                    </div>
+                
+                {/* choropleth legend */}
+                    <div className="flex flex-col gap-1">
+                        {datasets[selectedDataset].breaks.map((value, i) => (
+                            <div key={i} className="flex items-center">
+                                <div 
+                                    className="w-4 h-4 mr-2" 
+                                    style={{ backgroundColor: datasets[selectedDataset].colors[i] }}
+                                />
+                                <span className="text-xs">
+                                    {value}{i === datasets[selectedDataset].breaks.length - 1 ? '+' : ''}
+                                    {selectedDataset === 'ppl_densit' || selectedDataset === 'gas' ? '' : '%'}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
             </div>
 
             {/* LISA Clusters Legend with close button */}

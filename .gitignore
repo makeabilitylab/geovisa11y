@@ -202,3 +202,6 @@ yarn-error.log*
 
 /backend/notebooks/data
 *.db
+backend/notebooks/writing-to-state-db.ipynb
+backend/notebooks/writing-to-state-db.ipynb
+backend/notebooks/writing-to-state-db.ipynb
