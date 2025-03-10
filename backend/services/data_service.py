@@ -285,7 +285,28 @@ def check_location_exists(location):
 def answer_question(question, current_dataset, current_focus=None):
     """Answer any question for any dataset based on query type"""
     try:
-        # Get the question type first
+        # First try to extract county information if this might be a county question
+        if 'County' in question or 'county' in question:
+            try:
+                counties = semantic_service.extract_counties(question, current_focus)
+                if counties:
+                    county_info = counties[0]  # Take the first county if multiple are found
+                    print(f"Debug - Using county: {county_info['county']}, state: {county_info['state']}")
+                    
+                    result = retrieve_value(county_info['county'], current_dataset, 
+                                         is_county=True, state=county_info['state'])
+                    if result:
+                        return {
+                            'result': result['result'],
+                            'county': county_info['county'],
+                            'state': county_info['state'],
+                            'dataset': current_dataset,
+                            'question_type': 'retrieve'
+                        }
+            except Exception as e:
+                print(f"Error handling county question: {str(e)}")
+
+        # Get the question type for non-county questions or if county lookup failed
         question_type = semantic_service.identify_question_type(question, current_dataset)
         
         # Extract state filter from current_focus if available
@@ -371,20 +392,27 @@ def answer_question(question, current_dataset, current_focus=None):
         if question_type == 'retrieve':
             # Check if this is a county question
             if 'County' in question:
-                # Extract county and state names from the question
-                parts = question.split('County,')
-                if len(parts) == 2:
-                    county_name = parts[0].strip().split()[-1]  # Get last word before "County"
-                    state_name = parts[1].strip().strip('[]\'\"')  # Clean up state name
-                    result = retrieve_value(county_name, current_dataset, is_county=True)
-                    if result:
-                        return {
-                            'result': result['result'],
-                            'county': county_name,
-                            'state': state_name,
-                            'dataset': current_dataset,
-                            'question_type': 'retrieve'
-                        }
+                try:
+                    # Extract county information using the new method
+                    counties = semantic_service.extract_counties(question, current_focus)
+                    if counties:
+                        county_info = counties[0]  # Take the first county if multiple are found
+                        print(f"Debug - Using county: {county_info['county']}, state: {county_info['state']}")
+                        
+                        result = retrieve_value(county_info['county'], current_dataset, 
+                                             is_county=True, state=county_info['state'])
+                        if result:
+                            return {
+                                'result': result['result'],
+                                'county': county_info['county'],
+                                'state': county_info['state'],
+                                'dataset': current_dataset,
+                                'question_type': 'retrieve'
+                            }
+                    
+                    print("Debug - County parsing failed, falling back to state-level")
+                except Exception as e:
+                    print(f"Error parsing county question: {str(e)}")
             
             # Handle state-level questions
             states = semantic_service.extract_states(question)
@@ -493,16 +521,21 @@ def answer_question(question, current_dataset, current_focus=None):
 #######################################
 
 #00_retrieve
-def retrieve_value(state_or_county_name, dataset, is_county=False):
+def retrieve_value(state_or_county_name, dataset, is_county=False, state=None):
     """Get the exact value for a state/county and dataset"""
     try:
-        if is_county:
+        if is_county and state:  # Only proceed with county lookup if we have both county and state
             query = f"""
                 SELECT county_nam as county_name, state_name,
                        COALESCE({dataset}, 0) as value
                 FROM county
                 WHERE LOWER(county_nam) LIKE LOWER(?) || '%'
+                AND LOWER(state_name) = LOWER(?)
             """
+            print(f"Debug - County query params: {state_or_county_name}, {state}")  # Debug line
+            result = con.execute(query, [state_or_county_name, state]).fetchone()
+            if result:
+                print(f"Debug - County query result: {result}")  # Debug line
         else:
             query = f"""
                 SELECT state_name,
@@ -510,8 +543,8 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
                 FROM state
                 WHERE LOWER(state_name) = LOWER(?)
             """
-        
-        result = con.execute(query, [state_or_county_name]).fetchone()
+            result = con.execute(query, [state_or_county_name]).fetchone()
+            
         if not result:
             return None
             
@@ -534,13 +567,13 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
             return {
                 'result': f"{location_phrase} has {formatted_value}.",
                 'county': county if is_county else None,
-                'state': state if is_county else result[0]
+                'state': state
             }
         else:
             return {
                 'result': f"{location_phrase} has {formatted_value} {description}.",
                 'county': county if is_county else None,
-                'state': state if is_county else result[0]
+                'state': state
             }
             
     except Exception as e:
