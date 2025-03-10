@@ -15,7 +15,21 @@ import {
 } from '../utils/logger';
 
 
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus, isTaskPage = false, isTask2Page = false, showingCounties = false, countyViewState = null }) => {
+const Chatbot = ({ dataset, 
+    onPatternQuestion, 
+    onStateQuestion, 
+    onStateFocus, 
+    currentFocusedState, 
+    currentFocusedCounty, 
+    apiUrl, 
+    isInputFocused, 
+    onInputClick, 
+    onCityFocus, 
+    isTaskPage = false, 
+    isTask2Page = false, 
+    showingCounties = false, 
+    countyViewState = null }) => {
+    
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -444,6 +458,13 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                         coordinates: data.coordinates
                     });
                     return;
+                } else if (data.action_type === 'focus_county') {
+                    // Handle county focus
+                    setMessages(prev => [...prev, { 
+                        text: `Focusing on ${data.county_name}, ${data.state}.`, 
+                        sender: 'bot' 
+                    }]);
+                    return;
                 } else if (data.action_type === 'focus' && data.state) {
                     onStateFocus(data.state);
                     setMessages(prev => [...prev, { 
@@ -458,8 +479,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             if (data.result) {
                 setPreviousAnswer(data.result); // Store the answer for context
                 setConversationHistory(prev => [...prev, input, data.result]); // Update conversation history
-
-
                 if (data.question_type === 'get_pattern') {
                     onPatternQuestion(true);
                 }
@@ -474,7 +493,17 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 } else if (data.states && data.question_type === 'compare') {
                     onStateQuestion(data.states);
                 } else if (data.question_type === 'find_extremum') {
-                    onStateQuestion([data.state]);
+                    if (data.county) {
+                        // If we have county data, focus on the county
+                        onStateFocus({
+                            state: data.state,
+                            county: data.county,
+                            showingCounties: true
+                        });
+                    } else {
+                        // Otherwise just focus on the state
+                        onStateQuestion([data.state]);
+                    }
                 }
 
                 setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);

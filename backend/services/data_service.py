@@ -321,6 +321,8 @@ def answer_question(question, current_dataset, current_focus=None):
                     county_view = True
             elif isinstance(current_focus, str):
                 state_filter = current_focus
+            elif isinstance(current_focus, list):  # Handle case where current_focus is a list
+                state_filter = current_focus[0] if current_focus else None
         
         print(f"DEBUG - State filter extracted: {state_filter}, County view: {county_view}")
         
@@ -439,10 +441,11 @@ def answer_question(question, current_dataset, current_focus=None):
             }
             
         elif question_type == 'find_extremum':
-            result = get_extrema(question, current_dataset)
+            result = get_extrema(question, current_dataset, state_filter)
             return {
                 'result': result['result'],
                 'state': result['state'],
+                'county': result['county'],
                 'dataset': current_dataset,
                 'question_type': 'find_extremum'
             }
@@ -618,15 +621,37 @@ def compare_states(state1, state2, dataset):
         return None
 
 #02_find_extremum
-def get_extrema(question, dataset):
-    """Get highest or lowest value based on question"""
+def get_extrema(question, dataset, state_filter=None):
+    """Get highest or lowest value based on question, optionally filtered by state"""
     try:
         is_highest = any(word in question.lower() for word in ["highest", "most", "largest", "greatest"])
         
+        # Handle state_filter if it's a list
+        if isinstance(state_filter, list):
+            state_filter = state_filter[0] if state_filter else None
+        
+        # Check if this is a county-level question
+        is_county_question = 'county' in question.lower()
+        
+        # Determine which table to use based on whether it's a county question
+        table_name = 'county' if is_county_question else 'state'
+        name_column = 'county_nam' if is_county_question else 'state_name'
+        state_column = 'state_name' if is_county_question else 'state_name'
+        
+        # Build WHERE clause
+        where_clause = f"WHERE {dataset} IS NOT NULL"
+        if state_filter and is_county_question:
+            where_clause += f" AND LOWER(state_name) = LOWER('{state_filter}')"
+        elif state_filter and not is_county_question:
+            # For state-level questions, we're asking about all states even when focused on one
+            pass
+        
         query = f"""
-            SELECT state_name, 
+            SELECT {name_column} as name, 
+                {state_column} as state_name,
                 COALESCE({dataset}, 0) as value
-            FROM state
+            FROM {table_name}
+            {where_clause}
             ORDER BY value {'DESC' if is_highest else 'ASC'}
             LIMIT 1
         """
@@ -637,14 +662,15 @@ def get_extrema(question, dataset):
             
         metric_info = get_metric_info(dataset)
         
-        unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
+        # Format the location description
+        location_desc = f"{result[0]} County in {result[1]}" if is_county_question else result[0]
         
-        # Remove space before % symbol
-        value_str = f"{result[1]:.2f}{unit}" if unit == '%' else f"{result[1]:.2f} {unit}"
+        value_str = metric_info['format_value'](result[2])
         
         return {
-            'result': f"{result[0]} has the {'highest' if is_highest else 'lowest'} {metric_info['name']} of {value_str}.",
-            'state': result[0]  # Include the state name in response
+            'result': f"{location_desc} has the {'highest' if is_highest else 'lowest'} {metric_info['name']} of {value_str}.",
+            'state': result[1],  # Always return the state name
+            'county': result[0] if is_county_question else None  # Return county name if it's a county question
         }
     except Exception as e:
         print(f"Error getting extrema: {str(e)}")

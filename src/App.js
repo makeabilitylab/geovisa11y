@@ -10,6 +10,7 @@ function App() {
   const [focusedState, setFocusedState] = useState(null);
   const [focusedCounty, setFocusedCounty] = useState(null);
   const [focusedCity, setFocusedCity] = useState(null);
+  const [showingCounties, setShowingCounties] = useState(false);
   const [interactionFocus, setInteractionFocus] = useState('none'); // 'none', 'map', or 'chat'
 
   const API_URL = process.env.NODE_ENV === 'production'
@@ -43,7 +44,6 @@ function App() {
     // Clear other focuses
     setFocusedCity(null); 
     setFocusedCounty(null);
-    // Then set state focus
     setFocusedState(stateName);
   };
 
@@ -108,7 +108,7 @@ function App() {
           onSpatialClustersToggle={setShowSpatialClusters}
           onDatasetChange={handleDatasetChange}
           focusedState={focusedState}
-          onFocusedCountyChange={setFocusedCounty}
+          onFocusedCountyChange={handleCountyFocus}
           onStateFocus={handleStateFocus}
           apiUrl={API_URL}
           isMapInteractive={interactionFocus === 'map'}
@@ -130,6 +130,7 @@ function App() {
           isInputFocused={interactionFocus === 'chat'}
           onInputClick={() => setInteractionFocus('chat')}
           onCityFocus={handleCityFocus}
+          showingCounties={showingCounties}
         />
       </div>
     </div>
