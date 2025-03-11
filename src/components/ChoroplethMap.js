@@ -500,7 +500,11 @@ const ChoroplethMap = ({
 
     // UseEffect to handle focused state/county
     useEffect(() => {
-        if (!map.current || !layersInitialized || !geoData) return;
+        // if (!map.current || !layersInitialized || !geoData) return;
+        // if (!isMapInteractive) {
+        //     // If user is in chat mode, don't set a map announcement at all.
+        //     return;
+        //   }
 
         // 2. Handle city focus
         if (focus.type === 'city' && focus.city) {
@@ -518,6 +522,9 @@ const ChoroplethMap = ({
             // Clear county highlights
             map.current.setPaintProperty('county-borders', 'line-opacity', 0);
             map.current.setPaintProperty('county-choropleth', 'fill-opacity', 0);
+            //Turn on state choropleth
+            toggleLayerVisibility('state-choropleth', true);
+            toggleLayerVisibility('state-borders', true);
 
             // Update announcement
             setStateAnnouncement(`Now focused on ${name}, ${state}`);
@@ -543,24 +550,7 @@ const ChoroplethMap = ({
                 );
 
                 if (countyFeature) {
-                    // Fit bounds
-                    const bounds = new mapboxgl.LngLatBounds();
-                    if (countyFeature.geometry.type === 'Polygon') {
-                        countyFeature.geometry.coordinates[0].forEach(coord => bounds.extend(coord));
-                    } else if (countyFeature.geometry.type === 'MultiPolygon') {
-                        countyFeature.geometry.coordinates.forEach(polygon => {
-                            polygon[0].forEach(coord => bounds.extend(coord));
-                        });
-                    }
-                    if (!bounds.isEmpty()) {
-                        map.current.fitBounds(bounds, {
-                            padding: 100,
-                            duration: 2000,
-                            maxZoom: 7
-                        });
-                    }
-
-                    // Highlight the county
+                    // Only highlight the county without changing map position
                     map.current.setPaintProperty('county-borders', 'line-color', [
                         'case',
                         ['==', ['downcase', ['get', 'county_name']], countyName.toLowerCase()],
@@ -571,7 +561,7 @@ const ChoroplethMap = ({
                         'case',
                         ['==', ['downcase', ['get', 'county_name']], countyName.toLowerCase()],
                         2,
-                        0.5
+                        0
                     ]);
 
                     // Update announcement
@@ -587,7 +577,7 @@ const ChoroplethMap = ({
                     removeLayersSafely(countyLayers);
                     removeSourceSafely('counties');
 
-                    // Add new county source
+                    // Add new county source and layers without changing map position
                     map.current.addSource('counties', {
                         type: 'geojson',
                         data: countyGeoJson
@@ -628,30 +618,13 @@ const ChoroplethMap = ({
                         }
                     });
 
-                    // Find the county feature
+                    // Find and highlight the county without changing map position
                     const countyFeature = countyGeoJson.features.find(
                         f => f.properties.county_name.toLowerCase() === countyName.toLowerCase()
                     );
 
                     if (countyFeature) {
-                        // Fit bounds
-                        const bounds = new mapboxgl.LngLatBounds();
-                        if (countyFeature.geometry.type === 'Polygon') {
-                            countyFeature.geometry.coordinates[0].forEach(coord => bounds.extend(coord));
-                        } else if (countyFeature.geometry.type === 'MultiPolygon') {
-                            countyFeature.geometry.coordinates.forEach(polygon => {
-                                polygon[0].forEach(coord => bounds.extend(coord));
-                            });
-                        }
-                        if (!bounds.isEmpty()) {
-                            map.current.fitBounds(bounds, {
-                                padding: 100,
-                                duration: 2000,
-                                maxZoom: 7
-                            });
-                        }
-
-                        // Highlight the county
+                        // Only highlight the county
                         map.current.setPaintProperty('county-borders', 'line-color', [
                             'case',
                             ['==', ['downcase', ['get', 'county_name']], countyName.toLowerCase()],
@@ -663,7 +636,7 @@ const ChoroplethMap = ({
                             ['==', ['downcase', ['get', 'county_name']], countyName.toLowerCase()],
                             2,
                             0.5
-                        ]);
+                        ]); 
 
                         // Update announcement
                         setStateAnnouncement(`Now focused on ${countyName}, ${stateName}`);
@@ -711,7 +684,7 @@ const ChoroplethMap = ({
                 map.current.fitBounds(bounds, {
                 padding: 100,
                 duration: 2000,
-                maxZoom: 5
+                maxZoom: 7
                 });
         
                 // Create a case-insensitive filter for all focused states
@@ -1452,7 +1425,7 @@ const ChoroplethMap = ({
                                     type: 'line',
                                     source: 'counties',
                                     paint: {
-                                        'line-color': '#000',
+                                        'line-color': '#fff',
                                         'line-width': 0.5,
                                         'line-opacity': 0.7
                                     }
@@ -1531,46 +1504,18 @@ const ChoroplethMap = ({
         removeSourceSafely
     ]);
 
-    // // Update announcement effect
-    // useEffect(() => {
-    //     setStateAnnouncement(
-    //         isMapInteractive 
-    //             ? focus?.county
-    //                 ? `Map interaction enabled. Focused on ${focus.county} county in ${focus.states?.[0]} state.`
-    //                 : focus?.states?.length > 0
-    //                     ? `Map interaction enabled. Focused on ${focus.states[0]} state.`
-    //                     : 'Map interaction enabled. Press Tab to focus on a state.'
-    //             : 'Chat interaction enabled. Type a question to ask MappieTalkie.'
-    //     );
-    // }, [isMapInteractive, focus]);
+    // Update announcement effect
     useEffect(() => {
-        if (!isMapInteractive) {
-          // If we’re not in map mode, just say “Chat interaction enabled”
-          setStateAnnouncement('Chat interaction enabled. Type a question to ask MappieTalkie.');
-          return;
-        }
-      
-        // Otherwise, map interaction is enabled. Announce based on focus type:
-        if (focus.type === 'county' && focus.county && focus.states?.[0]) {
-          setStateAnnouncement(`Map interaction enabled. Focused on ${focus.county} county in ${focus.states[0]} state.`);
-        }
-        else if (focus.type === 'city' && focus.city) {
-          setStateAnnouncement(`Map interaction enabled. Focused on ${focus.city.name}, ${focus.city.state}.`);
-        }
-        else if ((focus.type === 'state' || focus.type === 'compare') && focus.states?.length > 0) {
-          // If multiple states in compare mode:
-          if (focus.states.length > 1) {
-            setStateAnnouncement(`Map interaction enabled. Comparing ${focus.states.join(' and ')}.`);
-          } else {
-            setStateAnnouncement(`Map interaction enabled. Focused on ${focus.states[0]} state.`);
-          }
-        }
-        else {
-          // No specific focus
-          setStateAnnouncement('Map interaction enabled. Press Tab to focus on a state.');
-        }
-      }, [isMapInteractive, focus]);
-      
+        setStateAnnouncement(
+            isMapInteractive 
+                ? focus?.county
+                    ? `Map interaction enabled. Focused on ${focus.county} county in ${focus.states?.[0]} state.`
+                    : focus?.states?.length > 0
+                        ? `Map interaction enabled. Focused on ${focus.states[0]} state.`
+                        : 'Map interaction enabled. Press Tab to focus on a state.'
+                : 'Chat interaction enabled. Type a question to ask MappieTalkie.'
+        );
+    }, [isMapInteractive, focus]);
 
     // Update map interaction logging
     useEffect(() => {
