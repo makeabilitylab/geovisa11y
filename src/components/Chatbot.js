@@ -628,8 +628,6 @@ const Chatbot = ({
                     "What's a choropleth map?",
                     "Is there a relationship between population density and the percentage of people lacking broadband or computer access?"
                 ];
-
-            //TODO: Add general questions for other datasets
             default: // ppl_densit
                 return [
                     "What's a choropleth map?",
