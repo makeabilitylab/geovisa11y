@@ -32,9 +32,6 @@ const ChoroplethMap = ({
     const [lisaLegend, setLisaLegend] = useState(null);
     const [layersInitialized, setLayersInitialized] = useState(false);
 
-    // const [stateAnnouncement, setStateAnnouncement] = useState('');
-    const announcementRef = useRef(null);
-
     const [countyData, setCountyData] = useState(null);
 
     const datasets = isTaskPage ? {
@@ -1562,20 +1559,6 @@ const ChoroplethMap = ({
         removeSourceSafely
     ]);
 
-    // Update announcement effect
-    // consider moving this to App.js
-    // useEffect(() => {
-    //     setStateAnnouncement(
-    //         isMapInteractive 
-    //             ? focus?.county
-    //                 ? `Map interaction enabled. Focused on ${focus.county} county in ${focus.states?.[0]} state.`
-    //                 : focus?.states?.length > 0
-    //                     ? `Map interaction enabled. Focused on ${focus.states[0]} state.`
-    //                     : 'Map interaction enabled. Press Tab to focus on a state.'
-    //             : 'Chat interaction enabled. Type a question to ask MappieTalkie.'
-    //     );
-    // }, [isMapInteractive, focus]);
-
     // Update map interaction logging
     useEffect(() => {
         if (map.current) {
@@ -1775,30 +1758,6 @@ const ChoroplethMap = ({
                     }
                 }}
             />
-
-            {/* Live region for announcements */}
-            {/* <div
-                ref={announcementRef}
-                role="status"
-                aria-live="assertive"
-                aria-atomic="true"
-                className="sr-only"
-            >
-                {stateAnnouncement}
-            </div> */}
-
-            {/* Current focused state display and announcements */}
-            {/* {(focus.type || stateAnnouncement) && (
-                <div 
-                    id="map-interaction-announcement"
-                    className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg"
-                    role="status"
-                    aria-live="polite"
-                    aria-atomic="true"
-                >
-                    {stateAnnouncement || `Now focused on ${focus.type ? focus.states[0] : ''} state`}
-                </div>
-            )} */}
 
             {/* Loading Dialog - Show when map is not initialized or layers not ready */}
             {(!map.current || !layersInitialized) && (
