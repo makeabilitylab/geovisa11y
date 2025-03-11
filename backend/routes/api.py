@@ -140,6 +140,11 @@ def analyze_input():
             }
             print(f"Updated current_focus to include county: {current_focus}")
         
+        # Handle the new focus structure where state is in the states array
+        if isinstance(current_focus, dict) and current_focus.get('states') and len(current_focus['states']) > 0 and not current_focus.get('state'):
+            current_focus['state'] = current_focus['states'][0]
+            print(f"Updated current_focus with state from states array: {current_focus}")
+        
         print(f"Conversation history: {conversation_history}")
         logger.info(f"Processing input: {user_input} for dataset: {current_dataset}")
         logger.info(f"Conversation history: {conversation_history[:2]}...")
@@ -510,6 +515,11 @@ def check_ambiguity():
         raw_state = data.get('raw_state')
         conversation_history = data.get('conversation_history', [])
 
+        # Handle the new focus structure where state is in the states array
+        if isinstance(current_focus, dict) and current_focus.get('states') and len(current_focus['states']) > 0 and not current_focus.get('state'):
+            current_focus['state'] = current_focus['states'][0]
+            print(f"Updated current_focus with state from states array: {current_focus}")
+
         # Handle the context based on county and state information
         if raw_county and raw_state:
             # When we have both county and state
@@ -518,10 +528,11 @@ def check_ambiguity():
         else:
             # Fall back to the current_focus handling
             if isinstance(current_focus, dict):
-                if current_focus.get('county') and current_focus.get('state'):
-                    context = f"{current_focus['county']} County, {current_focus['state']}"
+                if current_focus.get('county') and (current_focus.get('state') or (current_focus.get('states') and len(current_focus['states']) > 0)):
+                    state_name = current_focus.get('state') or current_focus['states'][0]
+                    context = f"{current_focus['county']} County, {state_name}"
                 else:
-                    context = current_focus.get('state') or current_focus.get('full')
+                    context = current_focus.get('state') or (current_focus['states'][0] if current_focus.get('states') and len(current_focus['states']) > 0 else None) or current_focus.get('full')
             else:
                 context = current_focus
 
