@@ -15,15 +15,17 @@ import {
 } from '../utils/logger';
 
 
-const Chatbot = ({ dataset, 
-    focus,
+const Chatbot = ({ 
+    dataset, 
+    focus = { type: null, states: [], county: null, city: null, highlightOnly: false },
     onFocusChange,
     onPatternQuestion, 
     apiUrl, 
     isInputFocused, 
     onInputClick, 
     isTaskPage = false,
-    isTask2Page = false}) => {
+    isTask2Page = false
+}) => {
     
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
@@ -335,35 +337,34 @@ const Chatbot = ({ dataset,
             }
 
             // Create focus object that includes state, county, and showingCounties flag
-            const currentFocus = focus.type === 'city' && focus.city
-            ? {
-                type: 'city',
-                city: focus.city.name,
-                state: focus.city.state,
-                coordinates: focus.city.coordinates,
-                full: `${focus.city.name}, ${focus.city.state}`
-              }
-            : focus.type === 'county' && focus.county
-            ? {
-                type: 'county',
-                county: focus.county,
-                state: focus.states?.[0],  // first state in the array if relevant
-                full: `${focus.county} County, ${focus.states?.[0]}`
-              }
-            : focus.type === 'state' || focus.type === 'compare'
-            ? {
-                type: focus.type,
-                states: focus.states,
-                // if multiple states, join them for a "full" string
-                full: focus.states?.length > 1 
-                  ? focus.states.join(', ') 
-                  : focus.states?.[0]
-              }
-            : {
-                // No focus or unknown focus type
-                type: null,
-                full: 'No focus'
-              };
+            const currentFocus = !focus ? { type: null, full: 'No focus' } :
+                focus.type === 'city' && focus.city
+                    ? {
+                        type: 'city',
+                        city: focus.city.name,
+                        state: focus.city.state,
+                        coordinates: focus.city.coordinates,
+                        full: `${focus.city.name}, ${focus.city.state}`
+                      }
+                    : focus.type === 'county' && focus.county
+                    ? {
+                        type: 'county',
+                        county: focus.county,
+                        state: focus.states?.[0] || '',
+                        full: `${focus.county} County, ${focus.states?.[0] || ''}`
+                      }
+                    : focus.type === 'state' || focus.type === 'compare'
+                    ? {
+                        type: focus.type,
+                        states: focus.states || [],
+                        full: focus.states?.length > 1 
+                          ? focus.states.join(', ') 
+                          : focus.states?.[0] || ''
+                      }
+                    : {
+                        type: null,
+                        full: 'No focus'
+                      };
 
             // Log the current focus for debugging
             console.log("Sending current focus to backend:", currentFocus);
@@ -407,13 +408,12 @@ const Chatbot = ({ dataset,
             const requestData = {
                 input: input,
                 current_dataset: dataset,
-                current_focus: focus, 
+                current_focus: focus || { type: null, states: [], county: null, city: null, highlightOnly: false }, 
                 previous_answer: previousAnswer,
                 conversation_history: messageHistory,
                 question_id: questionId,
-                raw_county: focus.county,
-                //TODO: Check if this is correct
-                raw_state: focus.states[0]
+                raw_county: focus?.county || null,
+                raw_state: focus?.states?.[0] || null
             };
 
             const response = await fetch(`${apiUrl}/api/analyze-input`, {
@@ -460,9 +460,11 @@ const Chatbot = ({ dataset,
                     }]);
                     onFocusChange({
                         type: 'city',
-                        city: data.city_name,
-                        state: data.state,
-                        coordinates: data.coordinates,
+                        city: {
+                            name: data.city_name,
+                            state: data.state,
+                            coordinates: data.coordinates
+                        },
                         highlightOnly: false
                     });
                     return;
@@ -471,7 +473,7 @@ const Chatbot = ({ dataset,
                     onFocusChange({
                         type: 'county',
                         county: data.county_name,
-                        state: data.state,
+                        states: [data.state],
                         highlightOnly: false
                     });
                     setMessages(prev => [...prev, { 
@@ -751,6 +753,49 @@ const Chatbot = ({ dataset,
         window.addEventListener('keydown', handleHelpHotkey);
         return () => window.removeEventListener('keydown', handleHelpHotkey);
     }, []);
+
+    // Add null checks when accessing focus properties
+    const handleFocusChange = (newFocus = { type: null, states: [], county: null, city: null, highlightOnly: false }) => {
+        // Ensure newFocus has all required properties
+        const safeFocus = {
+            type: newFocus?.type || null,
+            states: newFocus?.states || [],
+            county: newFocus?.county || null,
+            city: newFocus?.city || null,
+            highlightOnly: newFocus?.highlightOnly || false
+        };
+        
+        // Update focus state with safe values
+        onFocusChange(safeFocus);
+    };
+
+    // When checking focus type, add null checks
+    const checkFocusType = (focus) => {
+        if (!focus) return false;
+        return focus.type === 'state' || focus.type === 'county';
+    };
+
+    // Example usage in your component
+    useEffect(() => {
+        if (!focus) {
+            // Initialize with default values if focus is undefined
+            handleFocusChange();
+            return;
+        }
+
+        try {
+            // Your existing focus-dependent code here
+            if (focus?.type === 'state') {
+                // Handle state focus
+            } else if (focus?.type === 'county') {
+                // Handle county focus
+            }
+        } catch (error) {
+            console.error('Error handling focus:', error);
+            // Reset to default state if there's an error
+            handleFocusChange();
+        }
+    }, [focus]);
 
     return (
         <CardBody 
