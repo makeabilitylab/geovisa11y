@@ -1308,6 +1308,19 @@ const ChoroplethMap = ({
                     });
                     setStateAnnouncement('Now focused on Kansas state');
                     focusStateOnMap('Kansas');
+                } else if (focus.type === 'city') {
+                    // When focused on a city, Tab should focus on the containing state
+                    if (focus.city && focus.city.state) {
+                        onFocusChange({
+                            type: 'state',
+                            states: [focus.city.state],
+                            county: null,
+                            city: null,
+                            highlightOnly: false
+                        });
+                        setStateAnnouncement(`Now focused on ${focus.city.state} state`);
+                        focusStateOnMap(focus.city.state);
+                    }
                 } else if (showingCounties && !focus.county) {
                     const firstCounty = countyData?.features[0]?.properties.county_name;
                     if (firstCounty) {
@@ -1325,6 +1338,12 @@ const ChoroplethMap = ({
             // Handle arrow key navigation
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                 e.preventDefault();
+                
+                // If we're focused on a city, show message to press Tab first
+                if (focus.type === 'city') {
+                    setStateAnnouncement('Press Tab to focus on a state before using arrow keys');
+                    return;
+                }
                 
                 const normalizedState = normalizeStateName(focus.states[0]);
                 if (!normalizedState || (focus.type === 'county' && !focus.county)) {
