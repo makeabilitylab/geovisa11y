@@ -373,14 +373,16 @@ class SemanticService:
             }
             """
 
-            # Simplified context normalization
+            # Context normalization
             if isinstance(current_focus, dict) and current_focus.get('county'):
                 # Ensure we keep both county and state information
                 county_name = current_focus['county']
-                state_name = current_focus['state']
+                state_name = current_focus.get('state')
                 
                 # Handle array input for state
-                if isinstance(state_name, list) and len(state_name) > 0:
+                if not state_name and current_focus.get('states') and len(current_focus['states']) > 0:
+                    state_name = current_focus['states'][0]
+                elif isinstance(state_name, list) and len(state_name) > 0:
                     state_name = state_name[0]
                 
                 location = f"{county_name} County, {state_name}"
@@ -391,14 +393,28 @@ class SemanticService:
                     "state": state_name
                 }
             elif isinstance(current_focus, dict) and current_focus.get('city'):
-                location = f"{current_focus['city']}, {current_focus['state']}"
+                city_info = current_focus['city']
+                state_name = current_focus.get('state')
+                
+                # Handle array input for state
+                if not state_name and current_focus.get('states') and len(current_focus['states']) > 0:
+                    state_name = current_focus['states'][0]
+                
+                city_name = city_info.get('name') if isinstance(city_info, dict) else city_info
+                
+                location = f"{city_name}, {state_name}"
                 context_type = "city"
                 location_components = {
-                    "city": current_focus['city'],
-                    "state": current_focus['state']
+                    "city": city_name,
+                    "state": state_name
                 }
             else:
-                location = current_focus.get('state') if isinstance(current_focus, dict) else current_focus
+                # Handle the new focus structure where states is an array
+                if isinstance(current_focus, dict) and current_focus.get('states') and len(current_focus['states']) > 0:
+                    location = current_focus['states'][0]
+                else:
+                    location = current_focus.get('state') if isinstance(current_focus, dict) else current_focus
+                
                 context_type = "state"
                 location_components = {
                     "state": location

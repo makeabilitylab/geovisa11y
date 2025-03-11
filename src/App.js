@@ -7,11 +7,8 @@ import { logSessionEnd } from './utils/logger';
 function App() {
   const [currentDataset, setCurrentDataset] = useState('ppl_densit');
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
-  const [focusedState, setFocusedState] = useState(null);
-  const [focusedCounty, setFocusedCounty] = useState(null);
-  const [focusedCity, setFocusedCity] = useState(null);
-  const [showingCounties, setShowingCounties] = useState(false);
   const [interactionFocus, setInteractionFocus] = useState('none'); // 'none', 'map', or 'chat'
+  const [showingCounties, setShowingCounties] = useState(false);
 
   const API_URL = process.env.NODE_ENV === 'production'
     ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
@@ -32,41 +29,20 @@ function App() {
     setShowSpatialClusters(show);
   };
 
-  const handleStateQuestion = (stateName) => {
-    console.log('Setting focused state:', stateName);
-    setFocusedCity(null);
-    setFocusedCounty(null);
-    setFocusedState(stateName);
-  };
+  const [focus, setFocus] = useState({
+    type: null,     
+    states: [],        
+    county: null,      
+    city: null,        
+    highlightOnly: false
+  });
 
-  const handleChatbotFocus = (stateName) => {
-    console.log('Setting focus via Chatbot:', stateName);
-    // Clear other focuses
-    setFocusedCity(null); 
-    setFocusedCounty(null);
-    setFocusedState(stateName);
-  };
+  function handleFocusChange(newFocus) {
+    setFocus(newFocus);
+  }
 
-  const handleStateFocus = (stateName) => {
-    // Normalize the state name to handle arrays
-    const normalizedStateName = Array.isArray(stateName) ? stateName[0] : stateName;
-    const currentNormalizedState = Array.isArray(focusedState) ? focusedState[0] : focusedState;
-
-    // Only update if the value is actually different
-    if (normalizedStateName !== currentNormalizedState) {
-        console.log('Setting focus via map:', normalizedStateName);
-        setFocusedCity(null);  // Clear city focus
-        setFocusedState(stateName);
-        setFocusedCounty(null);
-    }
-  };
-
-  const handleCityFocus = (cityInfo) => {
-    // Clear other focuses
-    setFocusedState(null);
-    setFocusedCounty(null);
-    // Set city focus
-    setFocusedCity(cityInfo);
+  const handleShowingCountiesChange = (showing) => {
+    setShowingCounties(showing);
   };
 
   useEffect(() => {
@@ -103,33 +79,28 @@ function App() {
     <div className="flex h-screen w-screen overflow-hidden">
       <div className="w-2/3 h-full relative">
         <ChoroplethMap
+          focus={focus}
+          onFocusChange={handleFocusChange}
           dataset={currentDataset}
           showSpatialClusters={showSpatialClusters}
           onSpatialClustersToggle={setShowSpatialClusters}
           onDatasetChange={handleDatasetChange}
-          focusedState={focusedState}
-          onFocusedCountyChange={handleCountyFocus}
-          onStateFocus={handleStateFocus}
           apiUrl={API_URL}
           isMapInteractive={interactionFocus === 'map'}
           onMapClick={() => setInteractionFocus('map')}
-          focusedCity={focusedCity}
-          onCityFocus={setFocusedCity}
+          showingCounties={showingCounties}
+          onShowingCountiesChange={handleShowingCountiesChange}
         />
       </div>
       <div className="w-1/3 h-full">
         <Chatbot
+          focus={focus}
+          onFocusChange={handleFocusChange}
           dataset={currentDataset}
           onPatternQuestion={handlePatternQuestion}
-          onStateQuestion={handleStateQuestion}
-          onStateFocus={handleChatbotFocus}
-          currentFocusedState={focusedState}
-          currentFocusedCounty={focusedCounty}
-          currentFocusedCity={focusedCity}
           apiUrl={API_URL}
           isInputFocused={interactionFocus === 'chat'}
           onInputClick={() => setInteractionFocus('chat')}
-          onCityFocus={handleCityFocus}
           showingCounties={showingCounties}
         />
       </div>

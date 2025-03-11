@@ -16,19 +16,14 @@ import {
 
 
 const Chatbot = ({ dataset, 
+    focus,
+    onFocusChange,
     onPatternQuestion, 
-    onStateQuestion, 
-    onStateFocus, 
-    currentFocusedState, 
-    currentFocusedCounty, 
     apiUrl, 
     isInputFocused, 
     onInputClick, 
-    onCityFocus, 
-    isTaskPage = false, 
-    isTask2Page = false, 
-    showingCounties = false, 
-    countyViewState = null }) => {
+    isTaskPage = false,
+    isTask2Page = false}) => {
     
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
@@ -340,29 +335,38 @@ const Chatbot = ({ dataset,
             }
 
             // Create focus object that includes state, county, and showingCounties flag
-            const currentFocus = currentFocusedCity 
-                ? {
-                    city: currentFocusedCity.name,
-                    state: currentFocusedCity.state,
-                    coordinates: currentFocusedCity.coordinates,
-                    full: `${currentFocusedCity.name}, ${currentFocusedCity.state}`,
-                    showingCounties: showingCounties
-                  }
-                : currentFocusedCounty 
-                ? {
-                    county: currentFocusedCounty,
-                    state: currentFocusedState,
-                    full: `${currentFocusedCounty} County, ${currentFocusedState}`,
-                    showingCounties: showingCounties
-                  }
-                : {
-                    state: currentFocusedState || countyViewState, // Use countyViewState as fallback
-                    full: currentFocusedState || countyViewState,
-                    showingCounties: showingCounties
-                  };
+            const currentFocus = focus.type === 'city' && focus.city
+            ? {
+                type: 'city',
+                city: focus.city.name,
+                state: focus.city.state,
+                coordinates: focus.city.coordinates,
+                full: `${focus.city.name}, ${focus.city.state}`
+              }
+            : focus.type === 'county' && focus.county
+            ? {
+                type: 'county',
+                county: focus.county,
+                state: focus.states?.[0],  // first state in the array if relevant
+                full: `${focus.county} County, ${focus.states?.[0]}`
+              }
+            : focus.type === 'state' || focus.type === 'compare'
+            ? {
+                type: focus.type,
+                states: focus.states,
+                // if multiple states, join them for a "full" string
+                full: focus.states?.length > 1 
+                  ? focus.states.join(', ') 
+                  : focus.states?.[0]
+              }
+            : {
+                // No focus or unknown focus type
+                type: null,
+                full: 'No focus'
+              };
 
             // Log the current focus for debugging
-            // console.log("Sending current focus to backend:", currentFocus);
+            console.log("Sending current focus to backend:", currentFocus);
 
             // Build conversation history from messages
             const messageHistory = messages.map(msg => msg.text);
@@ -378,9 +382,10 @@ const Chatbot = ({ dataset,
             const questionId = await logQuestionData(
                 input, 
                 previousAnswer, 
-                currentFocus, 
-                currentFocusedState, 
-                currentFocusedCounty, 
+                focus.type,
+                focus.states,
+                focus.county,
+                focus.city,
                 messageHistory,
                 dataset,
                 mapViewport
@@ -402,12 +407,13 @@ const Chatbot = ({ dataset,
             const requestData = {
                 input: input,
                 current_dataset: dataset,
-                current_focus: currentFocus, 
+                current_focus: focus, 
                 previous_answer: previousAnswer,
                 conversation_history: messageHistory,
                 question_id: questionId,
-                raw_county: currentFocusedCounty,
-                raw_state: currentFocusedState
+                raw_county: focus.county,
+                //TODO: Check if this is correct
+                raw_state: focus.states[0]
             };
 
             const response = await fetch(`${apiUrl}/api/analyze-input`, {
@@ -452,21 +458,35 @@ const Chatbot = ({ dataset,
                         text: `Focusing on ${data.city_name}, ${data.state}.`, 
                         sender: 'bot' 
                     }]);
-                    onCityFocus({
-                        name: data.city_name,
+                    onFocusChange({
+                        type: 'city',
+                        city: data.city_name,
                         state: data.state,
-                        coordinates: data.coordinates
+                        coordinates: data.coordinates,
+                        highlightOnly: false
                     });
                     return;
                 } else if (data.action_type === 'focus_county') {
                     // Handle county focus
+                    onFocusChange({
+                        type: 'county',
+                        county: data.county_name,
+                        state: data.state,
+                        highlightOnly: false
+                    });
                     setMessages(prev => [...prev, { 
                         text: `Focusing on ${data.county_name}, ${data.state}.`, 
                         sender: 'bot' 
                     }]);
                     return;
                 } else if (data.action_type === 'focus' && data.state) {
-                    onStateFocus(data.state);
+                    onFocusChange({
+                        type: 'state',
+                        states: [data.state],
+                        county: null,
+                        city: null,
+                        highlightOnly: false
+                    });
                     setMessages(prev => [...prev, { 
                         text: `Focusing on ${data.state}.`, 
                         sender: 'bot' 
@@ -486,23 +506,48 @@ const Chatbot = ({ dataset,
                 // Handle state/county focusing for relevant question types
                 if (data.question_type === 'retrieve') {
                     if (data.county) {
-                        // Don't update focus for county-level responses
+                        console.log("Setting county focus:", data.county, data.state);
+                        onFocusChange({
+                            type: 'county',
+                            county: data.county,
+                            states: [data.state], // Use states array instead of state
+                            highlightOnly: false
+                        });
                     } else if (data.state) {
-                        onStateQuestion([data.state]);
+                        onFocusChange({
+                            type: 'state',
+                            states: [data.state],
+                            county: null,
+                            city: null,
+                            highlightOnly: false
+                        });
                     }
                 } else if (data.states && data.question_type === 'compare') {
-                    onStateQuestion(data.states);
+                    onFocusChange({
+                        type: 'state',
+                        states: data.states,
+                        county: null,
+                        city: null,
+                        highlightOnly: true
+                    });
                 } else if (data.question_type === 'find_extremum') {
                     if (data.county) {
                         // If we have county data, focus on the county
-                        onStateFocus({
-                            state: data.state,
+                        onFocusChange({
+                            type: 'county',
                             county: data.county,
-                            showingCounties: true
+                            states: [data.state], // Use states array instead of state
+                            highlightOnly: false
                         });
                     } else {
                         // Otherwise just focus on the state
-                        onStateQuestion([data.state]);
+                        onFocusChange({
+                            type: 'state',
+                            states: [data.state],
+                            county: null,
+                            city: null,
+                            highlightOnly: false
+                        });
                     }
                 }
 
@@ -633,11 +678,8 @@ const Chatbot = ({ dataset,
 
     // Add useEffect to monitor focused state changes
     useEffect(() => {
-        console.log('Focus state updated:', {
-            currentFocusedState,
-            currentFocusedCounty
-        });
-    }, [currentFocusedState, currentFocusedCounty]);
+        console.log('Focus state updated:', focus.type, focus.states, focus.county, focus.city);
+    }, [focus]);
 
     useEffect(() => {
         // Focus the welcome section on component mount
