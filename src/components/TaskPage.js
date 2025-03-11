@@ -7,9 +7,7 @@ import { logSessionEnd } from '../utils/logger';
 function TaskPage() {
   const [currentDataset, setCurrentDataset] = useState('pct_tot_co');
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
-  const [focusedState, setFocusedState] = useState(null);
-  const [focusedCounty, setFocusedCounty] = useState(null);
-  const [focusedCity, setFocusedCity] = useState(null);
+  const [focus, setFocus] = useState({ type: null, states: [], county: null, city: null, highlightOnly: false });
   const [interactionFocus, setInteractionFocus] = useState('none'); // 'none', 'map', or 'chat'
 
   const API_URL = process.env.NODE_ENV === 'production'
@@ -26,40 +24,52 @@ function TaskPage() {
 
   const handleStateQuestion = (stateName) => {
     console.log('Setting focused state:', stateName);
-    setFocusedCity(null);
-    setFocusedCounty(null);
-    setFocusedState(stateName);
+    setFocus({
+        type: 'state',
+        states: Array.isArray(stateName) ? stateName : [stateName],
+        county: null,
+        city: null,
+        highlightOnly: false
+    });
   };
 
   const handleChatbotFocus = (stateName) => {
     console.log('Setting focus via Chatbot:', stateName);
-    // Clear other focuses
-    setFocusedCity(null); 
-    setFocusedCounty(null);
-    // Then set state focus
-    setFocusedState(stateName);
+    setFocus({
+        type: 'state',
+        states: Array.isArray(stateName) ? stateName : [stateName],
+        county: null,
+        city: null,
+        highlightOnly: false
+    });
   };
 
   const handleStateFocus = (stateName) => {
     // Normalize the state name to handle arrays
     const normalizedStateName = Array.isArray(stateName) ? stateName[0] : stateName;
-    const currentNormalizedState = Array.isArray(focusedState) ? focusedState[0] : focusedState;
+    const currentNormalizedState = focus.states?.[0];
 
     // Only update if the value is actually different
     if (normalizedStateName !== currentNormalizedState) {
         console.log('Setting focus via map:', normalizedStateName);
-        setFocusedCity(null);  // Clear city focus
-        setFocusedState(stateName);
-        setFocusedCounty(null);
+        setFocus({
+            type: 'state',
+            states: [normalizedStateName],
+            county: null,
+            city: null,
+            highlightOnly: false
+        });
     }
   };
 
   const handleCityFocus = (cityInfo) => {
-    // Clear other focuses
-    setFocusedState(null);
-    setFocusedCounty(null);
-    // Set city focus
-    setFocusedCity(cityInfo);
+    setFocus({
+        type: 'city',
+        states: [cityInfo.state],
+        county: null,
+        city: cityInfo,
+        highlightOnly: false
+    });
   };
 
   useEffect(() => {
@@ -100,30 +110,23 @@ function TaskPage() {
           showSpatialClusters={showSpatialClusters}
           onSpatialClustersToggle={setShowSpatialClusters}
           onDatasetChange={handleDatasetChange}
-          focusedState={focusedState}
-          onFocusedCountyChange={setFocusedCounty}
-          onStateFocus={handleStateFocus}
+          focus={focus}
+          onFocusChange={setFocus}
           apiUrl={API_URL}
           isMapInteractive={interactionFocus === 'map'}
           onMapClick={() => setInteractionFocus('map')}
-          focusedCity={focusedCity}
-          onCityFocus={setFocusedCity}
           isTaskPage={true}
         />
       </div>
       <div className="w-1/3 h-full">
         <Chatbot
           dataset={currentDataset}
+          focus={focus}
+          onFocusChange={setFocus}
           onPatternQuestion={handlePatternQuestion}
-          onStateQuestion={handleStateQuestion}
-          onStateFocus={handleChatbotFocus}
-          currentFocusedState={focusedState}
-          currentFocusedCounty={focusedCounty}
-          currentFocusedCity={focusedCity}
           apiUrl={API_URL}
           isInputFocused={interactionFocus === 'chat'}
           onInputClick={() => setInteractionFocus('chat')}
-          onCityFocus={handleCityFocus}
           isTaskPage={true}
         />
       </div>

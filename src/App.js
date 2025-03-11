@@ -61,12 +61,17 @@ function App() {
           if (prev === 'chat') return 'map';
           return 'map'; // If 'none', default to map
         });
+        console.log('Interaction focus changed to:', interactionFocus);
       }
     };
-    
     window.addEventListener('keydown', globalHandler);
     return () => window.removeEventListener('keydown', globalHandler);
   }, []);
+
+
+  useEffect(() => {
+    console.log('Interaction focus changed to:', interactionFocus);
+  }, [interactionFocus]);
 
   useEffect(() => {
     // Log session end when the component unmounts

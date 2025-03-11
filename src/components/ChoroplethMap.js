@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { logMapInteraction } from '../utils/logger';
 
 const ChoroplethMap = ({
-    focus,
+    focus = { type: null, states: [], county: null, city: null, highlightOnly: false },
     onFocusChange,
     dataset, 
     showSpatialClusters, 
@@ -501,18 +501,6 @@ const ChoroplethMap = ({
     // UseEffect to handle focused state/county
     useEffect(() => {
         if (!map.current || !layersInitialized || !geoData) return;
-        
-        //1. If no focus (focus.type === null), reset the map view
-        if (!focus.type) {
-            map.current.flyTo({
-                center: [-96, 37.8],
-                zoom: 4,
-                duration: 2000
-            });
-            map.current.setPaintProperty('state-borders', 'line-opacity', 0);
-            setStateAnnouncement('');
-            return;  // we're done
-        }
 
         // 2. Handle city focus
         if (focus.type === 'city' && focus.city) {
@@ -1091,11 +1079,11 @@ const ChoroplethMap = ({
 
     // Add effect to update the focused state highlight
     useEffect(() => {
-        if (map.current && layersInitialized && focus.type) {
+        if (map.current && layersInitialized && focus?.type) {
             // Create a filter for the current focused state
             const focusFilter = ['==', 
                 ['get', 'state_name'], 
-                focus.type === 'state' ? focus.states[0] : focus.states[0]
+                focus.states?.[0] || ''
             ];
 
             // Update the state borders layer to highlight only the focused state
@@ -1112,13 +1100,13 @@ const ChoroplethMap = ({
             // Reset the highlight when no state is focused
             map.current.setPaintProperty('state-borders', 'line-opacity', 0);
             map.current.setPaintProperty('state-borders', 'line-color', '#ccc');
-            map.current.setLayoutProperty('state-borders', 'line-cap', 'butt');  // Reset to default
+            map.current.setLayoutProperty('state-borders', 'line-cap', 'butt');
         }
     }, [focus, layersInitialized]);
 
     // Add effect to clear county focus when state changes
     useEffect(() => {
-        if (focus.type === 'state' && focus.county) {
+        if (focus?.type === 'state' && focus?.county) {
             onFocusChange({
                 ...focus,
                 type: null,
@@ -1424,7 +1412,6 @@ const ChoroplethMap = ({
                 if (focus.type === 'state' && !showingCounties) {
                     fetchCountyData(focus.states[0]).then(data => {
                         setCountyData(data);
-                        
                         // Add county source and layers after data is fetched
                         if (map.current) {
                             // Add county source
@@ -1544,18 +1531,46 @@ const ChoroplethMap = ({
         removeSourceSafely
     ]);
 
-    // Update announcement effect
+    // // Update announcement effect
+    // useEffect(() => {
+    //     setStateAnnouncement(
+    //         isMapInteractive 
+    //             ? focus?.county
+    //                 ? `Map interaction enabled. Focused on ${focus.county} county in ${focus.states?.[0]} state.`
+    //                 : focus?.states?.length > 0
+    //                     ? `Map interaction enabled. Focused on ${focus.states[0]} state.`
+    //                     : 'Map interaction enabled. Press Tab to focus on a state.'
+    //             : 'Chat interaction enabled. Type a question to ask MappieTalkie.'
+    //     );
+    // }, [isMapInteractive, focus]);
     useEffect(() => {
-        setStateAnnouncement(
-            isMapInteractive 
-                ? focus.county
-                    ? `Map interaction enabled. Focused on ${focus.county} county in ${focus.states[0]} state.`
-                    : focus.states.length > 0
-                        ? `Map interaction enabled. Focused on ${focus.states[0]} state.`
-                        : 'Map interaction enabled. Press Tab to focus on a state.'
-                : 'Chat interaction enabled. Type a question to ask MappieTalkie.'
-        );
-    }, [isMapInteractive, focus]);
+        if (!isMapInteractive) {
+          // If we’re not in map mode, just say “Chat interaction enabled”
+          setStateAnnouncement('Chat interaction enabled. Type a question to ask MappieTalkie.');
+          return;
+        }
+      
+        // Otherwise, map interaction is enabled. Announce based on focus type:
+        if (focus.type === 'county' && focus.county && focus.states?.[0]) {
+          setStateAnnouncement(`Map interaction enabled. Focused on ${focus.county} county in ${focus.states[0]} state.`);
+        }
+        else if (focus.type === 'city' && focus.city) {
+          setStateAnnouncement(`Map interaction enabled. Focused on ${focus.city.name}, ${focus.city.state}.`);
+        }
+        else if ((focus.type === 'state' || focus.type === 'compare') && focus.states?.length > 0) {
+          // If multiple states in compare mode:
+          if (focus.states.length > 1) {
+            setStateAnnouncement(`Map interaction enabled. Comparing ${focus.states.join(' and ')}.`);
+          } else {
+            setStateAnnouncement(`Map interaction enabled. Focused on ${focus.states[0]} state.`);
+          }
+        }
+        else {
+          // No specific focus
+          setStateAnnouncement('Map interaction enabled. Press Tab to focus on a state.');
+        }
+      }, [isMapInteractive, focus]);
+      
 
     // Update map interaction logging
     useEffect(() => {
@@ -1740,37 +1755,6 @@ const ChoroplethMap = ({
         layerExists, 
         sourceExists
     ]);
-
-    // Update the resetToStateView function
-    const resetToStateView = () => {
-        if (map.current) {
-            // Hide county layers if they exist
-            removeLayersSafely(countyLayers.concat(countyLisaLayers));
-            removeSourceSafely('counties');
-            
-            // Reset to US view
-            map.current.fitBounds([
-                [-125.0, 24.0], // Southwest coordinates
-                [-66.0, 50.0]   // Northeast coordinates
-            ]);
-            
-            // Show state layers again
-            toggleLayerVisibility('state-base', true);
-            toggleLayerVisibility('state-borders', true);
-            
-            // Reset state
-            onShowingCountiesChange(false);
-            onFocusChange({
-                type: null,
-                states: [],
-                county: null,
-                city: null,
-                highlightOnly: false
-            });
-            
-            setStateAnnouncement('Returned to national view.');
-        }
-    };
 
     return (
         <div className="relative h-full ">
