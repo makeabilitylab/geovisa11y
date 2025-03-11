@@ -16,6 +16,7 @@ const ChoroplethMap = ({
     showingCounties,
     onShowingCountiesChange,
     isTaskPage = false,
+    onAnnounce
 }) => 
         {
     const mapContainer = useRef(null);
@@ -31,7 +32,7 @@ const ChoroplethMap = ({
     const [lisaLegend, setLisaLegend] = useState(null);
     const [layersInitialized, setLayersInitialized] = useState(false);
 
-    const [stateAnnouncement, setStateAnnouncement] = useState('');
+    // const [stateAnnouncement, setStateAnnouncement] = useState('');
     const announcementRef = useRef(null);
 
     const [countyData, setCountyData] = useState(null);
@@ -72,9 +73,11 @@ const ChoroplethMap = ({
                     
                     // Announce dataset change for accessibility
                     const datasetName = datasets[newDataset]?.name || newDataset;
-                    setStateAnnouncement(`Dataset changed to ${datasetName}`);
+                    if (isMapInteractive) {
+                        onAnnounce?.(`Dataset changed to ${datasetName}`);
+                    }
                 }
-                // For non-task page, there's only one dataset option, so no toggle needed
+                // Non-task page only has one dataset option, no toggle needed
             }
         };
 
@@ -92,9 +95,9 @@ const ChoroplethMap = ({
                 'visibility', 
                 isVisible ? 'visible' : 'none'
             );
-            console.log(`Layer ${layerId} visibility set to ${isVisible ? 'visible' : 'none'}`);
+            // console.log(`Layer ${layerId} visibility set to ${isVisible ? 'visible' : 'none'}`);
         } else {
-            console.warn(`Layer ${layerId} not found in map`);
+            // console.warn(`Layer ${layerId} not found in map`);
         }
     }, []);
 
@@ -129,7 +132,7 @@ const ChoroplethMap = ({
         layerIds.forEach(layerId => {
             if (layerExists(layerId)) {
                 map.current.removeLayer(layerId);
-                console.log(`Layer ${layerId} removed`);
+                // console.log(`Layer ${layerId} removed`);
             }
         });
     }, [layerExists]);
@@ -443,7 +446,10 @@ const ChoroplethMap = ({
             
             // Announce dataset change
             const datasetName = datasets[selectedDataset]?.name || selectedDataset;
-            setStateAnnouncement(`Dataset changed to ${datasetName}`);
+
+            if (isMapInteractive) {
+                onAnnounce?.(`Dataset changed to ${datasetName}`);
+            }
             
             // Reset focused state
             onFocusChange({
@@ -501,9 +507,9 @@ const ChoroplethMap = ({
     // UseEffect to handle focused state/county
     useEffect(() => {
         // if (!map.current || !layersInitialized || !geoData) return;
-        if (!isMapInteractive) {
-            return;
-          }
+        // if (!isMapInteractive) {
+        //     return;
+        //   }
 
         // 2. Handle city focus
         if (focus.type === 'city' && focus.city) {
@@ -526,14 +532,15 @@ const ChoroplethMap = ({
             toggleLayerVisibility('state-borders', true);
 
             // Update announcement
-            setStateAnnouncement(`Now focused on ${name}, ${state}`);
+            if (isMapInteractive) {
+                onAnnounce?.(`Now focused on ${name}, ${state}`);
+            }
 
             return;
         }
         
         // 4. Handle county focus
-        // TODO: why using if here instead of else if?
-        else if (focus.type === 'county' && focus.county) {
+        if (focus.type === 'county' && focus.county) {
             // Hide state layers
             toggleLayerSet(stateLayers, false);
             // Make sure we have a valid state in the states array
@@ -565,7 +572,9 @@ const ChoroplethMap = ({
                     ]);
 
                     // Update announcement
-                    setStateAnnouncement(`Now focused on ${countyName}, ${stateName}`);
+                    if (isMapInteractive) {
+                        onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
+                    }
                 }
             } else {
                 // We need to fetch county data
@@ -639,7 +648,9 @@ const ChoroplethMap = ({
                         ]); 
 
                         // Update announcement
-                        setStateAnnouncement(`Now focused on ${countyName}, ${stateName}`);
+                        if (isMapInteractive) {
+                            onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
+                        }
                     }
                 });
             }
@@ -647,7 +658,7 @@ const ChoroplethMap = ({
         
         // 5. Handle state focus
         else if (focus.type === 'state' || focus.type === 'compare') {
-            console.log('Focusing on state:', focus.states);
+            // console.log('Focusing on state:', focus.states);
             // Show state map if it was hidden
             toggleLayerVisibility('state-choropleth', true);
             toggleLayerVisibility('state-borders', true);
@@ -706,9 +717,13 @@ const ChoroplethMap = ({
         
                 // Set a spoken announcement, depending on compare vs. single state
                 if (focus.states.length > 1) {
-                setStateAnnouncement(`Now comparing ${focus.states.join(' and ')}`);
+                    if (isMapInteractive) {
+                        onAnnounce?.(`Now comparing ${focus.states.join(' and ')}`);
+                    }
                 } else {
-                setStateAnnouncement(`Now focused on ${focus.states[0]} state`);
+                    if (isMapInteractive) {
+                        onAnnounce?.(`Now focused on ${focus.states[0]} state`);
+                    }
                 }
             } else {
                 // If no matching features, just reset (fallback)
@@ -1226,7 +1241,9 @@ const ChoroplethMap = ({
             return data;
         } catch (error) {
             console.error('Error fetching county data:', error);
-            setStateAnnouncement('Failed to load county data');
+            if (isMapInteractive) {
+                onAnnounce?.(`Failed to load county data`);
+            }
             throw error;
         } finally {
             setIsLoading(false);
@@ -1306,8 +1323,10 @@ const ChoroplethMap = ({
                         city: null,
                         highlightOnly: false
                     });
-                    setStateAnnouncement('Now focused on Kansas state');
-                    focusStateOnMap('Kansas');
+                    if (isMapInteractive) { 
+                        onAnnounce?.(`Now focused on Kansas state`);
+                        focusStateOnMap('Kansas');
+                    }
                 } else if (focus.type === 'city') {
                     // When focused on a city, Tab should focus on the containing state
                     if (focus.city && focus.city.state) {
@@ -1318,8 +1337,10 @@ const ChoroplethMap = ({
                             city: null,
                             highlightOnly: false
                         });
-                        setStateAnnouncement(`Now focused on ${focus.city.state} state`);
-                        focusStateOnMap(focus.city.state);
+                        if (isMapInteractive) {
+                            onAnnounce?.(`Now focused on ${focus.city.state} state`);
+                            focusStateOnMap(focus.city.state);
+                        }
                     }
                 } else if (showingCounties && !focus.county) {
                     const firstCounty = countyData?.features[0]?.properties.county_name;
@@ -1329,8 +1350,10 @@ const ChoroplethMap = ({
                             type: 'county',
                             county: firstCounty
                         });
-                        setStateAnnouncement(`Now focused on ${firstCounty} county`);
-                        focusCountyOnMap(firstCounty);
+                        if (isMapInteractive) {
+                            onAnnounce?.(`Now focused on ${firstCounty} county`);
+                            focusCountyOnMap(firstCounty);
+                        }
                     }
                 }
             }
@@ -1341,13 +1364,17 @@ const ChoroplethMap = ({
                 
                 // If we're focused on a city, show message to press Tab first
                 if (focus.type === 'city') {
-                    setStateAnnouncement('Press Tab to focus on a state before using arrow keys');
+                    if (isMapInteractive) {
+                        onAnnounce?.(`Press Tab to focus on a state before using arrow keys`);
+                    }
                     return;
                 }
                 
                 const normalizedState = normalizeStateName(focus.states[0]);
                 if (!normalizedState || (focus.type === 'county' && !focus.county)) {
-                    setStateAnnouncement('Press Tab to focus on a state before using arrow keys');
+                    if (isMapInteractive) {
+                        onAnnounce?.(`Press Tab to focus on a state before using arrow keys`);
+                    }
                     return;
                 }
 
@@ -1368,12 +1395,14 @@ const ChoroplethMap = ({
                             ...focus,
                             county: nextCounty
                         });
-                        setStateAnnouncement(`Now focused on ${nextCounty} county`);
-                        focusCountyOnMap(nextCounty);
+                        if (isMapInteractive) {
+                            onAnnounce?.(`Now focused on ${nextCounty} county`);
+                            focusCountyOnMap(nextCounty);
+                        }
                     } else {
-                        setStateAnnouncement(
-                            `There is no county ${direction} of ${focus.county}`
-                        );
+                        if (isMapInteractive) {
+                            onAnnounce?.(`There is no county ${direction} of ${focus.county}`);
+                        }
                     }
                 } else {
                     // State-level navigation
@@ -1388,12 +1417,16 @@ const ChoroplethMap = ({
                             city: null,
                             highlightOnly: false
                         });
-                        setStateAnnouncement(`Now focused on ${nextState} state`);
-                        focusStateOnMap(nextState);
+                        if (isMapInteractive) {
+                            onAnnounce?.(`Now focused on ${nextState} state`);
+                            focusStateOnMap(nextState);
+                        }
                     } else {
-                        setStateAnnouncement(
-                            `There is no state ${direction} of ${normalizedState}`
-                        );
+                        if (isMapInteractive) {
+                            onAnnounce?.(
+                                `There is no state ${direction} of ${normalizedState}`
+                            );
+                        }
                     }
                 }
             }
@@ -1456,10 +1489,14 @@ const ChoroplethMap = ({
                         }
 
                         onShowingCountiesChange(true);
-                        setStateAnnouncement(`Showing counties in ${focus.states[0]}. Press Tab to focus on a county.`);
+                        if (isMapInteractive) {
+                            onAnnounce?.(`Showing counties in ${focus.states[0]}. Press Tab to focus on a county.`);
+                        }
                     }).catch(error => {
                         console.error('Error loading county data:', error);
-                        setStateAnnouncement('Failed to load county data');
+                        if (isMapInteractive) {
+                            onAnnounce?.(`Failed to load county data`);
+                        }
                     });
                 }
             }
@@ -1495,7 +1532,9 @@ const ChoroplethMap = ({
                 }
                 
                 focusStateOnMap(focus.states[0]);
-                setStateAnnouncement(`Returned to state view of ${focus.states[0]}`);
+                if (isMapInteractive) {
+                    onAnnounce?.(`Returned to state view of ${focus.states[0]}`);
+                }
             }
         };
 
@@ -1525,17 +1564,17 @@ const ChoroplethMap = ({
 
     // Update announcement effect
     // consider moving this to App.js
-    useEffect(() => {
-        setStateAnnouncement(
-            isMapInteractive 
-                ? focus?.county
-                    ? `Map interaction enabled. Focused on ${focus.county} county in ${focus.states?.[0]} state.`
-                    : focus?.states?.length > 0
-                        ? `Map interaction enabled. Focused on ${focus.states[0]} state.`
-                        : 'Map interaction enabled. Press Tab to focus on a state.'
-                : 'Chat interaction enabled. Type a question to ask MappieTalkie.'
-        );
-    }, [isMapInteractive, focus]);
+    // useEffect(() => {
+    //     setStateAnnouncement(
+    //         isMapInteractive 
+    //             ? focus?.county
+    //                 ? `Map interaction enabled. Focused on ${focus.county} county in ${focus.states?.[0]} state.`
+    //                 : focus?.states?.length > 0
+    //                     ? `Map interaction enabled. Focused on ${focus.states[0]} state.`
+    //                     : 'Map interaction enabled. Press Tab to focus on a state.'
+    //             : 'Chat interaction enabled. Type a question to ask MappieTalkie.'
+    //     );
+    // }, [isMapInteractive, focus]);
 
     // Update map interaction logging
     useEffect(() => {
@@ -1738,7 +1777,7 @@ const ChoroplethMap = ({
             />
 
             {/* Live region for announcements */}
-            <div
+            {/* <div
                 ref={announcementRef}
                 role="status"
                 aria-live="assertive"
@@ -1746,10 +1785,10 @@ const ChoroplethMap = ({
                 className="sr-only"
             >
                 {stateAnnouncement}
-            </div>
+            </div> */}
 
             {/* Current focused state display and announcements */}
-            {(focus.type || stateAnnouncement) && (
+            {/* {(focus.type || stateAnnouncement) && (
                 <div 
                     id="map-interaction-announcement"
                     className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg"
@@ -1759,7 +1798,7 @@ const ChoroplethMap = ({
                 >
                     {stateAnnouncement || `Now focused on ${focus.type ? focus.states[0] : ''} state`}
                 </div>
-            )}
+            )} */}
 
             {/* Loading Dialog - Show when map is not initialized or layers not ready */}
             {(!map.current || !layersInitialized) && (
