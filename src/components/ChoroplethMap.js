@@ -480,9 +480,6 @@ const ChoroplethMap = ({
 
     // Update clusters visibility whenever showSpatialClusters changes
     useEffect(() => {
-        if(!isMapInteractive) {
-            return;
-        }
         if (map.current && layersInitialized) {
             try {
                 toggleLayerSet(stateLisaLayers, showSpatialClusters);
@@ -971,9 +968,6 @@ const ChoroplethMap = ({
 
     // Add new useEffect for accessibility
     useEffect(() => {
-        if(!isMapInteractive) {
-            return;
-        }
         if (map.current) {
             map.current.on('load', () => {
                 // Hide all mapbox controls from screen readers
@@ -1298,9 +1292,6 @@ const ChoroplethMap = ({
 
     // Keep the keyboard navigation effect
     useEffect(() => {
-        if(!isMapInteractive) {
-            return;
-        }
         const handleKeyDown = (e) => {
             if (!isMapInteractive) return;
 
