@@ -480,6 +480,9 @@ const ChoroplethMap = ({
 
     // Update clusters visibility whenever showSpatialClusters changes
     useEffect(() => {
+        if(!isMapInteractive) {
+            return;
+        }
         if (map.current && layersInitialized) {
             try {
                 toggleLayerSet(stateLisaLayers, showSpatialClusters);
@@ -501,10 +504,9 @@ const ChoroplethMap = ({
     // UseEffect to handle focused state/county
     useEffect(() => {
         // if (!map.current || !layersInitialized || !geoData) return;
-        // if (!isMapInteractive) {
-        //     // If user is in chat mode, don't set a map announcement at all.
-        //     return;
-        //   }
+        if (!isMapInteractive) {
+            return;
+          }
 
         // 2. Handle city focus
         if (focus.type === 'city' && focus.city) {
@@ -533,7 +535,8 @@ const ChoroplethMap = ({
         }
         
         // 4. Handle county focus
-        if (focus.type === 'county' && focus.county) {
+        // TODO: why using if here instead of else if?
+        else if (focus.type === 'county' && focus.county) {
             // Hide state layers
             toggleLayerSet(stateLayers, false);
             // Make sure we have a valid state in the states array
@@ -646,7 +649,7 @@ const ChoroplethMap = ({
         }
         
         // 5. Handle state focus
-        if (focus.type === 'state' || focus.type === 'compare') {
+        else if (focus.type === 'state' || focus.type === 'compare') {
             console.log('Focusing on state:', focus.states);
             // Show state map if it was hidden
             toggleLayerVisibility('state-choropleth', true);
@@ -968,6 +971,9 @@ const ChoroplethMap = ({
 
     // Add new useEffect for accessibility
     useEffect(() => {
+        if(!isMapInteractive) {
+            return;
+        }
         if (map.current) {
             map.current.on('load', () => {
                 // Hide all mapbox controls from screen readers
@@ -1292,6 +1298,9 @@ const ChoroplethMap = ({
 
     // Keep the keyboard navigation effect
     useEffect(() => {
+        if(!isMapInteractive) {
+            return;
+        }
         const handleKeyDown = (e) => {
             if (!isMapInteractive) return;
 
@@ -1524,6 +1533,7 @@ const ChoroplethMap = ({
     ]);
 
     // Update announcement effect
+    // consider moving this to App.js
     useEffect(() => {
         setStateAnnouncement(
             isMapInteractive 
