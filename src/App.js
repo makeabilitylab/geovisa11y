@@ -70,34 +70,6 @@ function App() {
   }, []);
 
 
-  // useEffect(() => {
-  //   if (interactionFocus === 'map') {
-  //     // If we have a county in focus
-  //     if (focus.county && focus.states?.length > 0) {
-  //       setAnnouncement(
-  //         `Map interaction enabled. Focused on ${focus.county} county in ${focus.states[0]}.`
-  //       );
-  //     } 
-  //     // If we have a single state
-  //     else if (focus?.states?.length > 0) {
-  //       setAnnouncement(
-  //         `Map interaction enabled. Focused on ${focus.states[0]} state.`
-  //       );
-  //     } 
-  //     // No specific focus
-  //     else {
-  //       setAnnouncement('Map interaction enabled. Press Tab to move onto the map.');
-  //     }
-  //   } else if (interactionFocus === 'chat') {
-  //     setAnnouncement('Chat interaction enabled. Type a question to ask MappieTalkie.');
-  //   } else {
-  //     // If 'none' or something else
-  //     setAnnouncement('Press Ctrl+M to toggle map or chat mode.');
-  //   }
-  // }, [interactionFocus, focus]);
-
-
-  // In App.js effect:
 useEffect(() => {
   if (interactionFocus === 'chat') {
     if (focus.type === 'state') {
@@ -126,14 +98,6 @@ useEffect(() => {
     }
   }
 }, [interactionFocus, focus]);
-
-
-
-  useEffect(() => {
-    //log current focus
-    console.log('Current focus:', interactionFocus);
-    console.log('announcement:', announcement);
-  }, [interactionFocus, announcement]);
 
   useEffect(() => {
     // Log session end when the component unmounts
