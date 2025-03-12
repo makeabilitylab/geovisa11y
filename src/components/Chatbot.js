@@ -41,6 +41,8 @@ const Chatbot = ({
     const wrapperRef = useRef(null);
     const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
     const [stateAnnouncement, setStateAnnouncement] = useState('');
+    const [lastBotMessage, setLastBotMessage] = useState('');
+    const [announceCounter, setAnnounceCounter] = useState(0);
 
     // List of US states
     const states = [
@@ -501,6 +503,7 @@ const Chatbot = ({
             if (data.result) {
                 setPreviousAnswer(data.result); // Store the answer for context
                 setConversationHistory(prev => [...prev, input, data.result]); // Update conversation history
+                setLastBotMessage(data.result); // Add this line to track last bot message
                 if (data.question_type === 'get_pattern') {
                     onPatternQuestion(true);
                 }
@@ -795,6 +798,25 @@ const Chatbot = ({
         }
     }, [focus]);
 
+    // Add effect for Ctrl+L hotkey to announce last message
+    useEffect(() => {
+        const handleLastMessageHotkey = (e) => {
+            if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+                e.preventDefault();
+                if (lastBotMessage) {
+                    // Increment counter to make each announcement unique
+                    setAnnounceCounter(prev => prev + 1);
+                    setStateAnnouncement(`Previous response ${announceCounter}: ${lastBotMessage}`);
+                } else {
+                    setStateAnnouncement('No previous chat messages to announce.');
+                }
+            }
+        };
+        
+        window.addEventListener('keydown', handleLastMessageHotkey);
+        return () => window.removeEventListener('keydown', handleLastMessageHotkey);
+    }, [lastBotMessage, announceCounter]);
+
     return (
         <CardBody 
             className="flex flex-col h-full p-2 overflow-y-auto max-h-screen min-w-[300px]"
@@ -850,6 +872,7 @@ const Chatbot = ({
                         <li>When interacting with the map, use arrow keys to navigate between states.</li>
                         <li>Press + to zoom in to county level within a state. Press - to zoom back out to state level.</li>
                         <li>When using the chat mode, tab to start voice input.</li>
+                        <li>Press Ctrl + L to hear the last response again.</li>
                     </ul>
                 </Typography>
                     
