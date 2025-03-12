@@ -52,14 +52,14 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
                             Keyboard Shortcuts
                         </Typography>
                         <ul className="list-disc pl-5 space-y-2 text-sm">
-                            <li>Press <kbd>Ctrl+M</kbd> to toggle between map and chat interaction</li>
-                            <li>When interacting with the map, use <kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd> to navigate between states</li>
-                            <li>Press <kbd>+</kbd> to zoom in to county level within a state</li>
-                            <li>Press <kbd>-</kbd> to zoom back out to state level</li>
-                            <li>When using chat mode, press <kbd>Tab</kbd> to start voice input</li>
-                            <li>Press <kbd>Ctrl+L</kbd> to hear the last response again</li>
-                            <li>Press <kbd>Ctrl+H</kbd> to show/hide this help window</li>
-                            <li>Press <kbd>Ctrl+I</kbd> to refresh question suggestions</li>
+                            <li>Press <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-500 rounded">Ctrl+M</kbd> to toggle between map and chat interaction</li>
+                            <li>When interacting with the map, use <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-500 rounded">←</kbd> <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-500 rounded">↑</kbd> <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-500 rounded">→</kbd> <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-500 rounded">↓</kbd> to navigate between states</li>
+                            <li>Press <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-500 rounded">+</kbd> to zoom in to county level within a state</li>
+                            <li>Press <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-500 rounded">-</kbd> to zoom back out to state level</li>
+                            <li>When using chat mode, press <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-500 rounded">Tab</kbd> to start voice input</li>
+                            <li>Press <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-500 rounded">Ctrl+L</kbd> to hear the last response again</li>
+                            <li>Press <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-500 rounded">Ctrl+H</kbd> to show/hide this help window</li>
+                            <li>Press <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-500 rounded">Ctrl+I</kbd> to refresh question suggestions</li>
                         </ul>
                     </section>
 
