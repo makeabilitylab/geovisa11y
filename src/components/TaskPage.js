@@ -116,6 +116,14 @@ function TaskPage() {
           onMapClick={() => setInteractionFocus('map')}
           isTaskPage={true}
         />
+        <div 
+        role="status"
+        aria-live="assertive"
+        aria-atomic="true"
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg"
+        >
+          {announcement}
+        </div>
       </div>
       <div className="w-1/3 h-full">
         <Chatbot
