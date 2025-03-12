@@ -527,7 +527,7 @@ const DotDensityMap = ({
                 map.current.fitBounds(bounds, {
                     padding: 100,
                     duration: 1000,
-                    maxZoom: states.length > 1 ? 7 : 5 // Use different max zoom based on number of states
+                    maxZoom: showingCounties ? 7 : (states.length > 1 ? 7 : 5)// Use different max zoom based on number of states
                 });
                 
                 // Create a case-insensitive filter for all focused states
