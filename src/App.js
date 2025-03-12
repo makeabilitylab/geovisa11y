@@ -80,6 +80,19 @@ useEffect(() => {
       setAnnouncement('Chat interaction enabled. Type a question to ask MappieTalkie.');
     }
   } else if (interactionFocus === 'map') {
+     // If we have a noNeighbor property, announce that first and return early
+     if (focus.noNeighbor) {
+       if (focus.county) {
+         setAnnouncement(
+           `There is no county ${focus.noNeighbor} of ${focus.county}`
+         );
+       } else {
+         setAnnouncement(
+           `There is no state ${focus.noNeighbor} of ${focus.states[0]}`
+         );
+       }
+       return;
+     }
      // If we have a county in focus
      if (focus.county && focus.states?.length > 0) {
       setAnnouncement(

@@ -1028,6 +1028,12 @@ const DotDensityMap = ({
                             focusCountyOnMap(nextCounty);
                         }
                     } else {
+                        onFocusChange({
+                            ...focus,
+                            county: focus.county,
+                            noNeighbor: direction
+                        });
+                        // Don't call focusCountyOnMap here as it's already focused
                         if (isMapInteractive) {
                             onAnnounce?.(`There is no county ${direction} of ${focus.county}`);
                         }
@@ -1050,10 +1056,16 @@ const DotDensityMap = ({
                             focusStateOnMap(nextState);
                         }
                     } else {
+                        onFocusChange({
+                            type: 'state',
+                            states: [normalizedState],
+                            county: null,
+                            city: null,
+                            highlightOnly: false,
+                            noNeighbor: direction
+                        });
                         if (isMapInteractive) {
-                            onAnnounce?.(
-                                `There is no state ${direction} of ${normalizedState}`
-                            );
+                            onAnnounce?.(`There is no state ${direction} of ${normalizedState}`);
                         }
                     }
                 }
