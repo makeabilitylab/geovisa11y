@@ -42,12 +42,14 @@ const ChoroplethMap = ({
         'pct_tot_co': {
             name: 'Underserved Population',
             breaks: [75, 80, 85, 90, 95],
-            colors: ['#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5']
+            colors: ["#f9ddda", "#f2b9c4", "#e597b9", "#ce78b3", "#ad5fad", "#834ba0"]
+
         },
         'pct_no_bb_': {
             name: 'Lacking Broadband Access',
             breaks: [5, 7.5, 10, 12.5, 15,],
-            colors: ['#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45']
+            colors: ["#f7feae", "#b7e6a5", "#7ccba2", "#46aea0", "#089099", "#00718b"]
+
         }
     } : {
         'ppl_densit': {
@@ -71,7 +73,7 @@ const ChoroplethMap = ({
     // Define layer groups
     const stateLayers = useMemo(() => ['state-choropleth', 'state-borders'], []);
     const stateLisaLayers = useMemo(() => ['state-lisa-clusters-fill', 'state-lisa-clusters-border'], []);
-    const countyLayers = useMemo(() => ['county-choropleth', 'county-borders'], []);
+    const countyLayers = useMemo(() => ['county-choropleth', 'county-borders', 'county-highlight'], []);
     const countyLisaLayers = useMemo(() => ['county-lisa-clusters-fill', 'county-lisa-clusters-border'], []);
 
     // Add this useEffect to handle keyboard shortcuts for dataset switching
@@ -199,19 +201,27 @@ const ChoroplethMap = ({
         );
         
         if (countyFeature && map.current.getLayer('county-borders')) {
-            // Only highlight the county without changing map position
-            map.current.setPaintProperty('county-borders', 'line-color', [
-                'case',
-                ['==', ['downcase', ['get', 'county_name']], countyName.toLowerCase()],
-                '#000',  // highlight color
-                '#ccc'   // normal color
-            ]);
-            map.current.setPaintProperty('county-borders', 'line-width', [
-                'case',
-                ['==', ['downcase', ['get', 'county_name']], countyName.toLowerCase()],
-                2,
-                0.5
-            ]);
+            // Remove existing highlight layer if it exists
+            if (map.current.getLayer('county-highlight')) {
+                map.current.removeLayer('county-highlight');
+            }
+
+            // Add a new highlight layer that sits on top
+            map.current.addLayer({
+                id: 'county-highlight',
+                type: 'line',
+                source: 'counties',
+                paint: {
+                    'line-color': '#000',
+                    'line-width': 2,
+                    'line-opacity': [
+                        'case',
+                        ['==', ['downcase', ['get', 'county_name']], countyName.toLowerCase()],
+                        1,
+                        0
+                    ]
+                }
+            });
             
             // Return true if county was found and highlighted
             return true;
@@ -289,7 +299,7 @@ const ChoroplethMap = ({
                 map.current.fitBounds(bounds, {
                     padding: 100,
                     duration: 1000,
-                    maxZoom: states.length > 1 ? 7 : 5 // Use different max zoom based on number of states
+                    maxZoom: showingCounties ? 7 : (states.length > 1 ? 7 : 5) // Adjust zoom based on counties view
                 });
                 
                 // Create a case-insensitive filter for all focused states
@@ -308,7 +318,7 @@ const ChoroplethMap = ({
                     'case',
                     stateFilter,
                     1,
-                    0.2
+                    0
                 ]);
                 map.current.setPaintProperty('state-borders', 'line-color', '#000');
                 map.current.setPaintProperty('state-borders', 'line-width', 2);
@@ -331,7 +341,7 @@ const ChoroplethMap = ({
             console.error('Error setting bounds:', error);
             return false;
         }
-    }, [geoData, toggleLayerVisibility, isMapInteractive, onAnnounce]);
+    }, [geoData, toggleLayerVisibility, isMapInteractive, onAnnounce, showingCounties]);
 
     // Create and update county map layers
     const visualizeCountyLayers = (data) => {
@@ -377,8 +387,8 @@ const ChoroplethMap = ({
                 type: 'line',
                 source: 'counties',
                 paint: {
-                    'line-color': '#ccc',
-                    'line-width': 0.5,
+                    'line-color': '#fff',
+                    'line-width': 1,
                     'line-opacity': 0.7
                 }
             });
@@ -476,7 +486,8 @@ const ChoroplethMap = ({
                 map.current.fitBounds(bounds, {
                     padding: 100,
                     duration: 1000,
-                    minZoom: 7
+                    maxZoom: 6,
+                    minZoom: 5  // Add minimum zoom to ensure we stay zoomed in enough
                 });
                 return true;
             }
