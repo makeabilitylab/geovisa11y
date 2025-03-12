@@ -4,6 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { logMapInteraction } from '../utils/logger';
 import { generateMultiAttributeDotDensity } from '../utils/DotDensityGenerator';
 import { initializeDotDensityLayers } from '../utils/mapInitializer';
+import { useMapLayers } from '../utils/mapUtils';
 
 const DotDensityMap = ({ 
     focus = { type: null, states: [], county: null, city: null, highlightOnly: false },
@@ -59,30 +60,15 @@ const DotDensityMap = ({
         }
     };
 
-    // Add these utility functions for layer management
-    const toggleLayerVisibility = useCallback((layerId, isVisible) => {
-        if (!map.current || !map.current.getStyle()) return;
-        
-        if (map.current.getLayer(layerId)) {
-            map.current.setLayoutProperty(
-                layerId, 
-                'visibility', 
-                isVisible ? 'visible' : 'none'
-            );
-            // console.log(`Layer ${layerId} visibility set to ${isVisible ? 'visible' : 'none'}`);
-        } else {
-            // console.warn(`Layer ${layerId} not found in map`);
-        }
-    }, []);
-
-    const toggleLayerSet = useCallback((layerConfig, isVisible) => {
-        if (!map.current) return;
-        
-        layerConfig.forEach(layerId => {
-            toggleLayerVisibility(layerId, isVisible);
-        });
-    }, [toggleLayerVisibility]);
-
+    // Replace utility functions with custom hook
+    const {
+        toggleLayerVisibility,
+        toggleLayerSet,
+        layerExists,
+        sourceExists,
+        removeLayersSafely,
+        removeSourceSafely
+    } = useMapLayers(map);
 
     //Define layer groups
     const stateLayers = ['state-base', 'state-borders', 'state-dot-density-layer'];
@@ -90,37 +76,7 @@ const DotDensityMap = ({
     const statePatternLayers = ['state-choropleth'];
     const countyPatternLayers = ['county-choropleth'];
     
-    //Function to check if a layer exists
-    const layerExists = useCallback((layerId) => {
-        return map.current && map.current.getLayer(layerId);
-    }, []);
-    
-    // Function to check if a source exists
-    const sourceExists = useCallback((sourceId) => {
-        return map.current && map.current.getSource(sourceId);
-    }, []);
 
-    // Function to remove layers safely
-    const removeLayersSafely = useCallback((layerIds) => {
-        if (!map.current) return;
-        
-        layerIds.forEach(layerId => {
-            if (layerExists(layerId)) {
-                map.current.removeLayer(layerId);
-                // console.log(`Layer ${layerId} removed`);
-            }
-        });
-    }, [layerExists]);
-
-    // Function to remove a source safely
-    const removeSourceSafely = useCallback((sourceId) => {
-        if (!map.current) return;
-        
-        if (sourceExists(sourceId)) {
-            map.current.removeSource(sourceId);
-            console.log(`Source ${sourceId} removed`);
-        }
-    }, [sourceExists]);
 
    // Fetch county data
     const fetchCountyData = async (stateName) => {
@@ -502,13 +458,6 @@ const DotDensityMap = ({
         };
     }, []);
 
-    // Add helper function at the top level of the component
-    const normalizeStateName = (state) => {
-        if (Array.isArray(state)) {
-            return state[0];  // Take first state if array
-        }
-        return state;
-    };
 
     // Focus state on map
     const focusStateOnMap = useCallback((stateNames, announceChange = true) => {
@@ -711,6 +660,14 @@ const DotDensityMap = ({
         stateLayers
     ]);
 
+    // Add helper function at the top level of the component
+    const normalizeStateName = (state) => {
+        if (Array.isArray(state)) {
+            return state[0];  // Take first state if array
+        }
+        return state;
+    };
+
     // Find adjacent states
     const findAdjacentStates = useCallback((stateName) => {
         if (!geoData) return null;
@@ -746,6 +703,39 @@ const DotDensityMap = ({
 
         return adjacentStates;
     }, [geoData]);
+
+    // Function to find adjacent counties using neighbors data
+    const findAdjacentCounties = useCallback((countyName) => {
+        if (!countyData) return null;
+
+        const currentCounty = countyData.features.find(
+            f => f.properties.county_name.toLowerCase() === countyName.toLowerCase()
+        );
+        if (!currentCounty) return null;
+
+        // Get neighbors from properties
+        const neighbors = currentCounty.properties.neighbors_;
+        if (!Array.isArray(neighbors)) {
+            console.error('Invalid neighbors data for county:', countyName);
+            return {
+                north: null,
+                south: null,
+                west: null,
+                east: null
+            };
+        }
+
+        // Create adjacency object from neighbors array
+        // neighbors_ array is ordered as [north, south, west, east]
+        const adjacentCounties = {
+            north: neighbors[0] || null,
+            south: neighbors[1] || null,
+            west: neighbors[2] || null,
+            east: neighbors[3] || null
+        };
+
+        return adjacentCounties;
+    }, [countyData]);
 
     // Add effect to update the focused state highlight
     useEffect(() => {
@@ -791,38 +781,7 @@ const DotDensityMap = ({
         }
     }, [focus, onFocusChange]);
 
-    // Function to find adjacent counties using neighbors data
-    const findAdjacentCounties = useCallback((countyName) => {
-        if (!countyData) return null;
 
-        const currentCounty = countyData.features.find(
-            f => f.properties.county_name.toLowerCase() === countyName.toLowerCase()
-        );
-        if (!currentCounty) return null;
-
-        // Get neighbors from properties
-        const neighbors = currentCounty.properties.neighbors_;
-        if (!Array.isArray(neighbors)) {
-            console.error('Invalid neighbors data for county:', countyName);
-            return {
-                north: null,
-                south: null,
-                west: null,
-                east: null
-            };
-        }
-
-        // Create adjacency object from neighbors array
-        // neighbors_ array is ordered as [north, south, west, east]
-        const adjacentCounties = {
-            north: neighbors[0] || null,
-            south: neighbors[1] || null,
-            west: neighbors[2] || null,
-            east: neighbors[3] || null
-        };
-
-        return adjacentCounties;
-    }, [countyData]);
 
     // Handle spatial clusters visualization
     useEffect(() => {
