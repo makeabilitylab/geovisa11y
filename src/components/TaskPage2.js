@@ -137,6 +137,7 @@ function TaskPage2() {
           apiUrl={API_URL}
           isInputFocused={interactionFocus === 'chat'}
           onInputClick={() => setInteractionFocus('chat')}
+          isTask2Page={true}
           showingCounties={showingCounties}
         />
       </div>

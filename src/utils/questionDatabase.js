@@ -1,0 +1,58 @@
+export const questionDatabase = {
+    pct_tot_co: [
+        "What's the percentage of underserved population in [STATE1]?",
+        "Which state has the highest percentage of underserved population?",
+        "Is there a pattern in the underserved population distribution?",
+        "Which state has a higher percentage of underserved population, [STATE2] or [STATE3]?",
+        "Which state has the lowest percentage of underserved population?",
+        "Which regions have the highest concentration of underserved populations?",
+        "How does [STATE1] compare to its neighboring states?",
+        "What's the average percentage of underserved population?",
+        "Are there any clusters of states with similar percentages?",
+        "Which states have more than 90% underserved population?",
+        "What's the difference between [STATE2] and [STATE3]'s percentages?",
+        "Can you describe the pattern of underserved population across the country?"
+    ],
+    pct_no_bb_: [
+        "What percentage of people lack broadband access in [STATE1]?",
+        "Which state has the highest percentage lacking broadband access?",
+        "Which state has the lowest percentage lacking broadband access?",
+        "Which state has worse broadband access, [STATE2] or [STATE3]?",
+        "Is there a pattern in broadband access distribution?",
+        "Which regions have the poorest broadband access?",
+        "How does [STATE1] compare to its neighboring states?",
+        "What's the average percentage of people lacking broadband?",
+        "Are there any clusters of states with similar access levels?",
+        "Which states have more than 30% lacking broadband?",
+        "What's the difference in access between [STATE2] and [STATE3]?",
+        "Can you describe the pattern of broadband access nationwide?"
+    ],
+    gas_heating: [
+        "How many households use gas heating in [STATE1]?",
+        "Which state has the most households using gas heating?",
+        "Which state has the fewest households using gas heating?",
+        "Which state has more households using gas heating, [STATE2] or [STATE3]?",
+        "Is there a pattern in gas heating adoption?",
+        "Which regions have the highest gas heating usage?",
+        "How does [STATE1] compare to its neighboring states?",
+        "What's the average number of households using gas heating?",
+        "Are there clusters of states with similar usage patterns?",
+        "Which states have over 1 million gas heating households?",
+        "What's the difference in usage between [STATE2] and [STATE3]?",
+        "Can you describe the pattern of gas heating across the country?"
+    ],
+    ppl_densit: [
+        "What's the population density of [STATE1]?",
+        "Which state has the highest population density?",
+        "Which state has the lowest population density?",
+        "Which state is more densely populated, [STATE2] or [STATE3]?",
+        "Is there a pattern in population distribution?",
+        "Which regions are the most densely populated?",
+        "How does [STATE1] compare to its neighboring states?",
+        "What's the average population density?",
+        "Are there clusters of states with similar density?",
+        "Which states have density over 100 people per square mile?",
+        "What's the density difference between [STATE2] and [STATE3]?",
+        "Can you describe the pattern of population density nationwide?"
+    ]
+}; 
