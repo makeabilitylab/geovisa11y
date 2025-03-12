@@ -13,6 +13,7 @@ import {
     logAnswerData, 
     generateQuestionId 
 } from '../utils/logger';
+import HelpPopup from './HelpPopup';
 
 
 const Chatbot = ({ 
@@ -43,6 +44,7 @@ const Chatbot = ({
     const [stateAnnouncement, setStateAnnouncement] = useState('');
     const [lastBotMessage, setLastBotMessage] = useState('');
     const [announceCounter, setAnnounceCounter] = useState(0);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
 
     // List of US states
     const states = [
@@ -624,7 +626,7 @@ const Chatbot = ({
             case 'pct_tot_co':
                 return [
                     "What's a choropleth map?",
-                    "Is there a relationship between population density and the percentage of underserved population?"
+                    "Is there a relationship between income and the percentage of underserved population?"
                 ];
             case 'pct_no_bb_':
                 return [
@@ -705,55 +707,18 @@ const Chatbot = ({
     // Add ref for the welcome section
     const welcomeRef = useRef(null);
     
-    // Add effect for Ctrl+H hotkey
+    // Add effect for Ctrl+H hotkey to show help popup
     useEffect(() => {
         const handleHelpHotkey = (e) => {
-            // Handle Ctrl+H to focus on welcome section
             if (e.ctrlKey && e.key.toLowerCase() === 'h') {
                 e.preventDefault();
-                
-                // Create a clone of the welcome content
-                if (welcomeRef.current) {
-                    // First, focus on the welcome section
-                    welcomeRef.current.focus();
-                    
-                    // Clone the welcome content for announcement
-                    const welcomeContent = welcomeRef.current.cloneNode(true);
-                    
-                    // Extract text content from the welcome section
-                    const textContent = welcomeRef.current.textContent;
-                    
-                    // Set the announcement with the full text content
-                    setStateAnnouncement("Help information: " + textContent);
-                    
-                    // Optional: Scroll to top of chat container
-                    if (chatContainerRef.current) {
-                        chatContainerRef.current.scrollTop = 0;
-                    }
-                    
-                    // Force the screen reader to re-read by temporarily removing and re-adding the content
-                    const parent = welcomeRef.current.parentNode;
-                    const nextSibling = welcomeRef.current.nextSibling;
-                    
-                    // Remove from DOM briefly
-                    parent.removeChild(welcomeRef.current);
-                    
-                    // Re-add to DOM after a short delay
-                    setTimeout(() => {
-                        if (nextSibling) {
-                            parent.insertBefore(welcomeRef.current, nextSibling);
-                        } else {
-                            parent.appendChild(welcomeRef.current);
-                        }
-                        welcomeRef.current.focus();
-                    }, 50);
-                }
+                setIsHelpOpen(!isHelpOpen);
             }
         };
         
         window.addEventListener('keydown', handleHelpHotkey);
         return () => window.removeEventListener('keydown', handleHelpHotkey);
-    }, []);
+    }, [isHelpOpen]);
 
     // Add null checks when accessing focus properties
     const handleFocusChange = (newFocus = { type: null, states: [], county: null, city: null, highlightOnly: false }) => {
@@ -831,19 +796,18 @@ const Chatbot = ({
                 role="region"
                 tabIndex="0"
                 aria-label="Welcome to MappieTalkie"
+                className="mb-4"
             > 
                 <Typography variant="h6" color="blue-gray" className="mb-2">
                     Welcome to MappieTalkie
                 </Typography>
 
-                {/* Map Description and Example Questions Intro */}
-                <Typography variant="small" color="gray" className="mb-4 text-xs">
-                    <span className="italic">{getMapDescription()}</span>
-                    {' You can ask me questions about the map visualization:'}
+                <Typography variant="small" color="gray" className="mb-2 text-xs">
+                    <span>{getMapDescription()}</span>
+                    <span>{'You can ask me questions about the map visualization:'}</span>
                 </Typography>
 
-                {/* Dataset-specific Questions Section */}
-                <div className="mb-2">
+                <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
                         {exampleQuestions.map((question, index) => (
                             <span
@@ -864,113 +828,9 @@ const Chatbot = ({
                     </div>
                 </div>
 
-                {/* Navigation Instructions */}
-                <Typography variant="small" color="gray" className="mb-2 text-xs">
-                    <span className="font-bold">Keyboard Shortcuts:</span>
-                    <ul className="space-y-2">
-                        <li>Press Ctrl + M to toggle between map and chat interaction.</li>
-                        <li>When interacting with the map, use arrow keys to navigate between states.</li>
-                        <li>Press + to zoom in to county level within a state. Press - to zoom back out to state level.</li>
-                        <li>When using the chat mode, tab to start voice input.</li>
-                        <li>Press Ctrl + L to hear the last response again.</li>
-                    </ul>
-                </Typography>
-                    
-                {/* Quick Commands:*/}
-                <Typography variant="small" color="gray" className="mb-2 text-xs">
-                    <span className="font-bold">Quick Commands:</span>
-                    <ul className="mb-2 space-y-3">
-                        <li>
-                            {"Simply type or say "}
-                            <span
-                                onClick={() => handleExampleClick("Go to Washington")}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
-                                role="text"
-                                tabIndex="0"
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick("Go to Florida!");
-                                    }
-                                }}
-                            >
-                                Go to Washington</span>
-                            {" to focus on Washington or any other state."}
-                        </li>
-                        <li>
-                            {"When focused on a state or county, you can ask specific questions like: "}
-                            <span
-                                onClick={() => handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?`)}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
-                                role="text"
-                                tabIndex="0"
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?`);
-                                    }
-                                }}
-                            >
-                                What's the {dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?
-                            </span>
-                            {" or "}
-                            <span
-                                onClick={() => handleExampleClick("How does this compare to neighboring states?")}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
-                                role="text"
-                                tabIndex="0"
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick("How does this compare to neighboring states?");
-                                    }
-                                }}
-                            >
-                                How does this compare to neighboring states?
-                            </span>
-                        </li>
-                        <li>
-                            {"For general information, try asking: "}
-                            <span
-                                onClick={() => handleExampleClick("What is a choropleth map?")}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
-                                role="text"
-                                tabIndex="0"
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick("What is a choropleth map?");
-                                    }
-                                }}
-                            >
-                                What is a choropleth map?
-                            </span>
-                        </li>
-                        <li>
-                            {"Ask "}
-                            <span
-                                onClick={() => handleExampleClick("What else can you do?")}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
-                                role="text"
-                                tabIndex="0"
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick("What else can you do?");
-                                    }
-                                }}
-                            >
-                                What else can you do?
-                            </span>
-                            {" to hear a list of all the things I can do."}
-                        </li>
-                        <li>
-                            {"Press Ctrl+H anytime to hear this information again."}
-                        </li>
-                    </ul>
-                </Typography>
-
-                {/* General Knowledge Questions Section */}
-                {/* <div className="mb-4">
-                    <Typography variant="small" color="gray" className="mb-2 text-xs">
-                        Or ask me about:
-                    </Typography>
-                    <div className="flex flex-wrap gap-2">
+                <Typography variant="small" color="gray" className="mb-4 text-xs">
+                    Or you can ask me questions outside of the dataset:
+                    <div className="flex flex-wrap gap-2 mt-2">
                         {generalQuestions.map((question, index) => (
                             <span
                                 key={index}
@@ -988,12 +848,38 @@ const Chatbot = ({
                             </span>
                         ))}
                     </div>
-                    <Typography variant="small" color="gray" className="mt-2 text-xs">
-                        Press Ctrl+M to toggle map interaction. Press Ctrl+/ to focus on text input.
-                        {!isInputFocused && " Press and hold the spacebar to speak."}
-                    </Typography>
-                </div> */}
+                </Typography>
+
+                <Typography variant="small" color="gray" className="text-xs">
+                    {"Ask "}
+                        <span
+                        onClick={() => handleExampleClick("What else can you do?")}
+                        className="mb-2 px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded-full text-xs text-blue-900 transition-colors text-left cursor-pointer inline-block"
+                        role="text"
+                        tabIndex="0"
+                        onKeyPress={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                        handleExampleClick("What else can you do?");
+                                }
+                        }}
+                        >
+                        What else can you do?
+                    </span>
+                    {" to hear a list of all available features."}
+                    <br />
+                    {"Press "}
+                    <kbd>Ctrl+H</kbd>
+                    {" to see all keyboard shortcuts and navigation commands."}
+                </Typography>
             </div>
+
+            {/* Help Popup */}
+            <HelpPopup 
+                open={isHelpOpen}
+                handleOpen={() => setIsHelpOpen(!isHelpOpen)}
+                dataset={dataset}
+            />
+
             <div 
                 ref={chatContainerRef}
                 className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md"
