@@ -3,6 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { logMapInteraction } from '../utils/logger';
 import { initializeChoroLayers } from '../utils/mapInitializer';
+import { useMapLayers } from '../utils/mapUtils';
 
 const ChoroplethMap = ({
     focus = { type: null, states: [], county: null, city: null, highlightOnly: false },
@@ -57,6 +58,22 @@ const ChoroplethMap = ({
         }
     };
 
+    // Replace utility functions with custom hook
+    const {
+        toggleLayerVisibility,
+        toggleLayerSet,
+        layerExists,
+        sourceExists,
+        removeLayersSafely,
+        removeSourceSafely
+    } = useMapLayers(map);
+
+    // Define layer groups
+    const stateLayers = useMemo(() => ['state-choropleth', 'state-borders'], []);
+    const stateLisaLayers = useMemo(() => ['state-lisa-clusters-fill', 'state-lisa-clusters-border'], []);
+    const countyLayers = useMemo(() => ['county-choropleth', 'county-borders'], []);
+    const countyLisaLayers = useMemo(() => ['county-lisa-clusters-fill', 'county-lisa-clusters-border'], []);
+
     // Add this useEffect to handle keyboard shortcuts for dataset switching
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -84,68 +101,6 @@ const ChoroplethMap = ({
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [selectedDataset, isTaskPage, onDatasetChange, datasets]);
-
-    // Utility functions for layer management
-    const toggleLayerVisibility = useCallback((layerId, isVisible) => {
-        if (!map.current || !map.current.getStyle()) return;
-        
-        if (map.current.getLayer(layerId)) {
-            map.current.setLayoutProperty(
-                layerId, 
-                'visibility', 
-                isVisible ? 'visible' : 'none'
-            );
-            // console.log(`Layer ${layerId} visibility set to ${isVisible ? 'visible' : 'none'}`);
-        } else {
-            // console.warn(`Layer ${layerId} not found in map`);
-        }
-    }, []);
-
-    const toggleLayerSet = useCallback((layerConfig, isVisible) => {
-        if (!map.current) return;
-        
-        layerConfig.forEach(layerId => {
-            toggleLayerVisibility(layerId, isVisible);
-        });
-    }, [toggleLayerVisibility]);
-
-    // Define layer groups
-    const stateLayers = useMemo(() => ['state-choropleth', 'state-borders'], []);
-    const stateLisaLayers = useMemo(() => ['state-lisa-clusters-fill', 'state-lisa-clusters-border'], []);
-    const countyLayers = useMemo(() => ['county-choropleth', 'county-borders'], []);
-    const countyLisaLayers = useMemo(() => ['county-lisa-clusters-fill', 'county-lisa-clusters-border'], []);
-
-    // Function to check if a layer exists
-    const layerExists = useCallback((layerId) => {
-        return map.current && map.current.getLayer(layerId);
-    }, []);
-
-    // Function to check if a source exists
-    const sourceExists = useCallback((sourceId) => {
-        return map.current && map.current.getSource(sourceId);
-    }, []);
-
-    // Function to remove layers safely
-    const removeLayersSafely = useCallback((layerIds) => {
-        if (!map.current) return;
-        
-        layerIds.forEach(layerId => {
-            if (layerExists(layerId)) {
-                map.current.removeLayer(layerId);
-                // console.log(`Layer ${layerId} removed`);
-            }
-        });
-    }, [layerExists]);
-
-    // Function to remove a source safely
-    const removeSourceSafely = useCallback((sourceId) => {
-        if (!map.current) return;
-        
-        if (sourceExists(sourceId)) {
-            map.current.removeSource(sourceId);
-            console.log(`Source ${sourceId} removed`);
-        }
-    }, [sourceExists]);
 
     useEffect(() => {
         // Log environment info
@@ -928,6 +883,39 @@ const ChoroplethMap = ({
         return adjacentStates;
     }, [geoData]);
 
+    // Function to find adjacent counties using neighbors data
+    const findAdjacentCounties = useCallback((countyName) => {
+        if (!countyData) return null;
+
+        const currentCounty = countyData.features.find(
+            f => f.properties.county_name.toLowerCase() === countyName.toLowerCase()
+        );
+        if (!currentCounty) return null;
+
+        // Get neighbors from properties
+        const neighbors = currentCounty.properties.neighbors_;
+        if (!Array.isArray(neighbors)) {
+            console.error('Invalid neighbors data for county:', countyName);
+            return {
+                north: null,
+                south: null,
+                west: null,
+                east: null
+            };
+        }
+
+        // Create adjacency object from neighbors array
+        // neighbors_ array is ordered as [north, south, west, east]
+        const adjacentCounties = {
+            north: neighbors[0] || null,
+            south: neighbors[1] || null,
+            west: neighbors[2] || null,
+            east: neighbors[3] || null
+        };
+
+        return adjacentCounties;
+    }, [countyData]);
+
     // Add effect to update the focused state highlight
     useEffect(() => {
         if (map.current && layersInitialized && focus?.type) {
@@ -968,38 +956,7 @@ const ChoroplethMap = ({
         }
     }, [focus, onFocusChange]);
 
-    // Function to find adjacent counties using neighbors data
-    const findAdjacentCounties = useCallback((countyName) => {
-        if (!countyData) return null;
 
-        const currentCounty = countyData.features.find(
-            f => f.properties.county_name.toLowerCase() === countyName.toLowerCase()
-        );
-        if (!currentCounty) return null;
-
-        // Get neighbors from properties
-        const neighbors = currentCounty.properties.neighbors_;
-        if (!Array.isArray(neighbors)) {
-            console.error('Invalid neighbors data for county:', countyName);
-            return {
-                north: null,
-                south: null,
-                west: null,
-                east: null
-            };
-        }
-
-        // Create adjacency object from neighbors array
-        // neighbors_ array is ordered as [north, south, west, east]
-        const adjacentCounties = {
-            north: neighbors[0] || null,
-            south: neighbors[1] || null,
-            west: neighbors[2] || null,
-            east: neighbors[3] || null
-        };
-
-        return adjacentCounties;
-    }, [countyData]);
 
     // Update map interaction logging
     useEffect(() => {
