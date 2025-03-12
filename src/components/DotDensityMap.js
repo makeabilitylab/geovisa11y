@@ -72,7 +72,7 @@ const DotDensityMap = ({
 
     //Define layer groups
     const stateLayers = ['state-base', 'state-borders', 'state-dot-density-layer'];
-    const countyLayers = ['county-base', 'county-borders', 'county-dot-density-layer'];
+    const countyLayers = ['county-base', 'county-borders', 'county-dot-density-layer', 'county-highlight'];
     const statePatternLayers = ['state-choropleth'];
     const countyPatternLayers = ['county-choropleth'];
     
@@ -172,9 +172,9 @@ const DotDensityMap = ({
             type: 'line',
             source: 'counties',
             paint: {
-                'line-color': '#000',
-                'line-width': 0.5,
-                'line-opacity': 0.7
+                'line-color': '#cfd8dc',
+                'line-width': 2,
+                'line-opacity': 0.8
             }
         });
         
@@ -222,42 +222,6 @@ const DotDensityMap = ({
             popup.current.remove();
         });
         
-        // Add mousemove handler for county borders
-        map.current.on('mousemove', 'county-borders', (e) => {
-            if (e.features.length > 0) {
-                map.current.getCanvas().style.cursor = 'pointer';
-                
-                const feature = e.features[0];
-                const countyName = feature.properties.county_name;
-                const stateName = feature.properties.state_name;
-                
-                // For Task2, show all fuel types at county level
-                const gas = feature.properties.gas || 0;
-                const electricity = feature.properties.electricity || 0;
-                const oil = feature.properties.oil || 0;
-                const isRural = feature.properties.rural === 'Rural' ? 'Rural' : 'Urban';
-                
-                const tooltipContent = `
-                    <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
-                    <div class="text-xs">Classification: ${isRural}</div>
-                    <div class="text-xs">Gas: ${gas.toLocaleString()} households</div>
-                    <div class="text-xs">Electricity: ${electricity.toLocaleString()} households</div>
-                    <div class="text-xs">Oil: ${oil.toLocaleString()} households</div>
-                `;
-                
-                const coordinates = e.lngLat;
-                
-                popup.current
-                    .setLngLat(coordinates)
-                    .setHTML(tooltipContent)
-                    .addTo(map.current);
-            }
-        });
-        
-        map.current.on('mouseleave', 'county-borders', () => {
-            map.current.getCanvas().style.cursor = '';
-            popup.current.remove();
-        });
     };
 
     // Zoom to county level
@@ -333,19 +297,28 @@ const DotDensityMap = ({
         );
         
         if (countyFeature && map.current.getLayer('county-borders')) {
-            // Only highlight the county without changing map position
-            map.current.setPaintProperty('county-borders', 'line-color', [
-                'case',
-                ['==', ['downcase', ['get', 'county_name']], countyName.toLowerCase()],
-                '#000',  // highlight color
-                '#fff'   // normal color
-            ]);
-            map.current.setPaintProperty('county-borders', 'line-width', [
-                'case',
-                ['==', ['downcase', ['get', 'county_name']], countyName.toLowerCase()],
-                2,
-                0.5
-            ]);
+            // Remove existing highlight layer if it exists
+            if (map.current.getLayer('county-highlight')) {
+                map.current.removeLayer('county-highlight');
+            }
+
+            // Add a new highlight layer that sits on top
+            map.current.addLayer({
+                id: 'county-highlight',
+                type: 'line',
+                source: 'counties',
+                paint: {
+                    'line-color': '#000',
+                    'line-width': 3,
+                    'line-opacity': [
+                        'case',
+                        ['==', ['downcase', ['get', 'county_name']], countyName.toLowerCase()],
+                        1,
+                        0
+                    ]
+                }
+            });
+
             
             // Return true if county was found and highlighted
             return true;
@@ -538,18 +511,28 @@ const DotDensityMap = ({
                 ];
                 
                 // Show state map layers if they were hidden
-                toggleLayerVisibility('state-choropleth', true);
-                toggleLayerVisibility('state-borders', true);
+                toggleLayerSet(stateLayers, true);
                 
                 // Highlight only the desired states
-                map.current.setPaintProperty('state-borders', 'line-opacity', [
-                    'case',
-                    stateFilter,
-                    1,
-                    0
-                ]);
-                map.current.setPaintProperty('state-borders', 'line-color', '#000');
-                map.current.setPaintProperty('state-borders', 'line-width', 2);
+                if (map.current.getLayer('state-highlight')) {
+                    map.current.removeLayer('state-highlight');
+                }
+    
+                // Add a new highlight layer that sits on top
+                map.current.addLayer({
+                    id: 'state-highlight',
+                    type: 'fill',
+                    source: 'population',
+                    paint: {
+                        'fill-color': '#4dd0e1',
+                        'fill-opacity': [
+                            'case',
+                            stateFilter,
+                            0.2,
+                            0
+                        ]
+                    }
+                });
                 
                 // Announce the change if requested
                 if (announceChange && isMapInteractive) {
@@ -877,16 +860,7 @@ const DotDensityMap = ({
             }
             
             // Hide the choropleth layer
-            if (map.current.getLayer('state-choropleth')) {
-                map.current.setLayoutProperty('state-choropleth', 'visibility', 'none');
-            }
-            
-            // Make sure state borders are visible
-            if (map.current.getLayer('state-borders')) {
-                map.current.setPaintProperty('state-borders', 'line-opacity', 0.5);
-                map.current.setPaintProperty('state-borders', 'line-width', 1);
-                map.current.setPaintProperty('state-borders', 'line-color', '#000');
-            }
+            toggleLayerVisibility('state-choropleth', false);
 
             // Add mousemove handler for dot density layer
             map.current.on('mousemove', 'state-dot-density-layer', (e) => {
@@ -1107,7 +1081,7 @@ const DotDensityMap = ({
                     removeSourceSafely('county-dot-density');
 
                     // show state-level choropleth
-                    toggleLayerVisibility('state-choropleth', true);
+                    toggleLayerSet(stateLayers, true);
                     
                     // Show state-level LISA clusters again if they were visible
                     if (showSpatialClusters) {

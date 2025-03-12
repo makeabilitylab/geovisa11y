@@ -240,9 +240,9 @@ export const initializeDotDensityLayers = (map, mapContainer, popup, fetchData) 
             type: 'line',
             source: 'population',
             paint: {
-                'line-color': '#546e7a', // Grey for Task2
-                'line-width': 1.5,
-                'line-opacity': 0.7,
+                'line-color': '#cfd8dc',
+                'line-width': 2,
+                'line-opacity': 0.8,
             },
             // Ensure this layer is always on top
             maxzoom: 24
