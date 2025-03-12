@@ -59,6 +59,7 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
                             <li>When using chat mode, press <kbd>Tab</kbd> to start voice input</li>
                             <li>Press <kbd>Ctrl+L</kbd> to hear the last response again</li>
                             <li>Press <kbd>Ctrl+H</kbd> to show/hide this help window</li>
+                            <li>Press <kbd>Ctrl+I</kbd> to refresh question suggestions</li>
                         </ul>
                     </section>
 

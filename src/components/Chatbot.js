@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
-import { ArrowRight, Microphone, MicrophoneSlash } from "@phosphor-icons/react";
+import { ArrowRight, Microphone, MicrophoneSlash, ArrowsClockwise } from "@phosphor-icons/react";
 import {
     CardBody,
     Typography,
@@ -14,6 +14,7 @@ import {
     generateQuestionId 
 } from '../utils/logger';
 import HelpPopup from './HelpPopup';
+import { questionDatabase } from '../utils/questionDatabase';
 
 
 const Chatbot = ({ 
@@ -31,6 +32,7 @@ const Chatbot = ({
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [exampleQuestions, setExampleQuestions] = useState([]);
     // const [isSpeechLoading, setIsSpeechLoading] = useState(false);
     const chatContainerRef = useRef(null);
     const [isRecording, setIsRecording] = useState(false);
@@ -45,6 +47,7 @@ const Chatbot = ({
     const [lastBotMessage, setLastBotMessage] = useState('');
     const [announceCounter, setAnnounceCounter] = useState(0);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
+    const [currentQuestionSet, setCurrentQuestionSet] = useState(0);
 
     // List of US states
     const states = [
@@ -86,56 +89,42 @@ const Chatbot = ({
     // Function to get example questions based on dataset
     const getExampleQuestions = () => {
         const [state1, state2, state3] = getRandomStates(3);
-        const extrema = Math.random() < 0.5 ? 'highest' : 'lowest';
+        let questions = [];
         
+        // Get the appropriate question set based on dataset
         if (isTask2Page) {
-            // Task2-specific questions
-            return [
-                `How many households use gas heating in ${state1}?`,
-                // `Which state has more households using gas heating, ${state2} or ${state3}?`,
-                `Which state has the ${extrema} number of households using gas heating?`,
-                // "What's the average number of households using gas heating?",
-                "Is there a pattern in this map?",
-                // "Can you describe the pattern?"
-            ];
+            questions = questionDatabase.gas_heating;
         } else if (isTaskPage) {
-            // Task1-specific questions
-            if (dataset === 'pct_tot_co') {
-                return [
-                    `What's the percentage of underserved population in ${state1}?`,
-                    // `Which state has a higher percentage of underserved population, ${state2} or ${state3}?`,
-                    `Which state has the ${extrema} percentage of underserved population?`,
-                    // "What's the average percentage of underserved population?",
-                    "Is there a pattern in this map?",
-                    // "Can you describe the pattern?"
-                ];
-            } else { // pct_no_bb_
-                return [
-                    `What percentage of people lack broadband or computer access in ${state1}?`,
-                    // `Which state has a higher percentage lacking broadband or computer access, ${state2} or ${state3}?`,
-                    `Which state has the ${extrema} percentage of peoplelacking broadband or computer access?`,
-                    // "What's the average percentage of people lacking broadband or computer access?",
-                    "Is there a pattern in this map?",
-                    // "Can you describe the pattern?"
-                ];
-            }
+            questions = dataset === 'pct_tot_co' 
+                ? questionDatabase.pct_tot_co 
+                : questionDatabase.pct_no_bb_;
         } else {
-                return [
-                    `What's the population density of ${state1}?`,
-                    `Which state has the ${extrema} population density?`,
-                    "Is there a pattern in this map?",
-                ];
-            
+            questions = questionDatabase.ppl_densit;
         }
+
+        // Get 3 questions based on current set
+        const startIdx = (currentQuestionSet * 3) % questions.length;
+        const selectedQuestions = questions.slice(startIdx, startIdx + 3);
+
+        // Replace state placeholders with random states
+        return selectedQuestions.map(q => 
+            q.replace(/\[STATE1\]/g, state1)
+             .replace(/\[STATE2\]/g, state2)
+             .replace(/\[STATE3\]/g, state3)
+        );
     };
 
-    // Get fresh example questions whenever dataset changes
-    const [exampleQuestions, setExampleQuestions] = useState([]);
-    
+    // Function to rotate question set
+    const rotateQuestions = () => {
+        setCurrentQuestionSet(prev => prev + 1);
+        setExampleQuestions(getExampleQuestions());
+    };
+
+    // Get fresh example questions whenever dataset or currentQuestionSet changes
     useEffect(() => {
         setExampleQuestions(getExampleQuestions());
-        //setUseSpeech(false);  // Reset speech mode when dataset changes
-    }, [dataset]);
+        setGeneralQuestions(getGeneralQuestions());
+    }, [dataset, currentQuestionSet]);
 
     // Scroll to bottom of chat container when messages are updated
     useEffect(() => {
@@ -782,6 +771,19 @@ const Chatbot = ({
         return () => window.removeEventListener('keydown', handleLastMessageHotkey);
     }, [lastBotMessage, announceCounter]);
 
+    // Add effect for Ctrl+I hotkey to refresh questions
+    useEffect(() => {
+        const handleRefreshHotkey = (e) => {
+            if (e.ctrlKey && e.key.toLowerCase() === 'i') {
+                e.preventDefault(); // Prevent the default find action
+                rotateQuestions();
+            }
+        };
+        
+        window.addEventListener('keydown', handleRefreshHotkey);
+        return () => window.removeEventListener('keydown', handleRefreshHotkey);
+    }, []);
+
     return (
         <CardBody 
             className="flex flex-col h-full p-2 overflow-y-auto max-h-screen min-w-[300px]"
@@ -808,7 +810,7 @@ const Chatbot = ({
                 </Typography>
 
                 <div className="mb-4">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-2">
                         {exampleQuestions.map((question, index) => (
                             <span
                                 key={index}
@@ -826,6 +828,24 @@ const Chatbot = ({
                             </span>
                         ))}
                     </div>
+                    <div className="flex justify-start">
+                        <span
+                            onClick={rotateQuestions}
+                            className="px-3 py-1 bg-blue-gray-50 hover:bg-blue-gray-100 rounded-full text-xs text-blue-gray-900 transition-colors cursor-pointer flex items-center gap-1 w-fit"
+                            role="button"
+                            tabIndex="0"
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    rotateQuestions();
+                                }
+                            }}
+                            aria-label="Refresh question suggestions (Ctrl+I)"
+                        >
+                            <ArrowsClockwise size={12} />
+                            <span>More suggestions</span>
+                            <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-900 text-blue-gray-900 rounded text-[10px]">Ctrl+I</kbd>
+                        </span>
+                    </div>
                 </div>
 
                 <Typography variant="small" color="gray" className="mb-4 text-xs">
@@ -835,7 +855,7 @@ const Chatbot = ({
                             <span
                                 key={index}
                                 onClick={() => handleExampleClick(question)}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer"
+                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer font-normal"
                                 role="text"
                                 tabIndex="0"
                                 onKeyPress={(e) => {
@@ -854,7 +874,7 @@ const Chatbot = ({
                     {"Ask "}
                         <span
                         onClick={() => handleExampleClick("What else can you do?")}
-                        className="mb-2 px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded-full text-xs text-blue-900 transition-colors text-left cursor-pointer inline-block"
+                        className="mb-2 px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded-full text-xs text-blue-900 transition-colors text-left cursor-pointer inline-block font-normal"
                         role="text"
                         tabIndex="0"
                         onKeyPress={(e) => {
@@ -868,7 +888,7 @@ const Chatbot = ({
                     {" to hear a list of all available features."}
                     <br />
                     {"Press "}
-                    <kbd>Ctrl+H</kbd>
+                    <kbd className="ml-1 px-1 py-0.5 border border-blue-900 text-blue-900 rounded">Ctrl+H</kbd>
                     {" to see all keyboard shortcuts and navigation commands."}
                 </Typography>
             </div>
