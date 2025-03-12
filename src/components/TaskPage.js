@@ -7,8 +7,9 @@ import { logSessionEnd } from '../utils/logger';
 function TaskPage() {
   const [currentDataset, setCurrentDataset] = useState('pct_tot_co');
   const [showSpatialClusters, setShowSpatialClusters] = useState(false);
-  const [focus, setFocus] = useState({ type: null, states: [], county: null, city: null, highlightOnly: false });
   const [interactionFocus, setInteractionFocus] = useState('none'); // 'none', 'map', or 'chat'
+  const [showingCounties, setShowingCounties] = useState(false);
+  const [announcement, setAnnouncement] = useState('');
 
   const API_URL = process.env.NODE_ENV === 'production'
     ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
@@ -22,54 +23,20 @@ function TaskPage() {
     setShowSpatialClusters(show);
   };
 
-  const handleStateQuestion = (stateName) => {
-    console.log('Setting focused state:', stateName);
-    setFocus({
-        type: 'state',
-        states: Array.isArray(stateName) ? stateName : [stateName],
-        county: null,
-        city: null,
-        highlightOnly: false
-    });
-  };
+  const [focus, setFocus] = useState({
+    type: null,     
+    states: [],        
+    county: null,      
+    city: null,        
+    highlightOnly: false
+  });
 
-  const handleChatbotFocus = (stateName) => {
-    console.log('Setting focus via Chatbot:', stateName);
-    setFocus({
-        type: 'state',
-        states: Array.isArray(stateName) ? stateName : [stateName],
-        county: null,
-        city: null,
-        highlightOnly: false
-    });
-  };
+  function handleFocusChange(newFocus) {
+    setFocus(newFocus);
+  }
 
-  const handleStateFocus = (stateName) => {
-    // Normalize the state name to handle arrays
-    const normalizedStateName = Array.isArray(stateName) ? stateName[0] : stateName;
-    const currentNormalizedState = focus.states?.[0];
-
-    // Only update if the value is actually different
-    if (normalizedStateName !== currentNormalizedState) {
-        console.log('Setting focus via map:', normalizedStateName);
-        setFocus({
-            type: 'state',
-            states: [normalizedStateName],
-            county: null,
-            city: null,
-            highlightOnly: false
-        });
-    }
-  };
-
-  const handleCityFocus = (cityInfo) => {
-    setFocus({
-        type: 'city',
-        states: [cityInfo.state],
-        county: null,
-        city: cityInfo,
-        highlightOnly: false
-    });
+  const handleShowingCountiesChange = (showing) => {
+    setShowingCounties(showing);
   };
 
   useEffect(() => {
@@ -95,6 +62,36 @@ function TaskPage() {
     return () => window.removeEventListener('keydown', globalHandler);
   }, []);
 
+
+  useEffect(() => {
+    if (interactionFocus === 'chat') {
+      if (focus.type === 'state') {
+        setAnnouncement(
+          `Chat interaction enabled. Map focused on ${focus.states[0]}).`
+        );
+      } else {
+        setAnnouncement('Chat interaction enabled. Type a question to ask MappieTalkie.');
+      }
+    } else if (interactionFocus === 'map') {
+       // If we have a county in focus
+       if (focus.county && focus.states?.length > 0) {
+        setAnnouncement(
+          `Map interaction enabled. Focused on ${focus.county} county in ${focus.states[0]}.`
+        );
+      } 
+      // If we have a single state
+      else if (focus?.states?.length > 0) {
+        setAnnouncement(
+          `Map interaction enabled. Focused on ${focus.states[0]} state.`
+        );
+      } 
+      // No specific focus
+      else {
+        setAnnouncement('Map interaction enabled. Press Tab to move onto the map.');
+      }
+    }
+  }, [interactionFocus, focus]);
+
   useEffect(() => {
     // Log session end when the component unmounts
     return () => {
@@ -106,12 +103,14 @@ function TaskPage() {
     <div className="flex h-screen w-screen overflow-hidden">
       <div className="w-2/3 h-full relative">
         <ChoroplethMap
+          focus={focus}
+          onFocusChange={handleFocusChange}
+          onAnnounce={(msg) => setAnnouncement(msg)}
           dataset={currentDataset}
           showSpatialClusters={showSpatialClusters}
           onSpatialClustersToggle={setShowSpatialClusters}
           onDatasetChange={handleDatasetChange}
-          focus={focus}
-          onFocusChange={setFocus}
+          onShowingCountiesChange={handleShowingCountiesChange}
           apiUrl={API_URL}
           isMapInteractive={interactionFocus === 'map'}
           onMapClick={() => setInteractionFocus('map')}
