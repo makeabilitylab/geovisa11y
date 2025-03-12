@@ -901,6 +901,48 @@ const ChoroplethMap = ({
         return adjacentCounties;
     }, [countyData]);
 
+    const resetToStateView = useCallback(() => {
+        if (map.current) {
+            // Clean up county layers
+            removeLayersSafely(countyLayers);
+            removeSourceSafely('counties');
+            
+            // Reset to US view
+            map.current.fitBounds([
+                [-125.0, 24.0],
+                [-66.0, 50.0]   
+            ], {
+                padding: 100,
+                duration: 1000
+            });
+            
+            // Show state layers again
+            toggleLayerSet(stateLayers, true);
+            
+            // Reset state
+            setShowingCounties(false);
+            setCountyData(null);
+            
+            // Reset focus
+            onFocusChange({
+                type: null,
+                states: [],
+                county: null,
+                city: null,
+                highlightOnly: false
+            });
+            
+            // Notify parent component
+            if (onShowingCountiesChange) {
+                onShowingCountiesChange(false, null);
+            }
+            
+            if (isMapInteractive) {
+                onAnnounce?.('Returned to national view');
+            }
+        }
+    }, [map, removeLayersSafely, removeSourceSafely, toggleLayerSet, stateLayers, onShowingCountiesChange, onFocusChange, isMapInteractive, onAnnounce, countyLayers]);
+
     // Add effect to update the focused state highlight
     useEffect(() => {
         if (map.current && layersInitialized && focus?.type) {
@@ -1359,43 +1401,48 @@ const ChoroplethMap = ({
                 }
             }
 
-            // Handle zoom out from counties
-            if (e.key === '-' && showingCounties) {
+            // Handle zoom out from counties or states
+            if (e.key === '-') {
                 e.preventDefault();
-                onShowingCountiesChange(false);
-                setShowingCounties(false);
-                setCountyData(null);
-                
-                if (focus.type === 'county') {
-                    onFocusChange({
-                        type: 'state',
-                        states: [focus.states[0]],
-                        county: null,
-                        city: null,
-                        highlightOnly: false
-                    });
-                }
-                
-                // Clean up county layers
-                if (map.current) {
-                    removeLayersSafely(countyLayers);
-                    removeSourceSafely('counties');
-
-                    // show state-level choropleth
-                    toggleLayerVisibility('state-choropleth', true);
+                if (showingCounties) {
+                    onShowingCountiesChange(false);
+                    setShowingCounties(false);
+                    setCountyData(null);
                     
-                    // Show state-level LISA clusters again if they were visible
-                    if (showSpatialClusters) {
-                        toggleLayerSet(stateLisaLayers, true);
+                    if (focus.type === 'county') {
+                        onFocusChange({
+                            type: 'state',
+                            states: [focus.states[0]],
+                            county: null,
+                            city: null,
+                            highlightOnly: false
+                        });
                     }
                     
-                    // Show state layers
-                    toggleLayerSet(stateLayers, true);
-                }
-                
-                focusStateOnMap(focus.states[0]);
-                if (isMapInteractive) {
-                    onAnnounce?.(`Returned to state view of ${focus.states[0]}`);
+                    // Clean up county layers
+                    if (map.current) {
+                        removeLayersSafely(countyLayers);
+                        removeSourceSafely('counties');
+
+                        // show state-level choropleth
+                        toggleLayerVisibility('state-choropleth', true);
+                        
+                        // Show state-level LISA clusters again if they were visible
+                        if (showSpatialClusters) {
+                            toggleLayerSet(stateLisaLayers, true);
+                        }
+                        
+                        // Show state layers
+                        toggleLayerSet(stateLayers, true);
+                    }
+                    
+                    focusStateOnMap(focus.states[0]);
+                    if (isMapInteractive) {
+                        onAnnounce?.(`Returned to state view of ${focus.states[0]}`);
+                    }
+                } else if (focus.type === 'state') {
+                    // If we're at state level, reset to national view
+                    resetToStateView();
                 }
             }
         };
@@ -1419,7 +1466,8 @@ const ChoroplethMap = ({
         toggleLayerSet,
         countyLayers,
         removeLayersSafely,
-        removeSourceSafely
+        removeSourceSafely,
+        resetToStateView  // Add resetToStateView to dependencies
     ]);
 
     // Handle map interaction focus
@@ -1487,6 +1535,8 @@ const ChoroplethMap = ({
             });
         }
     }, [map.current]);
+
+
 
     return (
         <div className="relative h-full ">

@@ -709,7 +709,6 @@ const DotDensityMap = ({
         }
 
         // Create adjacency object from neighbors array
-        // neighbors_ array is ordered as [north, south, west, east]
         const adjacentCounties = {
             north: neighbors[0] || null,
             south: neighbors[1] || null,
@@ -719,6 +718,52 @@ const DotDensityMap = ({
 
         return adjacentCounties;
     }, [countyData]);
+
+    // Add resetToStateView function
+    const resetToStateView = useCallback(() => {
+        if (map.current) {
+            // Clean up county layers
+            removeLayersSafely(countyLayers);
+            removeSourceSafely('counties');
+            removeSourceSafely('county-dot-density');
+            //remove county highlight
+            removeLayersSafely(['state-highlight']);
+            
+            // Reset to US view
+            map.current.fitBounds([
+                [-125.0, 24.0], // Southwest coordinates
+                [-66.0, 50.0]   // Northeast coordinates
+            ], {
+                padding: 100,
+                duration: 1000
+            });
+            
+            // Show state layers again
+            toggleLayerSet(stateLayers, true);
+            
+            // Reset state
+            setShowingCounties(false);
+            setCountyData(null);
+            
+            // Reset focus
+            onFocusChange({
+                type: null,
+                states: [],
+                county: null,
+                city: null,
+                highlightOnly: false
+            });
+            
+            // Notify parent component
+            if (onShowingCountiesChange) {
+                onShowingCountiesChange(false, null);
+            }
+            
+            if (isMapInteractive) {
+                onAnnounce?.('Returned to national view');
+            }
+        }
+    }, [map, removeLayersSafely, removeSourceSafely, toggleLayerSet, stateLayers, onShowingCountiesChange, onFocusChange, isMapInteractive, onAnnounce, countyLayers]);
 
     // Add effect to update the focused state highlight
     useEffect(() => {
@@ -1057,44 +1102,46 @@ const DotDensityMap = ({
                 }
             }
 
-            // Handle zoom out from counties
-            if (e.key === '-' && showingCounties) {
+            // Handle zoom out from counties or states
+            if (e.key === '-') {
                 e.preventDefault();
-                onShowingCountiesChange(false);
-                setShowingCounties(false);
-                setCountyData(null);
-                
-                if (focus.type === 'county') {
-                    onFocusChange({
-                        type: 'state',
-                        states: [focus.states[0]],
-                        county: null,
-                        city: null,
-                        highlightOnly: false
-                    });
-                }
-                
-                // Clean up county layers
-                if (map.current) {
-                    removeLayersSafely(countyLayers);
-                    removeSourceSafely('counties');
-                    removeSourceSafely('county-dot-density');
-
-                    // show state-level choropleth
-                    toggleLayerSet(stateLayers, true);
+                if (showingCounties) {
+                    onShowingCountiesChange(false);
+                    setShowingCounties(false);
+                    setCountyData(null);
                     
-                    // Show state-level LISA clusters again if they were visible
-                    if (showSpatialClusters) {
-                        toggleLayerSet(statePatternLayers, true);
+                    if (focus.type === 'county') {
+                        onFocusChange({
+                            type: 'state',
+                            states: [focus.states[0]],
+                            county: null,
+                            city: null,
+                            highlightOnly: false
+                        });
                     }
                     
-                    // Show state layers
-                    toggleLayerSet(stateLayers, true);
-                }
-                
-                focusStateOnMap(focus.states[0]);
-                if (isMapInteractive) {
-                    onAnnounce?.(`Returned to state view of ${focus.states[0]}`);
+                    // Clean up county layers
+                    if (map.current) {
+                        removeLayersSafely(countyLayers);
+                        removeSourceSafely('counties');
+                        removeSourceSafely('county-dot-density');
+
+                        // Show state layers
+                        toggleLayerSet(stateLayers, true);
+                        
+                        // Show state-level patterns again if they were visible
+                        if (showSpatialClusters) {
+                            toggleLayerSet(statePatternLayers, true);
+                        }
+                    }
+                    
+                    focusStateOnMap(focus.states[0]);
+                    if (isMapInteractive) {
+                        onAnnounce?.(`Returned to state view of ${focus.states[0]}`);
+                    }
+                } else if (focus.type === 'state') {
+                    // If we're at state level, reset to national view
+                    resetToStateView();
                 }
             }
         };
@@ -1117,8 +1164,10 @@ const DotDensityMap = ({
         toggleLayerVisibility,
         toggleLayerSet,
         countyLayers,
+        statePatternLayers,
         removeLayersSafely,
-        removeSourceSafely
+        removeSourceSafely,
+        resetToStateView  // Add resetToStateView to dependencies
     ]);
 
     // Handle map interaction focus
