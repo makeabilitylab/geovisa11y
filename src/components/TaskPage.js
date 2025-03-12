@@ -67,7 +67,7 @@ function TaskPage() {
     if (interactionFocus === 'chat') {
       if (focus.type === 'state') {
         setAnnouncement(
-          `Chat interaction enabled. Map focused on ${focus.states[0]}).`
+          `Chat interaction enabled. Map focused on ${focus.states[0]}.`
         );
       } else {
         setAnnouncement('Chat interaction enabled. Type a question to ask MappieTalkie.');
