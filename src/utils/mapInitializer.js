@@ -143,20 +143,27 @@ export const initializeChoroLayers = (map, mapContainer, popup, datasets, select
                 const feature = e.features[0];
                 const value = feature.properties.value;
                 const stateName = feature.properties.state_name;
+
+                let tooltipContent;
+
+                // Format value based on current dataset
+                let formattedValue;
+                if (selectedDataset === 'ppl_densit') {
+                    formattedValue = `${value.toFixed(2)} people/sqm`;
+                } else {
+                    formattedValue = `${value.toFixed(2)}%`;
+                }
                 
-                // Check if value is defined before calling toFixed()
-                const formattedValue = value !== undefined && value !== null 
-                    ? `${value.toFixed(2)} ${datasets[selectedDataset].unit || ''}`
-                    : 'N/A';
+                tooltipContent = `
+                    <div class="text-xs font-semibold">${stateName}</div>
+                    <div class="text-xs">${formattedValue}</div>
+                `; 
                 
                 const coordinates = e.lngLat;
 
                 popup.current
                     .setLngLat(coordinates)
-                    .setHTML(`
-                        <div class="text-xs font-semibold">${stateName}</div>
-                        <div class="text-xs">${formattedValue}</div>
-                    `)
+                    .setHTML(tooltipContent)
                     .addTo(map);
             }
         });
