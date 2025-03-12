@@ -161,7 +161,7 @@ const ChoroplethMap = ({
         stateName = normalizeStateName(stateName);
         
         // Add the current dataset as a query parameter
-        const response = await fetch(`${apiUrl}/api/counties/${stateName}`, {
+        const response = await fetch(`${apiUrl}/api/counties/${stateName}?dataset=${selectedDataset}`, {
             method: 'GET',
             headers: {
                 'Accept': 'application/json',
@@ -406,17 +406,23 @@ const ChoroplethMap = ({
                     const feature = e.features[0];
                     const countyName = feature.properties.county_name;
                     const stateName = feature.properties.state_name;
+
+                    let tooltipContent;
                     
-                    const value = feature.properties[selectedDataset] || 0;
-                    const isRural = feature.properties.rural ? 
-                        (feature.properties.rural === 'Rural' ? 'Rural' : 'Urban') : 
-                        'Unknown';
-                    
-                    const tooltipContent = `
+                    const value = feature.properties.value || 0;
+
+                    // Format value based on current dataset
+                    let formattedValue;
+                    if (selectedDataset === 'ppl_densit') {
+                        formattedValue = `${value.toFixed(2)} people/sqm`;
+                    } else {
+                            formattedValue = `${value.toFixed(2)}%`;
+                    }
+                            
+                    tooltipContent = `
                         <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
-                        <div class="text-xs">County Type: ${isRural}</div>
-                        <div class="text-xs">${datasets[selectedDataset].name}: ${value.toLocaleString()}</div>
-                    `;
+                        <div class="text-xs">${formattedValue}</div>
+                    `; 
                     
                     const coordinates = e.lngLat;
                     
@@ -428,38 +434,6 @@ const ChoroplethMap = ({
             });
             
             map.current.on('mouseleave', 'county-choropleth', () => {
-                map.current.getCanvas().style.cursor = '';
-                popup.current.remove();
-            });
-            
-            // Add mousemove handler for county borders
-            map.current.on('mousemove', 'county-borders', (e) => {
-                if (e.features.length > 0) {
-                    map.current.getCanvas().style.cursor = 'pointer';
-                    
-                    const feature = e.features[0];
-                    const countyName = feature.properties.county_name;
-                    const stateName = feature.properties.state_name;
-                    
-                    const value = feature.properties[selectedDataset] || 0;
-                    const isRural = feature.properties.rural === 'Rural' ? 'Rural' : 'Urban';
-                    
-                    const tooltipContent = `
-                        <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
-                        <div class="text-xs">Classification: ${isRural}</div>
-                        <div class="text-xs">${datasets[selectedDataset].name}: ${value.toLocaleString()}</div>
-                    `;
-                    
-                    const coordinates = e.lngLat;
-                    
-                    popup.current
-                        .setLngLat(coordinates)
-                        .setHTML(tooltipContent)
-                        .addTo(map.current);
-                }
-            });
-            
-            map.current.on('mouseleave', 'county-borders', () => {
                 map.current.getCanvas().style.cursor = '';
                 popup.current.remove();
             });
