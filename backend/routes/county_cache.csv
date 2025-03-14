@@ -1,0 +1,3101 @@
+state_name,county_name,population_density,rural_population,gas_percentage,electricity_percentage,oil_percentage,percentage_of_underserved_population,percentage_of_population_without_broadband_or_computer
+Nebraska,Cuming,15.77504,Rural,0.646,0.286,0.026,100.0,24.7
+Washington,Wahkiakum,17.02366,Rural,0.046,0.7,0.027,100.0,16.0
+New Mexico,De Baca,0.7296263,Rural,0.375,0.472,0.0,100.0,21.9
+Nebraska,Lancaster,384.5248,Not rural,0.64,0.35,0.001,61.2,8.5
+Nebraska,Nuckolls,7.114601,Rural,0.636,0.303,0.001,100.0,19.9
+South Dakota,Minnehaha,245.0818,Not rural,0.695,0.279,0.004,63.9,10.7
+Texas,Menard,2.177319,Rural,0.242,0.738,0.0,100.0,32.7
+California,Sierra,3.059271,Rural,0.319,0.1,0.185,100.0,19.1
+Kentucky,Clinton,47.16757,Rural,0.175,0.76,0.012,100.0,40.3
+Ohio,Hancock,141.2928,Not rural,0.723,0.237,0.006,78.0,11.2
+Texas,Hale,32.37349,Not rural,0.582,0.412,0.004,93.0,17.7
+Alabama,Clay,23.5263,Rural,0.321,0.587,0.0,100.0,24.9
+Texas,Armstrong,2.103126,Rural,0.553,0.411,0.029,100.0,15.1
+Ohio,Allen,253.6038,Not rural,0.73,0.233,0.009,90.4,13.8
+Georgia,McDuffie,84.37189,Rural,0.338,0.647,0.0,100.0,32.4
+Wisconsin,Sauk,78.96655,Rural,0.744,0.171,0.016,100.0,14.5
+Arkansas,Stone,20.43564,Rural,0.458,0.42,0.001,100.0,43.5
+Oregon,Wallowa,2.364667,Rural,0.241,0.298,0.099,100.0,17.5
+Pennsylvania,Beaver,385.6244,Not rural,0.723,0.165,0.086,71.7,13.3
+Mississippi,Jasper,24.13093,Rural,0.276,0.713,0.0,100.0,46.8
+Missouri,Henry,31.65859,Rural,0.415,0.515,0.001,100.0,18.2
+Colorado,Saguache,2.036884,Rural,0.584,0.18,0.006,100.0,29.9
+North Carolina,Chatham,112.5955,Not rural,0.441,0.515,0.014,97.2,18.6
+Utah,Rich,2.471912,Rural,0.844,0.054,0.007,100.0,15.4
+Oklahoma,Adair,34.37296,Rural,0.441,0.366,0.001,100.0,48.2
+Ohio,Lake,1012.935,Not rural,0.825,0.151,0.011,62.2,9.8
+Virginia,Salem,1747.971,Not rural,0.578,0.39,0.016,62.5,15.6
+Virginia,Montgomery,256.8793,Not rural,0.178,0.752,0.029,73.5,9.6
+Tennessee,Hamilton,677.2733,Not rural,0.319,0.671,0.002,71.0,14.7
+New Mexico,Otero,10.26077,Not rural,0.649,0.229,0.018,89.8,16.2
+New Mexico,Catron,0.5249714,Rural,0.375,0.111,0.0,100.0,41.3
+Alabama,Marengo,19.63357,Rural,0.294,0.681,0.0,100.0,31.2
+Wyoming,Lincoln,4.857022,Rural,0.402,0.427,0.0,100.0,12.9
+Missouri,Barton,19.73379,Rural,0.659,0.239,0.008,100.0,30.7
+Texas,Calhoun,39.70362,Rural,0.336,0.642,0.004,100.0,17.7
+Virginia,Poquoson,812.6091,Not rural,0.456,0.478,0.064,62.1,9.4
+West Virginia,Pocahontas,8.444665,Rural,0.277,0.311,0.076,100.0,23.3
+Texas,Clay,9.451131,Rural,0.423,0.549,0.006,100.0,20.1
+Virginia,James City,553.8931,Not rural,0.473,0.503,0.012,99.1,11.4
+Nebraska,Keith,7.820155,Rural,0.519,0.459,0.001,100.0,13.4
+Nebraska,Phelps,16.61017,Rural,0.593,0.38,0.005,100.0,14.6
+Louisiana,Calcasieu,198.077,Not rural,0.291,0.702,0.0,80.0,20.2
+Louisiana,Union,24.00352,Rural,0.33,0.659,0.0,100.0,38.5
+Oklahoma,Sequoyah,58.69866,Not rural,0.317,0.621,0.008,99.9,23.8
+Alabama,DeKalb,92.2431,Rural,0.276,0.701,0.002,100.0,22.0
+New York,Steuben,67.30203,Rural,0.659,0.141,0.061,100.0,17.5
+Pennsylvania,Forest,16.28755,Rural,0.675,0.093,0.068,100.0,29.8
+Louisiana,Tangipahoa,169.3097,Not rural,0.257,0.73,0.0,96.8,17.3
+Virginia,Stafford,585.4497,Not rural,0.399,0.556,0.031,84.7,4.0
+Michigan,Menominee,22.44452,Rural,0.761,0.099,0.017,100.0,18.9
+Indiana,Jasper,59.0427,Rural,0.845,0.132,0.001,100.0,13.6
+Georgia,Brantley,40.84745,Rural,0.042,0.926,0.0,100.0,26.4
+Georgia,Lamar,101.7762,Rural,0.334,0.65,0.001,100.0,23.7
+Indiana,Steuben,111.7526,Rural,0.809,0.139,0.006,100.0,16.4
+Texas,Orange,253.9384,Not rural,0.292,0.699,0.0,76.8,13.7
+Ohio,Fayette,71.12151,Rural,0.528,0.393,0.038,100.0,20.0
+Massachusetts,Hampshire,291.9587,Not rural,0.396,0.197,0.332,69.1,8.6
+Kentucky,Allen,60.43512,Rural,0.167,0.77,0.001,100.0,27.3
+North Carolina,Alamance,405.6633,Not rural,0.475,0.497,0.01,80.2,17.5
+Kansas,Greenwood,5.248823,Rural,0.68,0.2,0.002,100.0,30.6
+Massachusetts,Suffolk,13483.23,Not rural,0.61,0.288,0.081,74.6,11.4
+Idaho,Jefferson,28.69485,Rural,0.628,0.258,0.022,100.0,10.0
+Texas,Gonzales,18.50216,Rural,0.171,0.808,0.0,100.0,17.8
+Tennessee,Marion,57.90617,Rural,0.258,0.704,0.006,100.0,20.6
+Michigan,Alpena,50.55285,Rural,0.786,0.077,0.02,100.0,17.2
+Kentucky,Wayne,42.93481,Rural,0.107,0.813,0.003,100.0,31.6
+Tennessee,White,72.79422,Rural,0.448,0.517,0.003,100.0,24.0
+Texas,Fannin,40.46991,Rural,0.388,0.579,0.0,100.0,20.3
+Kansas,Doniphan,19.06328,Not rural,0.735,0.219,0.008,88.9,21.6
+Texas,Kerr,47.86409,Not rural,0.201,0.775,0.0,89.4,14.1
+Florida,Hernando,415.7168,Not rural,0.032,0.95,0.001,79.5,12.1
+Florida,Wakulla,55.62498,Rural,0.079,0.898,0.003,100.0,19.3
+Florida,Walton,73.79192,Rural,0.107,0.867,0.001,100.0,15.3
+Mississippi,Chickasaw,33.92711,Rural,0.425,0.537,0.004,100.0,30.7
+Michigan,Clare,54.92525,Rural,0.756,0.084,0.009,100.0,24.4
+Kansas,Republic,6.532128,Rural,0.805,0.107,0.051,100.0,25.9
+Florida,Volusia,507.231,Not rural,0.048,0.937,0.002,76.2,16.4
+Oklahoma,Canadian,174.7555,Not rural,0.629,0.363,0.0,70.1,10.7
+Georgia,Floyd,193.2853,Not rural,0.428,0.556,0.002,90.9,16.5
+Nevada,Churchill,5.132968,Rural,0.713,0.146,0.019,100.0,10.2
+Nebraska,Webster,5.931331,Rural,0.707,0.245,0.003,100.0,20.0
+Illinois,Hancock,22.1506,Rural,0.601,0.368,0.002,100.0,20.2
+South Dakota,Hutchinson,9.103172,Rural,0.508,0.356,0.095,100.0,21.1
+Oregon,Crook,8.387914,Rural,0.328,0.495,0.009,100.0,13.7
+Vermont,Franklin,79.4044,Rural,0.426,0.052,0.35,100.0,13.0
+Michigan,Marquette,36.69106,Not rural,0.806,0.111,0.027,86.1,14.9
+North Carolina,Davidson,306.4065,Not rural,0.214,0.698,0.054,83.5,16.8
+Illinois,Clay,28.28649,Rural,0.68,0.256,0.0,100.0,18.8
+Missouri,Knox,7.483976,Rural,0.51,0.413,0.007,100.0,29.4
+Missouri,Livingston,27.05604,Rural,0.59,0.366,0.004,100.0,26.4
+Pennsylvania,Tioga,36.3227,Rural,0.733,0.077,0.044,100.0,16.9
+Nebraska,Dakota,80.62778,Not rural,0.577,0.414,0.004,88.7,18.7
+Michigan,Leelanau,64.59115,Rural,0.779,0.097,0.037,100.0,10.9
+Virginia,Surry,23.46662,Rural,0.155,0.64,0.167,100.0,29.2
+Texas,Refugio,8.719189,Rural,0.175,0.814,0.0,100.0,23.2
+Ohio,Butler,832.3843,Not rural,0.565,0.379,0.04,66.2,9.7
+Georgia,Terrell,26.81426,Rural,0.245,0.74,0.001,100.0,22.2
+Georgia,Clayton,2090.302,Not rural,0.516,0.477,0.0,97.3,18.3
+Wyoming,Fremont,4.290479,Rural,0.693,0.189,0.003,100.0,19.4
+Indiana,Ohio,69.34437,Rural,0.421,0.475,0.036,100.0,17.2
+Georgia,Columbia,540.7453,Not rural,0.36,0.632,0.001,70.1,13.9
+Colorado,Sedgwick,4.362814,Rural,0.788,0.177,0.0,100.0,20.0
+Montana,Musselshell,2.634624,Rural,0.54,0.139,0.101,100.0,16.4
+Pennsylvania,Dauphin,545.1025,Not rural,0.411,0.376,0.177,97.4,14.0
+South Dakota,Moody,12.21844,Rural,0.62,0.281,0.028,100.0,13.8
+West Virginia,Putnam,165.8966,Rural,0.367,0.607,0.002,100.0,17.2
+New Jersey,Sussex,279.2892,Not rural,0.298,0.144,0.507,88.2,6.9
+Kansas,Decatur,3.101227,Rural,0.897,0.078,0.0,100.0,13.6
+Indiana,Perry,50.25932,Rural,0.615,0.302,0.002,100.0,19.1
+Mississippi,Union,67.08257,Rural,0.517,0.461,0.003,100.0,29.8
+Nebraska,Boyd,3.275705,Rural,0.486,0.399,0.027,100.0,17.4
+Minnesota,Mille Lacs,46.61845,Rural,0.754,0.128,0.022,100.0,17.2
+North Dakota,Walsh,8.234194,Rural,0.574,0.303,0.089,100.0,25.0
+Ohio,Morgan,33.26162,Rural,0.523,0.292,0.052,100.0,24.9
+Ohio,Portage,330.7639,Not rural,0.692,0.204,0.06,73.1,13.6
+Wyoming,Uinta,9.86972,Rural,0.741,0.185,0.0,100.0,8.0
+Nevada,Humboldt,1.790932,Rural,0.613,0.257,0.016,100.0,16.2
+Texas,Jim Hogg,4.251113,Rural,0.09,0.91,0.0,100.0,30.4
+Colorado,Cheyenne,0.9706029,Rural,0.816,0.135,0.007,100.0,10.7
+Oregon,Clackamas,225.0082,Not rural,0.475,0.458,0.011,71.4,8.8
+Arkansas,Polk,22.62271,Rural,0.309,0.521,0.003,100.0,27.5
+Georgia,Macon,30.19752,Rural,0.326,0.648,0.0,100.0,33.6
+Indiana,Benton,21.4287,Rural,0.831,0.124,0.006,100.0,17.6
+Tennessee,Morgan,40.45349,Not rural,0.503,0.433,0.002,99.9,24.5
+South Dakota,Douglas,6.537737,Rural,0.389,0.421,0.127,100.0,21.2
+Maryland,Worcester,112.7812,Rural,0.273,0.629,0.064,100.0,12.2
+Illinois,Wabash,50.69338,Rural,0.733,0.209,0.006,100.0,16.9
+Indiana,Huntington,95.9071,Rural,0.613,0.334,0.016,100.0,16.0
+Kentucky,Scott,203.0044,Not rural,0.275,0.706,0.004,69.8,11.3
+Iowa,Decatur,14.4468,Rural,0.665,0.253,0.006,100.0,22.2
+Indiana,Wabash,75.22198,Rural,0.679,0.269,0.012,100.0,19.1
+Indiana,Allen,586.5265,Not rural,0.733,0.247,0.003,69.1,12.6
+Indiana,Marshall,104.1613,Rural,0.811,0.125,0.004,100.0,27.0
+Nebraska,Thomas,0.830776,Rural,0.66,0.173,0.0,100.0,7.1
+North Dakota,Sioux,3.561075,Rural,0.76,0.097,0.038,100.0,37.9
+Texas,Dimmit,6.525772,Rural,0.129,0.856,0.0,100.0,27.7
+Minnesota,Fillmore,24.67221,Rural,0.81,0.098,0.012,100.0,19.6
+South Carolina,Chester,55.40407,Rural,0.466,0.509,0.008,100.0,34.7
+Minnesota,Lac qui Parle,8.804988,Rural,0.685,0.257,0.017,100.0,15.4
+Utah,Cache,115.4205,Not rural,0.856,0.123,0.005,60.3,8.7
+Wisconsin,Pierce,73.49417,Rural,0.731,0.179,0.018,100.0,11.1
+Georgia,Charlton,16.08411,Rural,0.131,0.86,0.0,100.0,30.3
+Georgia,Polk,138.6192,Rural,0.382,0.592,0.002,100.0,20.0
+Illinois,McLean,144.7575,Not rural,0.759,0.23,0.0,67.5,14.1
+Maine,Androscoggin,238.3396,Not rural,0.218,0.062,0.628,76.6,13.3
+Idaho,Kootenai,140.0862,Not rural,0.559,0.361,0.008,70.3,10.8
+Nevada,Clark,287.1292,Not rural,0.602,0.381,0.001,83.0,14.3
+Kansas,Phillips,5.599009,Rural,0.814,0.152,0.003,100.0,15.1
+Nebraska,Holt,4.207267,Rural,0.55,0.399,0.002,100.0,18.4
+Missouri,Johnson,65.14837,Not rural,0.467,0.498,0.0,83.2,9.9
+Wisconsin,La Crosse,266.0779,Not rural,0.682,0.274,0.017,62.8,10.4
+Louisiana,Caldwell,18.23055,Rural,0.217,0.753,0.017,100.0,31.3
+Kentucky,Edmonson,40.22048,Rural,0.11,0.806,0.0,100.0,19.0
+Illinois,Bond,44.03996,Rural,0.668,0.29,0.003,100.0,17.9
+Illinois,Brown,20.71785,Rural,0.654,0.311,0.0,100.0,18.1
+Minnesota,McLeod,74.7228,Rural,0.761,0.179,0.022,100.0,11.2
+Wisconsin,Dunn,53.1912,Rural,0.684,0.208,0.022,100.0,13.7
+Colorado,Custer,6.613633,Rural,0.623,0.155,0.0,100.0,10.4
+Missouri,Madison,25.58529,Rural,0.272,0.577,0.004,100.0,22.9
+Texas,Nolan,16.07132,Rural,0.454,0.534,0.0,100.0,22.8
+Pennsylvania,Wayne,70.58302,Not rural,0.285,0.247,0.311,99.6,15.7
+New York,Saratoga,291.7738,Not rural,0.691,0.137,0.131,78.7,7.4
+Texas,Brazos,400.1582,Not rural,0.365,0.627,0.0,76.7,15.4
+Oklahoma,Marshall,41.70774,Rural,0.244,0.722,0.002,100.0,35.3
+Maryland,Allegany,161.4429,Rural,0.539,0.279,0.103,100.0,17.6
+West Virginia,Wetzel,40.30252,Rural,0.782,0.152,0.005,100.0,23.1
+Wisconsin,Jackson,21.21438,Rural,0.692,0.151,0.028,100.0,19.5
+Oregon,Clatsop,49.74009,Rural,0.489,0.403,0.028,100.0,12.5
+Washington,Lewis,34.40305,Rural,0.119,0.75,0.005,100.0,15.1
+New York,Allegany,45.87175,Rural,0.642,0.131,0.067,100.0,21.0
+Iowa,Cedar,31.88994,Rural,0.848,0.12,0.004,100.0,12.7
+Indiana,Orange,49.62114,Rural,0.57,0.324,0.01,100.0,25.9
+Georgia,DeKalb,2844.187,Not rural,0.627,0.368,0.001,83.2,13.5
+Georgia,Pickens,144.0967,Rural,0.5,0.464,0.01,100.0,10.4
+Montana,Chouteau,1.484448,Rural,0.767,0.11,0.024,100.0,25.1
+Nebraska,Brown,2.203202,Rural,0.624,0.339,0.0,100.0,15.5
+Tennessee,Campbell,82.04468,Rural,0.364,0.588,0.01,100.0,31.3
+North Carolina,Franklin,141.683,Not rural,0.264,0.706,0.01,96.9,18.1
+Maryland,Baltimore,7221.451,Not rural,0.645,0.307,0.033,85.1,21.4
+Kansas,Lyon,37.97384,Not rural,0.682,0.29,0.001,79.8,12.6
+Iowa,Carroll,36.39983,Rural,0.705,0.269,0.01,100.0,14.7
+Louisiana,Tensas,6.843968,Rural,0.426,0.538,0.003,100.0,54.8
+Tennessee,Monroe,73.12189,Rural,0.17,0.781,0.002,100.0,18.9
+Kansas,Hamilton,2.528816,Rural,0.82,0.152,0.0,100.0,24.6
+Iowa,Pocahontas,12.23233,Rural,0.748,0.224,0.009,100.0,15.4
+Idaho,Gem,34.38916,Rural,0.314,0.453,0.011,100.0,13.6
+Arkansas,Independence,49.63916,Rural,0.416,0.53,0.0,100.0,35.1
+Arkansas,Lonoke,96.3018,Not rural,0.343,0.629,0.0,79.4,16.1
+Indiana,Newton,34.4215,Rural,0.835,0.101,0.013,100.0,14.3
+Georgia,Franklin,89.84386,Rural,0.242,0.715,0.009,100.0,25.0
+Florida,Hendry,34.5188,Rural,0.02,0.926,0.006,100.0,28.6
+Georgia,Taliaferro,8.401559,Rural,0.509,0.431,0.012,100.0,48.2
+Texas,Jefferson,290.7858,Not rural,0.41,0.58,0.001,85.7,23.3
+Montana,Meagher,0.8144262,Rural,0.559,0.058,0.02,100.0,30.0
+Colorado,La Plata,33.13227,Rural,0.725,0.192,0.002,100.0,20.3
+Texas,Bell,353.7769,Not rural,0.119,0.865,0.001,83.2,13.7
+Mississippi,Kemper,11.72045,Rural,0.523,0.425,0.011,100.0,44.6
+Arkansas,Clark,24.79182,Rural,0.372,0.563,0.0,100.0,28.1
+Oregon,Klamath,11.68172,Not rural,0.45,0.341,0.042,80.3,15.7
+New York,Oswego,124.0404,Not rural,0.615,0.147,0.112,97.0,11.6
+Alabama,Cherokee,45.28981,Rural,0.327,0.645,0.0,100.0,21.5
+Texas,Bandera,26.77898,Rural,0.142,0.825,0.0,100.0,14.3
+Montana,Rosebud,1.6593,Rural,0.548,0.357,0.01,100.0,41.5
+New Mexico,Union,1.065084,Rural,0.818,0.097,0.0,100.0,32.5
+Michigan,Schoolcraft,6.879565,Rural,0.69,0.162,0.019,100.0,21.1
+New York,Ulster,162.0238,Not rural,0.339,0.137,0.456,95.6,10.6
+New Jersey,Camden,2360.755,Not rural,0.767,0.171,0.05,72.3,11.8
+Illinois,Jersey,58.07522,Rural,0.672,0.295,0.002,100.0,18.6
+Virginia,Hanover,236.3545,Not rural,0.245,0.691,0.037,72.7,9.9
+Kansas,Wallace,1.629723,Rural,0.864,0.118,0.0,100.0,13.1
+Michigan,Alger,9.689255,Rural,0.764,0.06,0.017,100.0,20.6
+Arkansas,Fulton,19.71378,Rural,0.3,0.574,0.0,100.0,39.7
+Texas,Hidalgo,555.8187,Not rural,0.089,0.898,0.0,98.0,29.4
+North Carolina,Robeson,124.1145,Not rural,0.187,0.786,0.011,98.0,36.1
+Michigan,Newaygo,59.75778,Rural,0.691,0.075,0.044,100.0,22.1
+Oregon,Morrow,5.978737,Rural,0.141,0.717,0.026,100.0,19.9
+Minnesota,Todd,26.74538,Rural,0.632,0.179,0.046,100.0,24.2
+Arkansas,Logan,29.96266,Rural,0.339,0.568,0.005,100.0,24.8
+North Carolina,Lincoln,297.2247,Not rural,0.219,0.741,0.02,93.3,13.1
+Arkansas,Miller,68.39621,Not rural,0.382,0.598,0.0,82.8,20.8
+Florida,Orange,1580.866,Not rural,0.053,0.922,0.002,81.1,10.8
+Colorado,San Juan,1.780574,Rural,0.537,0.181,0.0,100.0,15.4
+Idaho,Franklin,21.68264,Rural,0.741,0.139,0.053,100.0,8.1
+Georgia,Carroll,240.5363,Not rural,0.409,0.561,0.007,88.1,14.0
+Kansas,Riley,118.2709,Not rural,0.581,0.399,0.002,72.9,9.4
+Texas,Schleicher,1.887625,Rural,0.443,0.549,0.0,100.0,27.9
+Virginia,Russell,54.40696,Rural,0.046,0.868,0.044,100.0,34.6
+North Carolina,Caldwell,171.0491,Not rural,0.191,0.684,0.077,100.0,15.8
+Idaho,Madison,111.8489,Not rural,0.62,0.333,0.005,74.8,20.1
+Indiana,Warrick,166.4704,Not rural,0.631,0.354,0.001,71.5,10.7
+Kentucky,Adair,46.60092,Rural,0.158,0.753,0.011,100.0,25.2
+Kentucky,Gallatin,88.72485,Rural,0.275,0.637,0.03,100.0,22.7
+Kentucky,Harrison,61.35587,Rural,0.339,0.568,0.024,100.0,26.7
+Maine,Sagadahoc,145.1618,Rural,0.201,0.063,0.608,100.0,12.2
+Montana,Sweet Grass,1.992416,Rural,0.622,0.147,0.007,100.0,17.9
+Texas,Grayson,146.8736,Not rural,0.383,0.599,0.001,85.2,18.3
+Pennsylvania,Greene,62.12708,Rural,0.581,0.239,0.112,100.0,15.5
+Kansas,Ellis,32.13757,Not rural,0.695,0.273,0.0,67.5,14.2
+Alabama,Hale,22.89165,Rural,0.234,0.732,0.0,100.0,31.8
+Alabama,Perry,11.78179,Rural,0.389,0.562,0.007,100.0,35.6
+Alabama,Colbert,96.58432,Rural,0.356,0.63,0.002,100.0,23.8
+Kansas,Pratt,12.48234,Rural,0.803,0.173,0.004,100.0,17.9
+Kentucky,Bourbon,69.81194,Rural,0.377,0.594,0.007,100.0,21.6
+Tennessee,Rutherford,555.0551,Not rural,0.254,0.732,0.001,70.4,11.2
+Georgia,Cook,75.47363,Rural,0.112,0.864,0.0,100.0,32.3
+Kansas,Lane,2.129887,Rural,0.866,0.125,0.0,100.0,9.8
+Oklahoma,Harper,3.150444,Rural,0.702,0.258,0.0,100.0,23.2
+Illinois,Piatt,38.02015,Rural,0.755,0.227,0.005,100.0,12.8
+Texas,Crosby,5.728736,Rural,0.544,0.443,0.002,100.0,25.3
+Alabama,Greene,11.90993,Rural,0.416,0.557,0.0,100.0,39.8
+Idaho,Clark,0.4287792,Rural,0.302,0.217,0.07,100.0,31.0
+Iowa,Kossuth,15.1306,Rural,0.814,0.153,0.015,100.0,17.7
+North Dakota,Burke,1.978944,Rural,0.544,0.42,0.021,100.0,18.7
+North Carolina,Durham,1130.611,Not rural,0.383,0.601,0.005,78.1,11.1
+Iowa,Harrison,20.9837,Rural,0.613,0.348,0.004,100.0,18.4
+Nebraska,Keya Paha,1.276718,Rural,0.461,0.359,0.0,100.0,15.0
+Iowa,Webster,51.67776,Not rural,0.758,0.214,0.004,77.5,17.5
+Illinois,Pope,10.2991,Rural,0.557,0.417,0.002,100.0,30.2
+Tennessee,Smith,63.74264,Rural,0.377,0.58,0.001,100.0,17.9
+Virginia,Henry,132.7576,Rural,0.089,0.764,0.094,100.0,23.2
+Virginia,Alexandria,10551.76,Not rural,0.488,0.492,0.007,70.5,9.0
+Iowa,Jefferson,36.24368,Rural,0.725,0.211,0.003,100.0,15.1
+Montana,Lewis and Clark,20.67066,Not rural,0.706,0.223,0.001,79.4,12.8
+Utah,Duchesne,6.113077,Rural,0.63,0.223,0.0,100.0,10.9
+Oklahoma,Alfalfa,6.558078,Rural,0.628,0.328,0.0,100.0,19.3
+Texas,Delta,20.55037,Rural,0.347,0.62,0.0,100.0,28.2
+Tennessee,Trousdale,101.4153,Rural,0.213,0.718,0.019,100.0,22.8
+Kentucky,Perry,82.82024,Rural,0.201,0.741,0.011,100.0,20.5
+South Dakota,Deuel,6.901771,Rural,0.636,0.324,0.008,100.0,19.1
+Oregon,Jackson,79.97982,Not rural,0.356,0.557,0.009,74.7,11.9
+Texas,Zavala,7.47645,Rural,0.12,0.87,0.0,100.0,42.6
+Nebraska,Banner,0.8980766,Rural,0.49,0.402,0.016,100.0,18.1
+Iowa,Madison,29.60574,Rural,0.762,0.182,0.001,100.0,13.3
+Florida,Broward,1613.511,Not rural,0.031,0.918,0.001,85.7,12.9
+Georgia,Toombs,74.02493,Rural,0.083,0.893,0.0,100.0,24.3
+Michigan,Sanilac,42.34387,Rural,0.745,0.101,0.044,100.0,25.3
+Texas,Rockwall,869.6806,Not rural,0.48,0.51,0.0,68.1,5.1
+Michigan,Wayne,2911.876,Not rural,0.874,0.112,0.001,78.1,20.3
+Minnesota,Nobles,31.03549,Rural,0.794,0.156,0.016,100.0,20.4
+Minnesota,Aitkin,8.707187,Rural,0.668,0.161,0.024,100.0,20.4
+North Dakota,Ramsey,9.796966,Rural,0.601,0.346,0.006,100.0,17.1
+North Carolina,Person,99.73757,Rural,0.359,0.603,0.014,100.0,16.1
+Kansas,Trego,3.145679,Rural,0.769,0.215,0.0,100.0,10.5
+Mississippi,Washington,61.61016,Not rural,0.588,0.403,0.001,95.4,32.9
+Texas,Eastland,19.22487,Rural,0.454,0.517,0.0,100.0,25.9
+Mississippi,Issaquena,2.920235,Rural,0.48,0.52,0.0,100.0,56.8
+Texas,DeWitt,21.81135,Rural,0.331,0.651,0.0,100.0,32.8
+Texas,Angelina,108.5497,Not rural,0.298,0.684,0.0,93.1,13.0
+South Carolina,Saluda,41.86298,Rural,0.199,0.731,0.016,100.0,30.5
+Missouri,Maries,16.04233,Rural,0.355,0.398,0.0,100.0,29.2
+Arkansas,Arkansas,17.15886,Rural,0.399,0.582,0.0,100.0,25.9
+Missouri,Lawrence,62.49574,Rural,0.561,0.355,0.0,100.0,19.9
+Virginia,Charlottesville,4518.172,Not rural,0.457,0.531,0.004,66.7,14.8
+Illinois,Bureau,38.20514,Rural,0.847,0.128,0.005,100.0,15.5
+Ohio,Scioto,120.817,Not rural,0.535,0.412,0.015,91.9,21.3
+North Carolina,Madison,47.62738,Not rural,0.193,0.452,0.202,94.7,24.8
+Idaho,Jerome,40.95771,Rural,0.379,0.509,0.032,100.0,21.3
+Ohio,Vinton,31.01657,Rural,0.438,0.401,0.032,100.0,29.1
+Texas,McLennan,251.8505,Not rural,0.307,0.683,0.0,84.4,19.7
+Idaho,Custer,0.8825364,Rural,0.082,0.657,0.009,100.0,17.8
+Iowa,Howard,20.02973,Rural,0.778,0.125,0.021,100.0,20.2
+Florida,Palm Beach,760.9894,Not rural,0.039,0.926,0.001,80.9,12.7
+Georgia,Lincoln,36.72381,Rural,0.207,0.731,0.004,100.0,39.1
+Alabama,Butler,24.43365,Rural,0.28,0.701,0.001,100.0,33.8
+Tennessee,Sumner,371.7888,Not rural,0.439,0.549,0.002,73.3,11.0
+Virginia,King and Queen,21.19948,Rural,0.091,0.79,0.068,100.0,31.8
+Arkansas,Carroll,45.02422,Rural,0.441,0.474,0.006,100.0,25.6
+Virginia,Waynesboro,1492.405,Not rural,0.522,0.437,0.013,69.0,22.5
+Oregon,Multnomah,1874.853,Not rural,0.485,0.475,0.021,63.6,9.0
+Tennessee,Grundy,37.59252,Rural,0.34,0.574,0.002,100.0,28.3
+Minnesota,Hubbard,23.19516,Rural,0.531,0.303,0.018,100.0,15.6
+North Dakota,Sargent,4.459026,Rural,0.42,0.461,0.077,100.0,13.7
+New York,St. Lawrence,40.55766,Rural,0.465,0.135,0.255,100.0,16.8
+Missouri,Reynolds,7.547522,Rural,0.373,0.418,0.0,100.0,19.7
+California,Sacramento,1636.014,Not rural,0.609,0.37,0.001,79.8,9.2
+Ohio,Paulding,45.20995,Rural,0.557,0.386,0.011,100.0,18.2
+Indiana,Wells,76.52264,Rural,0.664,0.276,0.017,100.0,14.8
+Virginia,Floyd,40.77466,Rural,0.103,0.631,0.069,100.0,19.4
+California,Santa Barbara,162.847,Not rural,0.737,0.211,0.001,84.0,9.8
+West Virginia,Boone,43.27722,Rural,0.433,0.544,0.004,100.0,18.6
+Mississippi,Benton,18.78183,Rural,0.467,0.486,0.005,100.0,33.3
+Kentucky,Crittenden,24.97175,Rural,0.54,0.39,0.009,100.0,28.4
+Iowa,Palo Alto,15.85135,Rural,0.764,0.21,0.005,100.0,18.3
+Iowa,Ringgold,8.758209,Rural,0.599,0.283,0.015,100.0,18.2
+North Carolina,Randolph,184.584,Not rural,0.223,0.693,0.048,89.7,18.2
+Maryland,Cecil,299.9597,Not rural,0.369,0.373,0.196,82.4,11.7
+Indiana,Warren,23.1813,Rural,0.75,0.168,0.015,100.0,14.3
+Nebraska,Greeley,3.881988,Rural,0.612,0.373,0.0,100.0,19.9
+Nebraska,Jefferson,12.60133,Rural,0.57,0.386,0.012,100.0,19.9
+Nebraska,Saline,24.86668,Rural,0.559,0.363,0.001,100.0,16.8
+Kentucky,Knott,40.62881,Rural,0.431,0.535,0.015,100.0,29.4
+Iowa,Clinton,66.89318,Not rural,0.79,0.176,0.008,78.0,15.7
+Minnesota,Jackson,14.21109,Rural,0.818,0.118,0.031,100.0,14.7
+Minnesota,Dodge,47.54932,Rural,0.855,0.102,0.008,100.0,8.8
+Minnesota,Freeborn,43.62985,Rural,0.85,0.115,0.011,100.0,17.0
+California,Calaveras,44.77759,Rural,0.584,0.171,0.011,100.0,13.7
+Massachusetts,Barnstable,582.0292,Not rural,0.657,0.114,0.208,92.1,9.0
+Virginia,Middlesex,82.39061,Rural,0.136,0.762,0.066,100.0,24.8
+Pennsylvania,Jefferson,67.93888,Rural,0.752,0.08,0.076,100.0,22.9
+Indiana,Lake,997.5999,Not rural,0.883,0.103,0.003,77.9,15.4
+Tennessee,Bedford,106.6909,Not rural,0.228,0.748,0.001,88.8,21.6
+Tennessee,Clay,32.0975,Rural,0.159,0.783,0.0,100.0,37.9
+Illinois,Coles,92.61972,Not rural,0.561,0.423,0.0,84.2,16.3
+Tennessee,Lauderdale,53.34022,Rural,0.56,0.42,0.002,100.0,22.5
+Oregon,Baker,5.438456,Rural,0.491,0.303,0.05,100.0,16.8
+New York,Schuyler,54.37905,Rural,0.456,0.169,0.185,100.0,16.6
+Michigan,Van Buren,124.4436,Not rural,0.775,0.105,0.031,96.8,17.3
+Illinois,Mercer,27.95953,Rural,0.837,0.115,0.011,100.0,12.1
+Kentucky,Lawrence,39.04742,Rural,0.278,0.627,0.016,100.0,28.8
+Kentucky,Morgan,36.31559,Rural,0.312,0.579,0.012,100.0,24.0
+Kentucky,Muhlenberg,65.77426,Rural,0.381,0.592,0.003,100.0,20.1
+Illinois,Effingham,72.25614,Rural,0.625,0.337,0.0,100.0,13.3
+Tennessee,Loudon,242.1012,Not rural,0.325,0.65,0.008,79.6,17.8
+South Dakota,Clark,4.007261,Rural,0.669,0.295,0.01,100.0,20.6
+Florida,Gilchrist,51.67361,Rural,0.044,0.928,0.001,100.0,30.6
+Indiana,Tippecanoe,374.7362,Not rural,0.634,0.355,0.001,67.3,12.5
+Pennsylvania,Snyder,121.0429,Rural,0.191,0.338,0.311,100.0,20.8
+Texas,Lamar,55.27089,Not rural,0.38,0.597,0.001,88.6,29.3
+Florida,Miami-Dade,1414.918,Not rural,0.033,0.918,0.002,94.2,18.6
+Nebraska,Dundy,1.984389,Rural,0.728,0.204,0.005,100.0,19.8
+Texas,Leon,14.8422,Rural,0.297,0.654,0.0,100.0,26.6
+Colorado,Pitkin,17.84792,Rural,0.607,0.36,0.001,100.0,7.1
+North Dakota,Grand Forks,50.77685,Not rural,0.475,0.479,0.012,64.7,15.0
+Indiana,LaPorte,187.5606,Not rural,0.876,0.101,0.004,85.5,16.4
+Indiana,Hamilton,886.2678,Not rural,0.624,0.365,0.002,52.8,4.0
+Virginia,Emporia,822.7209,Rural,0.085,0.713,0.151,100.0,26.8
+Oklahoma,Lincoln,35.42106,Rural,0.487,0.452,0.001,100.0,27.7
+Kansas,Greeley,1.643105,Rural,0.785,0.183,0.0,100.0,11.9
+Georgia,Harris,75.27599,Not rural,0.175,0.802,0.001,99.8,12.4
+Georgia,Screven,21.71809,Rural,0.114,0.866,0.004,100.0,22.7
+Texas,Stonewall,1.452561,Rural,0.249,0.693,0.0,100.0,12.5
+Ohio,Henry,66.34693,Rural,0.742,0.193,0.011,100.0,10.9
+New Hampshire,Grafton,53.16404,Rural,0.29,0.106,0.468,100.0,13.8
+Missouri,Newton,94.46751,Not rural,0.424,0.485,0.001,94.4,21.4
+Indiana,Posey,61.61926,Not rural,0.544,0.434,0.001,97.4,15.6
+Texas,McMullen,0.5878228,Rural,0.134,0.866,0.0,100.0,16.3
+Illinois,Cumberland,30.19856,Rural,0.712,0.205,0.006,100.0,19.2
+Georgia,Walton,299.0999,Not rural,0.288,0.694,0.001,84.7,14.5
+Minnesota,Pope,16.7696,Rural,0.755,0.156,0.038,100.0,17.6
+Virginia,Rappahannock,27.86326,Rural,0.227,0.504,0.095,100.0,15.3
+Virginia,Amherst,66.30496,Not rural,0.043,0.846,0.054,88.1,26.1
+California,Ventura,457.421,Not rural,0.756,0.184,0.001,80.1,10.3
+Illinois,Crawford,42.21633,Rural,0.764,0.201,0.001,100.0,16.3
+Colorado,Park,8.022301,Rural,0.729,0.134,0.0,100.0,12.1
+California,Los Angeles,2447.312,Not rural,0.655,0.278,0.001,87.6,13.1
+Arizona,Yuma,37.06565,Not rural,0.224,0.699,0.0,92.4,17.5
+Georgia,Gordon,162.1158,Rural,0.303,0.676,0.0,100.0,21.7
+Iowa,Calhoun,17.36083,Rural,0.715,0.25,0.004,100.0,13.0
+Florida,Highlands,100.5631,Rural,0.029,0.944,0.0,100.0,21.8
+Virginia,Covington,1046.32,Rural,0.433,0.525,0.029,100.0,16.9
+Vermont,Orange,42.85101,Rural,0.26,0.03,0.402,100.0,16.2
+Kansas,McPherson,33.4916,Rural,0.738,0.234,0.002,100.0,13.3
+Arizona,Pinal,80.74615,Not rural,0.357,0.619,0.001,83.5,12.9
+Ohio,Fulton,105.0741,Not rural,0.785,0.165,0.005,96.9,12.5
+Colorado,Alamosa,22.77742,Rural,0.594,0.3,0.002,100.0,18.5
+Florida,Citrus,266.6563,Rural,0.025,0.956,0.001,100.0,14.2
+Tennessee,DeKalb,66.38637,Rural,0.391,0.59,0.0,100.0,23.8
+Pennsylvania,Clarion,62.39478,Rural,0.772,0.122,0.041,100.0,19.1
+South Dakota,Miner,4.054929,Rural,0.577,0.341,0.012,100.0,18.7
+South Dakota,Jerauld,3.489614,Rural,0.662,0.289,0.016,100.0,20.4
+Indiana,Decatur,70.94548,Rural,0.534,0.398,0.005,100.0,18.9
+Indiana,Dubois,102.0065,Rural,0.614,0.347,0.006,100.0,13.3
+Virginia,Essex,41.19922,Rural,0.112,0.762,0.107,100.0,33.1
+South Carolina,Williamsburg,33.05517,Rural,0.127,0.845,0.016,100.0,43.6
+New York,Essex,20.79792,Rural,0.203,0.199,0.476,100.0,17.3
+Iowa,Worth,18.53678,Rural,0.846,0.127,0.0,100.0,16.2
+Oklahoma,Hughes,16.66806,Rural,0.349,0.619,0.001,100.0,47.1
+Virginia,Buchanan,40.26215,Rural,0.056,0.873,0.022,100.0,29.6
+Virginia,Alleghany,33.94524,Rural,0.169,0.635,0.089,100.0,24.2
+Mississippi,Lowndes,115.8318,Not rural,0.406,0.587,0.0,94.0,19.3
+Indiana,Scott,128.1653,Rural,0.328,0.62,0.014,100.0,28.4
+Colorado,Prowers,7.304651,Rural,0.856,0.122,0.006,100.0,16.3
+Texas,Sutton,2.300653,Rural,0.287,0.709,0.0,100.0,44.1
+Oklahoma,Muskogee,82.1647,Not rural,0.418,0.553,0.001,90.8,25.4
+Missouri,Christian,159.195,Not rural,0.583,0.364,0.001,74.6,13.7
+Mississippi,Lamar,129.7401,Not rural,0.197,0.793,0.002,99.1,13.4
+Indiana,Ripley,64.93778,Rural,0.5,0.393,0.012,100.0,18.4
+North Dakota,Mercer,8.022779,Rural,0.638,0.339,0.005,100.0,12.7
+Georgia,Hart,112.3387,Rural,0.232,0.726,0.001,100.0,27.9
+Louisiana,Jackson,26.50789,Rural,0.401,0.565,0.001,100.0,22.7
+Virginia,Northumberland,62.72216,Rural,0.115,0.723,0.123,100.0,18.0
+Texas,Fort Bend,966.1356,Not rural,0.621,0.37,0.001,85.2,6.0
+Wisconsin,Green Lake,54.62259,Rural,0.805,0.107,0.012,100.0,23.3
+Montana,Pondera,3.68529,Rural,0.758,0.196,0.006,100.0,20.7
+Wisconsin,Walworth,189.2836,Rural,0.823,0.143,0.01,100.0,12.7
+Nevada,Mineral,1.217717,Rural,0.46,0.192,0.033,100.0,27.7
+Illinois,Fulton,38.91838,Rural,0.776,0.199,0.0,100.0,16.0
+New York,Suffolk,1673.563,Not rural,0.444,0.082,0.458,67.6,9.1
+Indiana,Union,43.68134,Rural,0.512,0.326,0.081,100.0,26.4
+Missouri,McDonald,43.34271,Rural,0.333,0.479,0.0,100.0,43.6
+Nebraska,Scotts Bluff,48.73933,Rural,0.647,0.319,0.0,100.0,16.0
+New Mexico,San Miguel,5.76404,Rural,0.505,0.126,0.017,100.0,32.5
+Alabama,Lee,288.2523,Not rural,0.201,0.788,0.0,73.7,14.7
+Texas,Parker,167.2952,Not rural,0.219,0.762,0.001,88.9,11.8
+North Dakota,Dickey,4.42159,Rural,0.413,0.438,0.095,100.0,15.6
+North Dakota,Barnes,7.258176,Rural,0.426,0.47,0.051,100.0,16.9
+Minnesota,Sibley,25.38885,Rural,0.77,0.119,0.058,100.0,17.3
+Georgia,Upson,85.44311,Rural,0.416,0.57,0.0,100.0,23.0
+California,Sonoma,310.0527,Not rural,0.704,0.24,0.001,79.3,8.5
+Michigan,Chippewa,23.52892,Rural,0.71,0.168,0.03,100.0,15.9
+Idaho,Bonneville,66.71587,Not rural,0.597,0.379,0.005,63.1,7.1
+Georgia,Barrow,524.0982,Not rural,0.215,0.77,0.003,93.6,13.3
+Georgia,Long,41.96814,Rural,0.07,0.92,0.0,100.0,12.8
+Texas,Kinney,2.320413,Rural,0.075,0.925,0.0,100.0,47.4
+Oklahoma,Ottawa,64.72153,Rural,0.502,0.411,0.001,100.0,27.6
+Pennsylvania,Clearfield,69.60339,Rural,0.355,0.111,0.415,100.0,21.9
+Michigan,Clinton,139.6829,Not rural,0.805,0.107,0.031,84.5,10.6
+Illinois,Montgomery,40.28612,Rural,0.726,0.239,0.002,100.0,21.1
+Mississippi,Alcorn,86.78285,Rural,0.431,0.557,0.002,100.0,23.6
+Mississippi,Lafayette,88.92233,Not rural,0.396,0.582,0.0,84.7,14.2
+Louisiana,Grant,34.49226,Rural,0.275,0.679,0.0,100.0,27.0
+Missouri,Atchison,9.629345,Rural,0.554,0.358,0.006,100.0,18.1
+Illinois,Macon,178.3437,Not rural,0.755,0.23,0.0,72.5,17.0
+Michigan,St. Joseph,121.6184,Rural,0.813,0.093,0.017,100.0,18.2
+Illinois,Franklin,92.46159,Rural,0.482,0.484,0.002,100.0,19.8
+Montana,Garfield,0.2087004,Rural,0.437,0.442,0.007,100.0,19.3
+Nebraska,Adams,55.28926,Not rural,0.646,0.329,0.0,66.4,14.0
+Minnesota,Olmsted,248.3624,Not rural,0.787,0.185,0.003,67.8,8.9
+New Jersey,Union,5566.794,Not rural,0.843,0.097,0.048,80.5,13.1
+Alabama,Mobile,336.6575,Not rural,0.356,0.633,0.001,81.6,21.3
+South Dakota,McCook,9.951144,Rural,0.684,0.235,0.029,100.0,15.6
+Alabama,Fayette,25.96371,Rural,0.339,0.627,0.002,100.0,23.8
+Alabama,Chambers,58.01986,Rural,0.281,0.692,0.002,100.0,24.5
+North Carolina,Northampton,32.65821,Rural,0.277,0.663,0.037,100.0,42.9
+Colorado,Moffat,2.789652,Rural,0.729,0.173,0.0,100.0,16.9
+Kentucky,Green,39.15894,Rural,0.303,0.567,0.01,100.0,23.0
+Indiana,Franklin,59.43929,Rural,0.49,0.349,0.031,100.0,18.9
+North Carolina,Beaufort,53.69168,Rural,0.395,0.567,0.017,100.0,26.0
+North Dakota,Burleigh,60.29481,Not rural,0.717,0.259,0.002,61.6,13.4
+North Carolina,Rowan,287.4595,Not rural,0.277,0.675,0.022,82.5,14.7
+Michigan,Iron,9.934858,Rural,0.811,0.052,0.015,100.0,24.2
+Minnesota,Kandiyohi,54.78795,Rural,0.746,0.197,0.018,100.0,13.6
+Kentucky,Wolfe,29.58687,Rural,0.346,0.457,0.06,100.0,26.6
+Texas,Fayette,25.85865,Rural,0.326,0.656,0.0,100.0,32.6
+South Dakota,Lawrence,32.5566,Rural,0.659,0.289,0.001,100.0,10.9
+Maine,Washington,12.13394,Rural,0.163,0.066,0.63,100.0,19.8
+Texas,Briscoe,1.433332,Rural,0.589,0.356,0.0,100.0,27.0
+Michigan,Ontonagon,4.471473,Rural,0.735,0.039,0.058,100.0,21.6
+Mississippi,Carroll,15.80234,Rural,0.578,0.391,0.0,100.0,30.6
+Oregon,Benton,141.6081,Not rural,0.411,0.528,0.003,67.4,7.2
+Minnesota,Rock,20.02037,Rural,0.692,0.232,0.024,100.0,14.1
+Pennsylvania,Indiana,100.7898,Rural,0.58,0.174,0.179,100.0,22.9
+Louisiana,Lincoln,102.4582,Not rural,0.461,0.525,0.0,91.2,13.6
+Pennsylvania,Perry,83.30953,Rural,0.143,0.326,0.327,100.0,18.3
+South Dakota,Ziebach,1.251754,Rural,0.764,0.195,0.01,100.0,43.4
+Texas,Harrison,76.77055,Not rural,0.293,0.694,0.0,91.8,29.2
+Michigan,Baraga,9.177151,Rural,0.764,0.048,0.048,100.0,19.3
+Oklahoma,Rogers,141.8726,Not rural,0.664,0.305,0.0,92.5,15.7
+Missouri,Boone,268.4601,Not rural,0.55,0.433,0.001,69.7,13.2
+Oklahoma,Caddo,21.0604,Rural,0.499,0.46,0.017,100.0,26.1
+Colorado,Jefferson,759.461,Not rural,0.745,0.232,0.001,62.0,7.0
+West Virginia,Cabell,334.3669,Not rural,0.475,0.5,0.001,85.1,22.4
+Texas,Reagan,2.814567,Rural,0.477,0.523,0.0,100.0,23.2
+Arkansas,Van Buren,22.40793,Rural,0.35,0.564,0.004,100.0,32.0
+Colorado,Summit,50.88535,Rural,0.569,0.378,0.005,100.0,14.2
+Kansas,Cowley,30.78958,Rural,0.721,0.242,0.003,100.0,17.5
+Arkansas,Johnson,39.22148,Rural,0.32,0.603,0.001,100.0,31.2
+New York,Hamilton,2.96382,Rural,0.283,0.067,0.409,100.0,21.2
+Virginia,Craig,14.92846,Rural,0.177,0.631,0.039,100.0,20.7
+Texas,Coleman,6.182525,Rural,0.536,0.453,0.0,100.0,23.4
+Arizona,Navajo,10.76537,Rural,0.417,0.207,0.001,100.0,38.2
+Mississippi,Lincoln,59.4585,Rural,0.286,0.701,0.0,100.0,33.5
+Texas,Ochiltree,10.81417,Rural,0.715,0.271,0.0,100.0,21.4
+Texas,Crane,5.905212,Rural,0.41,0.581,0.0,100.0,31.2
+Wyoming,Big Horn,3.726541,Rural,0.74,0.145,0.0,100.0,16.0
+Tennessee,Hickman,40.8109,Rural,0.224,0.719,0.001,100.0,26.9
+Mississippi,Tunica,21.55109,Rural,0.442,0.558,0.0,100.0,22.5
+Missouri,Harrison,11.33538,Rural,0.611,0.245,0.002,100.0,20.8
+Indiana,Bartholomew,202.4158,Not rural,0.567,0.4,0.003,78.8,15.4
+Georgia,Paulding,543.934,Not rural,0.587,0.395,0.001,71.9,12.3
+Ohio,Brown,89.29748,Rural,0.285,0.581,0.029,100.0,18.8
+Tennessee,Putnam,199.8398,Not rural,0.255,0.721,0.003,82.6,17.1
+North Dakota,Ward,34.541,Not rural,0.622,0.349,0.006,68.5,8.7
+Massachusetts,Worcester,568.5548,Not rural,0.374,0.184,0.397,71.2,9.8
+Ohio,Logan,100.5398,Rural,0.656,0.243,0.014,100.0,14.5
+California,Kings,109.6463,Not rural,0.742,0.223,0.001,89.0,17.5
+California,San Diego,781.3522,Not rural,0.594,0.332,0.001,79.4,7.7
+Georgia,Crawford,37.41295,Rural,0.208,0.766,0.004,100.0,22.8
+Missouri,Cass,155.3298,Not rural,0.649,0.322,0.001,78.5,11.4
+New York,Dutchess,372.6325,Not rural,0.342,0.163,0.459,97.8,8.6
+Texas,Washington,59.26407,Rural,0.311,0.662,0.0,100.0,21.3
+Colorado,Pueblo,70.44985,Not rural,0.801,0.17,0.001,79.9,18.1
+Missouri,Douglas,14.50672,Rural,0.52,0.245,0.004,100.0,33.5
+North Dakota,Bottineau,3.841549,Rural,0.317,0.594,0.055,100.0,14.2
+North Carolina,Cumberland,513.6812,Not rural,0.206,0.777,0.006,83.1,12.1
+Wyoming,Hot Springs,2.302897,Rural,0.794,0.109,0.001,100.0,17.4
+Michigan,Alcona,15.17516,Rural,0.712,0.06,0.022,100.0,23.6
+California,Placer,288.9716,Not rural,0.705,0.24,0.001,73.8,7.6
+Arkansas,Searcy,11.83398,Rural,0.32,0.451,0.0,100.0,33.8
+Texas,Lynn,6.300267,Rural,0.541,0.448,0.0,100.0,22.3
+New York,Otsego,59.57449,Rural,0.37,0.129,0.335,100.0,16.7
+North Carolina,Richmond,91.09136,Rural,0.271,0.685,0.026,100.0,23.3
+North Carolina,Hoke,134.8497,Not rural,0.135,0.844,0.007,88.8,17.5
+Nebraska,Otoe,25.98009,Rural,0.635,0.326,0.005,100.0,13.0
+Pennsylvania,Cameron,11.4478,Rural,0.606,0.136,0.1,100.0,21.8
+South Carolina,Dorchester,285.2155,Not rural,0.215,0.774,0.001,71.9,15.3
+Minnesota,Waseca,44.76773,Rural,0.843,0.114,0.01,100.0,10.8
+South Dakota,Brule,6.420534,Rural,0.369,0.536,0.034,100.0,24.4
+Tennessee,Warren,95.13641,Rural,0.246,0.727,0.002,100.0,24.2
+Illinois,Clark,30.84917,Rural,0.754,0.18,0.0,100.0,18.8
+Kentucky,Robertson,22.16071,Rural,0.256,0.634,0.024,100.0,44.8
+Tennessee,Lake,41.6081,Rural,0.381,0.575,0.0,100.0,28.9
+South Carolina,Berkeley,209.6871,Not rural,0.193,0.793,0.002,75.7,15.0
+Arkansas,Garland,147.6075,Not rural,0.34,0.637,0.001,89.7,17.5
+Kansas,Osage,22.37683,Rural,0.724,0.208,0.001,100.0,17.1
+Ohio,Trumbull,326.6773,Not rural,0.825,0.119,0.023,74.1,19.6
+Texas,Mills,6.015574,Rural,0.466,0.492,0.0,100.0,21.2
+Texas,Oldham,1.446829,Rural,0.594,0.384,0.002,100.0,18.8
+Pennsylvania,Butler,246.4413,Not rural,0.715,0.191,0.067,83.9,10.4
+Idaho,Idaho,1.980183,Rural,0.116,0.388,0.113,100.0,23.2
+Kansas,Marion,12.567,Rural,0.768,0.174,0.002,100.0,18.2
+Virginia,Buckingham,29.10342,Rural,0.145,0.715,0.042,100.0,33.8
+North Carolina,Cabarrus,626.7324,Not rural,0.431,0.548,0.01,73.1,8.6
+Missouri,Webster,66.26298,Rural,0.443,0.421,0.001,100.0,27.9
+Utah,Davis,1117.998,Not rural,0.88,0.111,0.0,46.6,5.8
+Minnesota,Cottonwood,17.93982,Rural,0.825,0.118,0.029,100.0,18.4
+Florida,Okeechobee,51.82725,Rural,0.049,0.919,0.001,100.0,37.0
+Georgia,Union,77.2466,Rural,0.463,0.464,0.005,100.0,22.6
+Iowa,Black Hawk,231.6207,Not rural,0.689,0.295,0.002,65.6,14.6
+Texas,Sabine,20.29651,Rural,0.192,0.748,0.0,100.0,20.8
+Ohio,Pike,61.66729,Rural,0.425,0.498,0.025,100.0,23.5
+Alabama,Tuscaloosa,175.3101,Not rural,0.298,0.694,0.0,81.2,17.2
+Alabama,Wilcox,11.75977,Rural,0.304,0.662,0.003,100.0,35.8
+Mississippi,Montgomery,24.08714,Rural,0.551,0.408,0.004,100.0,29.9
+Nebraska,Kearney,12.89121,Rural,0.691,0.29,0.001,100.0,11.4
+Nebraska,Hitchcock,3.690439,Rural,0.584,0.317,0.03,100.0,23.9
+Delaware,New Castle,1338.301,Not rural,0.58,0.3,0.107,75.0,10.6
+Idaho,Teton,26.30425,Rural,0.457,0.395,0.024,100.0,9.3
+Illinois,Rock Island,336.4218,Not rural,0.833,0.154,0.0,72.7,14.0
+Virginia,Gloucester,178.4814,Not rural,0.107,0.803,0.046,90.5,12.2
+Arkansas,Sevier,28.23612,Rural,0.217,0.724,0.0,100.0,21.0
+Indiana,Cass,91.76402,Rural,0.773,0.177,0.001,100.0,19.7
+Idaho,Power,5.6403,Not rural,0.536,0.378,0.021,99.9,18.1
+Indiana,Carroll,54.79755,Rural,0.689,0.253,0.004,100.0,18.6
+Pennsylvania,Philadelphia,11858.07,Not rural,0.721,0.234,0.031,83.4,18.8
+Wyoming,Washakie,3.450695,Rural,0.767,0.154,0.001,100.0,15.3
+North Carolina,Camden,43.8864,Rural,0.184,0.789,0.004,100.0,9.4
+New York,Tompkins,216.0683,Not rural,0.599,0.244,0.072,89.6,12.3
+Arkansas,Jefferson,76.72877,Not rural,0.47,0.516,0.001,96.6,35.3
+Arkansas,Lincoln,23.26506,Rural,0.35,0.634,0.0,100.0,41.4
+Wisconsin,Vernon,38.92426,Not rural,0.679,0.096,0.032,99.5,26.4
+Missouri,Iron,17.33353,Rural,0.382,0.513,0.0,100.0,27.3
+Texas,Hopkins,48.22322,Rural,0.278,0.696,0.0,100.0,15.7
+New York,Albany,602.502,Not rural,0.684,0.216,0.072,69.1,11.7
+Texas,Houston,17.95855,Rural,0.345,0.632,0.0,100.0,33.5
+Ohio,Monroe,29.40601,Rural,0.678,0.197,0.047,100.0,27.2
+Kansas,Rush,4.094666,Rural,0.865,0.103,0.0,100.0,15.8
+Indiana,Montgomery,75.33579,Rural,0.702,0.247,0.019,100.0,13.6
+Kansas,Stanton,3.027845,Rural,0.87,0.13,0.0,100.0,18.9
+Kentucky,Lee,35.1402,Rural,0.221,0.62,0.061,100.0,30.8
+Minnesota,Koochiching,3.888292,Rural,0.735,0.147,0.028,100.0,16.9
+Texas,Bexar,1623.816,Not rural,0.295,0.691,0.001,87.9,15.8
+Colorado,Boulder,452.4577,Not rural,0.737,0.237,0.0,61.1,6.7
+Tennessee,Jefferson,199.9515,Rural,0.179,0.788,0.01,100.0,20.6
+Oklahoma,Mayes,60.00314,Rural,0.465,0.465,0.0,100.0,18.9
+Minnesota,Watonwan,25.76173,Rural,0.768,0.165,0.024,100.0,24.6
+Idaho,Blaine,9.192725,Rural,0.492,0.409,0.011,100.0,12.3
+Louisiana,Jefferson Davis,49.54104,Rural,0.295,0.698,0.003,100.0,23.6
+South Dakota,Sully,1.309193,Rural,0.533,0.424,0.017,100.0,15.4
+Colorado,Denver,4643.502,Not rural,0.642,0.336,0.001,67.7,11.2
+Oklahoma,Coal,10.23081,Rural,0.514,0.447,0.0,100.0,30.8
+Montana,Carter,0.3987454,Rural,0.726,0.152,0.0,100.0,16.0
+Texas,Upton,2.645565,Rural,0.478,0.506,0.004,100.0,41.3
+Indiana,Gibson,67.72157,Rural,0.598,0.37,0.003,100.0,15.0
+Nebraska,Kimball,3.566396,Rural,0.754,0.199,0.0,100.0,21.2
+Illinois,Kendall,414.6758,Not rural,0.914,0.081,0.0,60.4,4.2
+District of Columbia,District of Columbia,10970.53,Not rural,0.513,0.447,0.009,73.5,15.9
+Colorado,Montrose,19.10934,Rural,0.763,0.14,0.002,100.0,19.9
+Minnesota,Wright,215.5956,Not rural,0.826,0.138,0.011,82.7,8.5
+Wisconsin,Kenosha,620.5757,Not rural,0.816,0.161,0.007,73.0,11.0
+Colorado,Eagle,33.0371,Rural,0.675,0.3,0.0,100.0,10.0
+California,San Francisco,18209.41,Not rural,0.595,0.33,0.001,76.4,8.6
+Colorado,San Miguel,6.281062,Rural,0.621,0.291,0.017,100.0,13.3
+Florida,St. Johns,464.041,Not rural,0.079,0.904,0.002,83.4,10.5
+Mississippi,Choctaw,19.62711,Rural,0.501,0.47,0.0,100.0,26.4
+Missouri,Grundy,22.69277,Rural,0.583,0.295,0.0,100.0,25.3
+Michigan,Lake,21.644,Rural,0.691,0.06,0.036,100.0,30.2
+Michigan,Ottawa,525.5949,Not rural,0.877,0.091,0.01,81.3,9.5
+Illinois,Cook,5529.932,Not rural,0.825,0.154,0.001,78.3,14.8
+Illinois,Gallatin,15.38051,Rural,0.702,0.283,0.001,100.0,27.1
+South Carolina,Greenwood,152.1255,Not rural,0.324,0.662,0.004,92.5,22.9
+Kansas,Franklin,45.41672,Rural,0.659,0.282,0.001,100.0,23.8
+Minnesota,Clay,62.48421,Not rural,0.59,0.35,0.029,64.8,13.9
+Tennessee,Haywood,33.40041,Rural,0.469,0.514,0.0,100.0,33.9
+Utah,Box Elder,10.08267,Not rural,0.867,0.097,0.0,75.1,9.1
+Mississippi,Tippah,47.549,Rural,0.587,0.386,0.006,100.0,27.5
+West Virginia,Marshall,99.88824,Not rural,0.578,0.336,0.028,99.9,23.0
+West Virginia,Jackson,60.01387,Rural,0.375,0.573,0.0,100.0,18.6
+Idaho,Elmore,9.350004,Rural,0.574,0.348,0.001,100.0,13.5
+Maryland,Baltimore,1421.785,Not rural,0.548,0.361,0.076,76.4,10.3
+North Dakota,Benson,4.292231,Rural,0.587,0.319,0.066,100.0,43.0
+Missouri,Pike,26.42896,Rural,0.48,0.469,0.001,100.0,21.2
+Ohio,Lawrence,127.9111,Rural,0.537,0.438,0.001,100.0,20.0
+Missouri,Scott,90.606,Rural,0.46,0.521,0.001,100.0,17.5
+Ohio,Adams,47.11478,Rural,0.314,0.543,0.028,100.0,30.2
+Texas,Erath,39.50225,Not rural,0.263,0.723,0.0,82.8,16.6
+Georgia,Habersham,167.3224,Rural,0.257,0.705,0.002,100.0,23.5
+Georgia,Wilkinson,19.70551,Rural,0.245,0.733,0.0,100.0,35.7
+West Virginia,Monongalia,294.3359,Not rural,0.569,0.397,0.01,90.3,10.9
+Ohio,Crawford,104.1874,Rural,0.721,0.19,0.039,100.0,16.9
+Florida,DeSoto,53.806,Not rural,0.038,0.918,0.003,99.0,41.9
+Ohio,Guernsey,73.54642,Rural,0.589,0.289,0.048,100.0,22.9
+Michigan,Barry,113.145,Rural,0.773,0.072,0.036,100.0,14.7
+Missouri,Stone,67.51363,Rural,0.306,0.629,0.005,100.0,16.4
+Virginia,Richmond,3790.921,Not rural,0.358,0.584,0.044,76.4,21.5
+North Carolina,Stokes,99.46928,Not rural,0.11,0.753,0.088,89.1,26.7
+Iowa,Clarke,22.58581,Rural,0.507,0.387,0.002,100.0,19.3
+Iowa,Fayette,26.70847,Rural,0.784,0.152,0.009,100.0,15.5
+California,Marin,500.5252,Not rural,0.723,0.248,0.001,69.4,6.8
+Texas,Randall,155.0207,Not rural,0.58,0.409,0.0,77.1,9.9
+Texas,Rusk,57.08189,Rural,0.348,0.633,0.0,100.0,35.0
+Iowa,Warren,92.52738,Not rural,0.725,0.247,0.006,90.1,10.4
+Ohio,Van Wert,70.47054,Rural,0.642,0.296,0.009,100.0,19.6
+Florida,Glades,15.09503,Rural,0.029,0.92,0.0,100.0,34.1
+Georgia,Meriwether,41.28315,Rural,0.276,0.68,0.0,100.0,33.1
+Colorado,Costilla,2.878803,Rural,0.431,0.131,0.07,100.0,23.5
+Texas,Coryell,78.80943,Not rural,0.259,0.721,0.0,82.1,9.8
+Iowa,Adair,13.13786,Rural,0.754,0.218,0.004,100.0,20.5
+Georgia,Chattahoochee,37.79896,Not rural,0.18,0.784,0.005,73.7,18.0
+California,Mariposa,11.82326,Rural,0.418,0.18,0.01,100.0,22.2
+Missouri,Howard,21.86713,Rural,0.608,0.313,0.004,100.0,17.2
+Oregon,Marion,292.8541,Not rural,0.429,0.516,0.01,79.3,10.7
+Wisconsin,Milwaukee,3864.295,Not rural,0.801,0.174,0.008,75.4,17.7
+Minnesota,Scott,425.0007,Not rural,0.857,0.126,0.001,65.4,5.8
+Ohio,Pickaway,117.338,Not rural,0.667,0.252,0.044,98.0,13.9
+Virginia,Powhatan,117.2279,Not rural,0.116,0.804,0.025,99.9,7.6
+Colorado,Broomfield,2242.964,Not rural,0.728,0.261,0.0,55.8,4.7
+Tennessee,Lawrence,71.90868,Rural,0.387,0.538,0.002,100.0,24.3
+Michigan,Antrim,49.74364,Rural,0.721,0.104,0.008,100.0,17.1
+South Carolina,Marlboro,55.39999,Rural,0.23,0.743,0.014,100.0,31.9
+Idaho,Benewah,12.52492,Rural,0.118,0.398,0.117,100.0,24.6
+Illinois,Lee,47.21645,Rural,0.777,0.201,0.002,100.0,13.4
+Nebraska,Nemaha,17.22976,Rural,0.604,0.323,0.005,100.0,17.6
+North Carolina,Carteret,134.6581,Rural,0.109,0.869,0.007,100.0,12.1
+Kansas,Pottawatomie,30.3092,Not rural,0.729,0.21,0.002,96.2,9.7
+Michigan,Jackson,228.8612,Not rural,0.843,0.108,0.008,93.8,13.3
+Texas,Comal,295.2506,Not rural,0.202,0.783,0.0,80.1,8.3
+Massachusetts,Nantucket,304.4884,Rural,0.422,0.228,0.335,100.0,5.0
+South Carolina,Bamberg,33.83865,Rural,0.245,0.727,0.022,100.0,31.1
+Texas,Aransas,95.40257,Rural,0.243,0.721,0.0,100.0,13.3
+Georgia,Berrien,40.11457,Rural,0.088,0.9,0.0,100.0,29.6
+Indiana,Vermillion,60.2894,Rural,0.553,0.397,0.005,100.0,16.5
+Michigan,Roscommon,45.309,Rural,0.846,0.072,0.002,100.0,17.4
+North Carolina,Alleghany,46.79452,Rural,0.197,0.475,0.196,100.0,20.1
+California,Lassen,7.018368,Rural,0.318,0.152,0.162,100.0,16.2
+Virginia,Falls Church,7122.604,Not rural,0.56,0.413,0.005,56.0,4.5
+Florida,Manatee,545.3552,Not rural,0.089,0.892,0.001,77.7,15.4
+Ohio,Muskingum,130.0031,Not rural,0.621,0.291,0.039,90.1,17.5
+Colorado,Chaffee,19.30515,Rural,0.722,0.18,0.0,100.0,14.1
+Colorado,Crowley,7.342898,Rural,0.85,0.085,0.0,100.0,15.9
+Colorado,Fremont,32.01583,Rural,0.796,0.126,0.003,100.0,13.9
+Mississippi,Pearl River,69.45601,Rural,0.121,0.855,0.002,100.0,20.2
+Mississippi,Perry,17.7836,Rural,0.14,0.825,0.0,100.0,22.8
+Nebraska,Custer,4.102355,Rural,0.6,0.356,0.001,100.0,18.9
+Florida,Calhoun,24.24135,Rural,0.111,0.853,0.0,100.0,25.4
+Kentucky,Kenton,1054.218,Not rural,0.554,0.413,0.017,57.4,10.6
+Iowa,Chickasaw,23.70897,Rural,0.821,0.146,0.009,100.0,17.1
+Illinois,DeKalb,159.4806,Not rural,0.782,0.206,0.003,81.9,8.1
+Iowa,Hancock,18.89652,Rural,0.816,0.155,0.007,100.0,16.9
+North Dakota,Stark,24.71247,Not rural,0.598,0.364,0.007,65.2,15.0
+Michigan,Luce,6.052887,Rural,0.693,0.113,0.016,100.0,21.9
+Oklahoma,Carter,58.61842,Not rural,0.369,0.598,0.002,85.8,27.0
+North Carolina,Pasquotank,178.3076,Rural,0.177,0.784,0.023,100.0,16.5
+New Mexico,Taos,15.65357,Rural,0.602,0.083,0.004,100.0,28.2
+Mississippi,Bolivar,35.01171,Rural,0.572,0.417,0.007,100.0,34.1
+Nevada,Nye,2.843375,Not rural,0.134,0.768,0.007,82.8,20.5
+Tennessee,Hawkins,117.2495,Not rural,0.235,0.721,0.005,87.3,25.3
+North Dakota,Bowman,2.560663,Rural,0.745,0.235,0.0,100.0,12.4
+Pennsylvania,Fulton,33.24181,Rural,0.058,0.358,0.37,100.0,21.4
+Louisiana,Lafayette,904.5795,Not rural,0.208,0.787,0.0,73.3,12.0
+Texas,Jack,9.427297,Rural,0.478,0.513,0.0,100.0,25.5
+Illinois,Stark,18.72578,Rural,0.78,0.203,0.001,100.0,17.4
+Oklahoma,Greer,8.651855,Rural,0.76,0.195,0.0,100.0,18.1
+Texas,Hemphill,3.719576,Rural,0.565,0.386,0.0,100.0,19.3
+Idaho,Nez Perce,49.74535,Not rural,0.515,0.393,0.028,64.4,15.2
+South Dakota,Walworth,7.515669,Rural,0.748,0.218,0.02,100.0,29.9
+California,Napa,182.6976,Not rural,0.691,0.27,0.001,83.6,8.6
+Oklahoma,Cotton,8.75225,Rural,0.431,0.501,0.017,100.0,23.5
+Missouri,Washington,31.03179,Rural,0.235,0.636,0.0,100.0,25.8
+New York,Cayuga,110.1394,Not rural,0.625,0.137,0.133,88.1,16.9
+Texas,Shackelford,3.427812,Rural,0.346,0.645,0.008,100.0,17.0
+Texas,San Jacinto,48.60139,Rural,0.197,0.767,0.0,100.0,21.5
+Iowa,Dubuque,162.44,Not rural,0.803,0.155,0.011,69.5,12.2
+Virginia,Goochland,88.3101,Not rural,0.14,0.775,0.036,99.0,12.4
+Kansas,Sherman,5.624659,Rural,0.845,0.135,0.0,100.0,10.8
+Ohio,Richland,252.4257,Not rural,0.705,0.212,0.039,89.6,18.5
+Illinois,Adams,76.69188,Not rural,0.647,0.324,0.002,73.8,16.4
+Ohio,Champaign,90.24902,Rural,0.593,0.253,0.063,100.0,11.1
+New Hampshire,Sullivan,80.606,Rural,0.277,0.053,0.515,100.0,14.3
+Illinois,Iroquois,24.20183,Rural,0.784,0.194,0.006,100.0,14.7
+Iowa,Poweshiek,31.81274,Rural,0.679,0.267,0.006,100.0,16.8
+Ohio,Wayne,210.3142,Not rural,0.712,0.186,0.035,85.2,19.1
+Georgia,Fayette,612.9463,Not rural,0.68,0.312,0.001,76.0,7.4
+Georgia,Hancock,18.23096,Rural,0.432,0.528,0.0,100.0,44.8
+Texas,Kendall,68.49684,Not rural,0.207,0.779,0.0,98.0,9.1
+New York,Greene,74.27357,Rural,0.261,0.147,0.505,100.0,18.7
+Virginia,Orange,107.4637,Rural,0.179,0.694,0.079,100.0,18.7
+Oklahoma,McCurtain,16.75132,Rural,0.248,0.674,0.022,100.0,35.4
+Georgia,Tift,158.101,Rural,0.128,0.86,0.0,100.0,33.8
+Nebraska,Cass,47.99348,Not rural,0.652,0.304,0.006,99.9,10.4
+South Dakota,Kingsbury,6.214576,Rural,0.663,0.268,0.002,100.0,16.8
+Wyoming,Converse,3.226561,Rural,0.78,0.154,0.0,100.0,16.3
+New York,Herkimer,42.74323,Not rural,0.524,0.13,0.232,99.5,14.6
+North Dakota,Logan,1.862787,Rural,0.384,0.395,0.168,100.0,20.9
+Michigan,Gogebic,13.24429,Rural,0.826,0.069,0.039,100.0,25.2
+Minnesota,Becker,26.76883,Rural,0.59,0.278,0.03,100.0,14.8
+Alabama,Marshall,173.0562,Not rural,0.304,0.678,0.0,92.7,15.7
+Tennessee,Union,88.82598,Rural,0.073,0.886,0.002,100.0,30.4
+West Virginia,Mineral,82.21562,Rural,0.276,0.455,0.106,100.0,15.4
+Wisconsin,Ashland,15.35069,Rural,0.747,0.116,0.01,100.0,20.5
+Illinois,Ford,27.76789,Rural,0.779,0.189,0.01,100.0,14.0
+North Dakota,Emmons,2.185759,Rural,0.474,0.369,0.121,100.0,30.0
+California,Shasta,48.1644,Not rural,0.498,0.331,0.027,76.0,15.0
+Louisiana,Vermilion,48.80482,Not rural,0.234,0.749,0.001,97.9,15.9
+Arkansas,Randolph,28.56058,Rural,0.656,0.252,0.008,100.0,26.4
+Wisconsin,Oneida,33.93257,Rural,0.843,0.087,0.005,100.0,13.1
+Louisiana,East Carroll,17.51301,Rural,0.511,0.452,0.0,100.0,57.4
+Louisiana,East Feliciana,42.91266,Rural,0.261,0.688,0.02,100.0,33.5
+Louisiana,St. Bernard,116.6518,Not rural,0.486,0.511,0.0,76.0,17.6
+Texas,Wharton,38.31358,Rural,0.385,0.609,0.0,100.0,24.1
+Texas,Floyd,5.428655,Rural,0.569,0.417,0.003,100.0,18.7
+Kentucky,Madison,212.2604,Not rural,0.174,0.805,0.001,85.3,13.9
+Tennessee,Blount,243.2823,Not rural,0.296,0.681,0.002,72.3,16.1
+Montana,Gallatin,45.93813,Not rural,0.642,0.31,0.002,79.5,9.4
+South Carolina,Darlington,112.4211,Rural,0.098,0.88,0.013,100.0,23.7
+Alabama,Escambia,38.8774,Rural,0.137,0.844,0.0,100.0,33.4
+Georgia,Haralson,106.9515,Rural,0.453,0.518,0.003,100.0,17.4
+Kansas,Allen,25.09307,Rural,0.715,0.243,0.002,100.0,19.7
+Illinois,Douglas,47.31585,Rural,0.689,0.254,0.005,100.0,23.6
+Virginia,Greene,132.2949,Rural,0.181,0.696,0.031,100.0,11.9
+Wisconsin,Waushara,39.402,Rural,0.773,0.096,0.017,100.0,20.3
+Arkansas,Izard,23.69523,Rural,0.323,0.577,0.0,100.0,44.2
+California,Monterey,133.3475,Not rural,0.518,0.428,0.001,92.3,14.7
+New Mexico,Grant,7.070067,Rural,0.475,0.421,0.0,100.0,23.2
+Missouri,Miller,41.9443,Rural,0.235,0.658,0.001,100.0,23.3
+North Carolina,Wilkes,87.73644,Rural,0.133,0.714,0.088,100.0,19.9
+Missouri,Platte,254.9476,Not rural,0.639,0.35,0.001,68.8,7.7
+Missouri,Buchanan,207.0891,Not rural,0.612,0.372,0.0,67.8,18.6
+Alabama,Limestone,184.9456,Not rural,0.21,0.779,0.002,87.1,16.9
+Indiana,Henry,124.8171,Rural,0.682,0.254,0.02,100.0,21.9
+Nebraska,Polk,11.81295,Rural,0.581,0.384,0.0,100.0,9.7
+Ohio,Ottawa,158.4873,Not rural,0.745,0.191,0.016,97.9,14.4
+Minnesota,Norman,7.398123,Rural,0.568,0.267,0.103,100.0,22.2
+Iowa,Shelby,19.86699,Rural,0.675,0.298,0.004,100.0,16.9
+Maryland,Carroll,386.9827,Not rural,0.254,0.494,0.191,86.2,9.0
+Iowa,Benton,35.8217,Rural,0.76,0.191,0.003,100.0,14.6
+Kentucky,Martin,49.20267,Rural,0.328,0.607,0.012,100.0,20.7
+Minnesota,Chisago,137.2067,Rural,0.834,0.114,0.011,100.0,9.3
+Kentucky,Owsley,20.53677,Rural,0.105,0.633,0.152,100.0,28.3
+Pennsylvania,Bradford,52.43183,Rural,0.459,0.161,0.219,100.0,15.5
+West Virginia,Hancock,349.9212,Rural,0.688,0.242,0.037,100.0,17.0
+Missouri,Cole,196.3745,Not rural,0.426,0.533,0.0,79.8,24.7
+Michigan,Berrien,271.1222,Not rural,0.727,0.212,0.028,93.2,20.7
+Pennsylvania,Huntingdon,50.44982,Rural,0.122,0.214,0.488,100.0,17.6
+Nebraska,Dawes,5.928855,Rural,0.659,0.286,0.019,100.0,11.6
+Virginia,Patrick,36.5666,Rural,0.143,0.618,0.091,100.0,25.3
+Michigan,Montmorency,16.9406,Rural,0.817,0.032,0.015,100.0,22.7
+Michigan,Oscoda,14.60913,Rural,0.697,0.064,0.015,100.0,33.6
+New Mexico,Colfax,3.291666,Rural,0.771,0.111,0.001,100.0,26.8
+Illinois,St. Clair,390.417,Not rural,0.659,0.329,0.002,77.2,17.8
+Illinois,Washington,24.49532,Rural,0.648,0.305,0.009,100.0,18.0
+Pennsylvania,Bedford,47.03707,Rural,0.085,0.248,0.501,100.0,20.4
+Arkansas,Scott,11.05561,Rural,0.261,0.548,0.013,100.0,33.0
+Kansas,Labette,31.13761,Rural,0.68,0.255,0.0,100.0,20.9
+Pennsylvania,Lawrence,240.3847,Not rural,0.599,0.247,0.112,91.7,16.6
+Ohio,Harrison,36.10957,Rural,0.492,0.243,0.126,100.0,22.5
+North Carolina,Alexander,140.4119,Rural,0.097,0.791,0.054,100.0,19.3
+New Jersey,Cape May,379.5146,Rural,0.727,0.199,0.044,100.0,11.0
+New Hampshire,Cheshire,108.4039,Not rural,0.158,0.09,0.596,85.5,11.0
+Minnesota,Marshall,5.079828,Rural,0.627,0.245,0.061,100.0,17.4
+Virginia,King William,65.14902,Rural,0.062,0.843,0.046,100.0,21.0
+Colorado,Huerfano,4.334291,Rural,0.738,0.108,0.0,100.0,28.3
+Texas,Karnes,19.79934,Rural,0.232,0.748,0.004,100.0,25.2
+Tennessee,Chester,60.86732,Rural,0.534,0.453,0.006,100.0,17.3
+Illinois,Scott,19.5343,Rural,0.738,0.232,0.009,100.0,14.3
+Utah,Millard,1.919834,Rural,0.799,0.106,0.0,100.0,12.0
+Utah,Morgan,20.30048,Rural,0.918,0.061,0.0,100.0,2.5
+Texas,Kaufman,191.8236,Not rural,0.318,0.67,0.001,93.8,16.2
+Arizona,Greenlee,5.145857,Rural,0.651,0.311,0.003,100.0,11.8
+Arizona,Maricopa,481.5109,Not rural,0.284,0.695,0.001,75.4,11.9
+Michigan,Ogemaw,36.94744,Rural,0.712,0.069,0.029,100.0,21.1
+Tennessee,Jackson,37.98455,Rural,0.198,0.713,0.004,100.0,25.1
+Illinois,Richland,43.65142,Rural,0.764,0.2,0.0,100.0,15.4
+Alabama,Blount,91.60778,Not rural,0.233,0.747,0.001,99.7,21.2
+Montana,Liberty,1.393718,Rural,0.668,0.271,0.027,100.0,31.8
+Texas,Duval,5.553458,Rural,0.159,0.806,0.017,100.0,30.8
+Missouri,Ralls,22.04403,Rural,0.57,0.343,0.002,100.0,16.9
+Texas,Johnson,251.9691,Not rural,0.181,0.808,0.001,82.6,12.1
+Georgia,Clay,14.61076,Rural,0.108,0.892,0.0,100.0,27.2
+Oregon,Grant,1.598351,Rural,0.059,0.3,0.204,100.0,17.6
+Oregon,Coos,40.66806,Rural,0.071,0.693,0.03,100.0,16.3
+Texas,Franklin,36.72757,Rural,0.211,0.774,0.0,100.0,13.7
+New York,Warren,75.74073,Rural,0.574,0.148,0.215,100.0,11.9
+Virginia,Madison,43.12642,Rural,0.182,0.509,0.107,100.0,25.7
+Oklahoma,Atoka,14.47224,Rural,0.354,0.562,0.004,100.0,24.0
+Illinois,Menard,39.07234,Rural,0.789,0.183,0.003,100.0,11.8
+Georgia,Bartow,238.4133,Not rural,0.364,0.614,0.003,90.1,18.4
+Florida,Lake,406.4182,Not rural,0.116,0.864,0.001,87.0,11.3
+Oklahoma,Okmulgee,52.90752,Rural,0.592,0.367,0.0,100.0,24.1
+North Dakota,Sheridan,1.376223,Rural,0.602,0.315,0.045,100.0,25.6
+Indiana,Fulton,55.42994,Rural,0.744,0.184,0.011,100.0,19.6
+Kansas,Johnson,1289.509,Not rural,0.723,0.27,0.001,56.4,4.9
+Maryland,Calvert,437.3759,Rural,0.127,0.709,0.103,100.0,6.9
+Wisconsin,Washburn,20.93176,Rural,0.754,0.087,0.022,100.0,17.1
+Washington,Jefferson,18.29877,Rural,0.185,0.649,0.018,100.0,10.0
+Minnesota,Winona,79.51744,Not rural,0.69,0.241,0.024,74.1,12.5
+Mississippi,Warren,75.34144,Not rural,0.365,0.619,0.001,93.6,20.1
+Missouri,Andrew,41.76534,Not rural,0.442,0.463,0.004,95.3,17.6
+Missouri,Montgomery,21.34579,Rural,0.391,0.519,0.002,100.0,28.7
+Kansas,Cherokee,32.98348,Rural,0.554,0.402,0.0,100.0,19.6
+North Carolina,Halifax,67.38902,Rural,0.332,0.609,0.041,100.0,38.7
+New Mexico,Sandoval,40.28361,Not rural,0.811,0.119,0.002,84.8,17.7
+Kentucky,Clay,43.30318,Rural,0.323,0.562,0.066,100.0,27.0
+Pennsylvania,Clinton,42.55704,Rural,0.224,0.266,0.387,100.0,20.0
+Oregon,Linn,56.16829,Not rural,0.372,0.528,0.006,85.0,12.6
+Wisconsin,Lafayette,26.38307,Rural,0.716,0.092,0.095,100.0,20.9
+Oklahoma,Washington,126.5367,Not rural,0.706,0.274,0.0,78.0,17.8
+West Virginia,Preston,52.72081,Rural,0.368,0.287,0.158,100.0,17.7
+Wisconsin,Waupaca,69.30901,Rural,0.771,0.107,0.029,100.0,15.8
+Texas,Edwards,0.6515974,Rural,0.31,0.69,0.0,100.0,40.2
+Oregon,Lake,1.007666,Rural,0.126,0.317,0.203,100.0,29.0
+Missouri,Ozark,11.66166,Rural,0.444,0.325,0.001,100.0,24.7
+Texas,Waller,111.949,Not rural,0.283,0.69,0.002,99.1,27.6
+Alabama,Monroe,19.32008,Rural,0.187,0.795,0.003,100.0,55.4
+Vermont,Essex,9.022148,Rural,0.155,0.008,0.535,100.0,20.4
+Virginia,Lunenburg,27.76929,Rural,0.195,0.512,0.2,100.0,38.9
+North Dakota,Traill,9.286773,Rural,0.349,0.443,0.115,100.0,14.0
+Georgia,Hall,521.5165,Not rural,0.315,0.668,0.002,93.8,12.6
+Georgia,Treutlen,32.14644,Rural,0.164,0.8,0.0,100.0,25.1
+Georgia,Calhoun,19.9512,Rural,0.138,0.859,0.0,100.0,26.9
+Wisconsin,Vilas,26.9858,Rural,0.846,0.092,0.004,100.0,19.2
+Minnesota,Beltrami,18.47529,Rural,0.584,0.301,0.024,100.0,17.4
+Maryland,Dorchester,60.2055,Rural,0.228,0.548,0.168,100.0,18.8
+Pennsylvania,Columbia,134.3566,Rural,0.301,0.32,0.274,100.0,16.4
+Ohio,Clark,343.2285,Not rural,0.764,0.182,0.033,72.8,12.5
+Texas,Maverick,45.17953,Not rural,0.084,0.9,0.0,99.2,34.1
+Arizona,Pima,113.4431,Not rural,0.539,0.437,0.0,82.9,11.0
+New Mexico,Cibola,5.993633,Rural,0.615,0.103,0.002,100.0,39.4
+New Jersey,Burlington,577.833,Not rural,0.721,0.187,0.076,69.8,7.8
+Vermont,Rutland,65.10664,Rural,0.18,0.05,0.633,100.0,14.9
+Georgia,Early,20.97739,Rural,0.143,0.845,0.005,100.0,43.8
+Massachusetts,Dukes,199.0554,Rural,0.387,0.176,0.332,100.0,15.5
+North Dakota,McHenry,2.842137,Rural,0.462,0.38,0.094,100.0,14.9
+Nebraska,Wayne,21.90257,Rural,0.641,0.247,0.084,100.0,9.9
+North Dakota,LaMoure,3.608186,Rural,0.316,0.498,0.15,100.0,21.4
+Idaho,Butte,1.164773,Rural,0.144,0.446,0.045,100.0,14.5
+New Hampshire,Coos,17.51391,Rural,0.128,0.038,0.629,100.0,17.2
+North Dakota,Kidder,1.769719,Rural,0.617,0.284,0.04,100.0,21.0
+Texas,Kleberg,35.0162,Not rural,0.205,0.779,0.0,92.6,21.8
+Indiana,Porter,414.6128,Not rural,0.889,0.098,0.002,69.9,11.9
+Mississippi,Newton,36.8226,Rural,0.302,0.674,0.0,100.0,27.3
+North Carolina,Sampson,62.70762,Rural,0.186,0.786,0.01,100.0,29.2
+Tennessee,Moore,50.74965,Rural,0.251,0.709,0.003,100.0,27.2
+Florida,Pinellas,3506.161,Not rural,0.049,0.928,0.001,70.6,14.1
+Illinois,Hamilton,18.42413,Rural,0.786,0.168,0.0,100.0,21.7
+Arkansas,Perry,18.23752,Rural,0.283,0.648,0.003,100.0,26.3
+Kansas,Cheyenne,2.567925,Rural,0.85,0.13,0.0,100.0,12.2
+Colorado,Delta,27.29385,Rural,0.652,0.174,0.002,100.0,20.9
+Iowa,Wayne,12.33946,Rural,0.633,0.281,0.003,100.0,28.8
+Texas,Gaines,14.3261,Rural,0.283,0.708,0.003,100.0,17.5
+Alabama,Marion,39.33894,Rural,0.438,0.543,0.001,100.0,26.1
+North Carolina,Watauga,174.5617,Rural,0.238,0.541,0.165,100.0,13.9
+Virginia,Roanoke,2333.259,Not rural,0.471,0.468,0.051,74.6,20.9
+Texas,Martin,5.713937,Rural,0.383,0.556,0.0,100.0,29.2
+Texas,Bowie,104.8061,Not rural,0.389,0.598,0.001,92.4,22.1
+Utah,Weber,430.3463,Not rural,0.854,0.135,0.0,59.5,9.3
+Missouri,Marion,65.28622,Rural,0.67,0.304,0.001,100.0,15.5
+New York,Jefferson,92.62838,Not rural,0.564,0.216,0.14,91.5,12.8
+Iowa,Jackson,30.6112,Rural,0.819,0.106,0.019,100.0,17.6
+North Dakota,Nelson,3.081028,Rural,0.372,0.499,0.104,100.0,24.1
+New York,Clinton,76.93463,Rural,0.213,0.318,0.391,100.0,15.8
+Colorado,Garfield,20.92775,Rural,0.719,0.219,0.0,100.0,10.8
+Missouri,Ray,40.63752,Rural,0.649,0.295,0.002,100.0,17.4
+Ohio,Hocking,66.69999,Rural,0.496,0.384,0.037,100.0,19.8
+Alabama,Lowndes,14.17848,Rural,0.365,0.622,0.0,100.0,41.6
+Georgia,Candler,45.03427,Rural,0.07,0.913,0.008,100.0,34.1
+Iowa,Linn,319.8112,Not rural,0.799,0.185,0.002,63.4,11.3
+California,Trinity,4.997692,Rural,0.179,0.296,0.079,100.0,27.0
+Georgia,Muscogee,944.9066,Not rural,0.434,0.555,0.001,82.3,17.6
+Mississippi,Tallahatchie,19.54957,Rural,0.639,0.309,0.0,100.0,41.5
+Kansas,Atchison,37.8246,Rural,0.744,0.212,0.002,100.0,19.1
+Texas,Andrews,12.23545,Rural,0.269,0.715,0.002,100.0,8.5
+Ohio,Miami,267.6415,Not rural,0.666,0.269,0.033,70.9,11.8
+Texas,Potter,129.7956,Not rural,0.643,0.351,0.001,85.2,23.3
+Oklahoma,Seminole,37.28085,Rural,0.491,0.479,0.001,100.0,32.5
+South Carolina,Aiken,158.6503,Not rural,0.352,0.629,0.002,80.6,17.2
+California,Mendocino,25.99088,Rural,0.508,0.214,0.038,100.0,15.1
+Virginia,Chesapeake,736.8068,Not rural,0.447,0.526,0.017,69.5,7.7
+Wyoming,Sweetwater,4.035588,Not rural,0.819,0.16,0.003,79.9,12.6
+Texas,Garza,6.419181,Rural,0.504,0.46,0.01,100.0,16.1
+West Virginia,Hardy,24.46955,Rural,0.205,0.428,0.081,100.0,16.0
+Wisconsin,Ozaukee,393.7371,Not rural,0.796,0.17,0.017,61.1,7.8
+Tennessee,Sullivan,383.8096,Not rural,0.121,0.853,0.004,73.1,15.6
+South Carolina,Laurens,94.62582,Rural,0.333,0.636,0.009,100.0,22.4
+Wyoming,Crook,2.54267,Rural,0.52,0.348,0.0,100.0,20.0
+Wisconsin,Sheboygan,230.1791,Not rural,0.825,0.132,0.013,84.4,11.3
+Massachusetts,Hampden,752.952,Not rural,0.532,0.196,0.235,74.6,16.4
+Texas,Caldwell,84.73372,Not rural,0.248,0.738,0.001,98.2,25.9
+Kansas,Cloud,12.59258,Rural,0.832,0.13,0.013,100.0,21.0
+California,Inyo,1.846476,Rural,0.36,0.19,0.077,100.0,16.1
+Alabama,Coosa,15.86857,Rural,0.25,0.69,0.0,100.0,26.3
+Iowa,Dickinson,46.49275,Rural,0.739,0.242,0.001,100.0,13.4
+Kentucky,Harlan,57.07879,Rural,0.069,0.863,0.01,100.0,27.0
+Kansas,Geary,94.23333,Not rural,0.579,0.4,0.001,82.8,11.4
+Pennsylvania,Berks,500.329,Not rural,0.477,0.229,0.245,81.2,12.2
+Tennessee,Carter,165.0216,Not rural,0.162,0.75,0.037,79.4,28.9
+Minnesota,Lyon,35.48659,Rural,0.6,0.345,0.017,100.0,13.4
+Virginia,Charlotte,24.32801,Rural,0.219,0.528,0.128,100.0,36.7
+Tennessee,Washington,408.1541,Not rural,0.165,0.811,0.006,70.7,14.2
+South Carolina,Newberry,60.1581,Rural,0.312,0.651,0.015,100.0,27.0
+Virginia,Isle of Wight,123.2176,Not rural,0.318,0.629,0.03,95.8,16.4
+Oregon,Wheeler,0.8199198,Rural,0.104,0.365,0.107,100.0,20.5
+Missouri,Butler,60.85585,Rural,0.275,0.694,0.0,100.0,22.5
+Louisiana,Iberville,48.82665,Not rural,0.41,0.567,0.0,95.5,18.3
+Mississippi,Sharkey,9.056796,Rural,0.59,0.388,0.003,100.0,26.3
+Virginia,Fauquier,113.1029,Not rural,0.356,0.507,0.078,84.3,8.7
+Virginia,Radford,1692.677,Rural,0.269,0.697,0.028,100.0,17.1
+Nevada,Douglas,69.63181,Not rural,0.802,0.121,0.008,97.3,8.4
+Florida,Franklin,22.52483,Rural,0.089,0.892,0.001,100.0,17.7
+Indiana,Greene,56.96195,Rural,0.586,0.325,0.008,100.0,23.7
+Indiana,Rush,40.95686,Rural,0.632,0.281,0.018,100.0,29.6
+Wisconsin,Washington,317.7615,Not rural,0.769,0.185,0.018,78.3,9.0
+Missouri,Laclede,47.16027,Rural,0.307,0.606,0.007,100.0,22.0
+Pennsylvania,Mercer,164.4518,Not rural,0.67,0.182,0.089,88.3,17.7
+Arkansas,Craighead,157.0191,Not rural,0.415,0.572,0.001,76.6,14.4
+Missouri,Saline,30.73288,Rural,0.705,0.271,0.003,100.0,14.8
+Illinois,White,27.94845,Rural,0.777,0.181,0.001,100.0,19.0
+Illinois,De Witt,39.07576,Rural,0.851,0.139,0.0,100.0,16.2
+Nevada,White Pine,1.012416,Rural,0.12,0.688,0.022,100.0,16.3
+Minnesota,Goodhue,63.0318,Rural,0.773,0.169,0.014,100.0,12.3
+North Carolina,Swain,26.77513,Rural,0.242,0.62,0.059,100.0,34.8
+Florida,Pasco,762.4006,Not rural,0.06,0.918,0.001,73.3,13.9
+Florida,Sumter,236.6223,Not rural,0.238,0.75,0.001,96.1,12.9
+New York,Nassau,4882.089,Not rural,0.633,0.063,0.291,70.2,6.8
+North Dakota,Steele,2.491073,Rural,0.38,0.376,0.11,100.0,16.9
+Indiana,Vanderburgh,770.7758,Not rural,0.616,0.375,0.001,66.0,14.7
+Missouri,Franklin,113.6452,Rural,0.27,0.657,0.011,100.0,15.0
+North Carolina,Avery,71.47713,Rural,0.211,0.422,0.244,100.0,25.4
+West Virginia,Wood,229.9375,Not rural,0.752,0.22,0.002,88.7,14.2
+Wisconsin,Bayfield,10.97111,Rural,0.728,0.104,0.016,100.0,14.1
+Tennessee,Stewart,29.84931,Rural,0.243,0.714,0.0,100.0,23.1
+Wisconsin,Portage,87.75542,Not rural,0.748,0.172,0.014,83.2,9.7
+South Carolina,Lexington,423.3651,Not rural,0.276,0.706,0.004,74.7,13.4
+Maryland,Anne Arundel,1417.791,Not rural,0.401,0.491,0.089,66.7,6.7
+Wisconsin,Fond du Lac,144.5691,Not rural,0.779,0.148,0.03,82.2,13.4
+West Virginia,Webster,15.10833,Rural,0.29,0.426,0.032,100.0,28.3
+Wisconsin,Kewaunee,60.06646,Rural,0.807,0.074,0.044,100.0,15.3
+Texas,Parmer,11.13619,Rural,0.657,0.311,0.0,100.0,31.3
+Oklahoma,Woods,6.732316,Rural,0.681,0.301,0.0,100.0,15.4
+Kentucky,Elliott,31.48673,Rural,0.302,0.488,0.0,100.0,25.0
+Massachusetts,Berkshire,138.9218,Not rural,0.524,0.098,0.315,88.3,12.4
+Missouri,Chariton,9.873825,Rural,0.514,0.402,0.0,100.0,18.8
+Colorado,Rio Blanco,2.021441,Rural,0.727,0.177,0.002,100.0,13.8
+Colorado,Morgan,22.68281,Rural,0.672,0.304,0.002,100.0,13.9
+Oregon,Malheur,3.189616,Rural,0.323,0.56,0.033,100.0,21.4
+New Jersey,Middlesex,2781.421,Not rural,0.806,0.145,0.037,80.5,10.9
+Kansas,Russell,7.562115,Rural,0.838,0.142,0.002,100.0,20.1
+Illinois,Putnam,35.15369,Rural,0.786,0.141,0.009,100.0,14.7
+South Dakota,Haakon,0.9693234,Rural,0.664,0.24,0.016,100.0,33.1
+Tennessee,Macon,82.58351,Rural,0.229,0.724,0.002,100.0,21.7
+Arkansas,Cleburne,45.03581,Rural,0.376,0.58,0.0,100.0,19.2
+Alabama,Pike,49.09779,Rural,0.202,0.78,0.002,100.0,26.9
+Idaho,Adams,3.275597,Rural,0.14,0.369,0.112,100.0,19.1
+Massachusetts,Bristol,1042.647,Not rural,0.615,0.117,0.24,64.0,13.3
+Pennsylvania,Schuylkill,183.9261,Not rural,0.125,0.249,0.477,99.9,16.7
+North Dakota,Wells,3.140414,Rural,0.499,0.411,0.054,100.0,15.4
+North Carolina,Cleveland,214.3826,Not rural,0.237,0.717,0.023,91.9,28.0
+Arkansas,Hot Spring,53.87321,Rural,0.374,0.553,0.001,100.0,28.8
+Maryland,Frederick,414.5119,Not rural,0.366,0.498,0.102,74.6,8.6
+Illinois,Schuyler,15.73061,Rural,0.659,0.293,0.0,100.0,13.0
+California,Mono,4.335656,Rural,0.373,0.172,0.032,100.0,17.0
+California,Tuolumne,24.76146,Rural,0.487,0.218,0.011,100.0,14.4
+New Mexico,Doña Ana,57.7361,Not rural,0.646,0.325,0.002,92.7,22.9
+Georgia,Crisp,74.2812,Rural,0.092,0.9,0.001,100.0,34.1
+Arkansas,Columbia,29.64109,Rural,0.405,0.578,0.005,100.0,30.6
+North Dakota,Griggs,3.258146,Rural,0.278,0.464,0.146,100.0,18.6
+California,Solano,548.8318,Not rural,0.669,0.287,0.001,84.4,7.1
+Iowa,Clayton,21.99593,Rural,0.769,0.151,0.011,100.0,22.6
+Texas,Titus,77.03895,Rural,0.247,0.741,0.001,100.0,23.4
+West Virginia,Hampshire,36.34436,Rural,0.143,0.5,0.118,100.0,20.8
+North Carolina,Moore,144.4338,Rural,0.139,0.818,0.02,100.0,13.6
+Kansas,Barton,28.45774,Rural,0.789,0.196,0.0,100.0,18.2
+North Dakota,Slope,0.688739,Rural,0.712,0.217,0.009,100.0,15.6
+Louisiana,Richland,36.04666,Rural,0.27,0.701,0.001,100.0,50.2
+Nebraska,Garfield,3.219573,Rural,0.517,0.364,0.013,100.0,32.4
+Louisiana,St. Martin,70.31607,Not rural,0.162,0.835,0.0,99.9,17.4
+Alabama,Sumter,13.49375,Rural,0.289,0.658,0.011,100.0,30.9
+Alabama,Winston,38.58903,Rural,0.317,0.626,0.0,100.0,27.6
+Florida,Seminole,1523.44,Not rural,0.057,0.925,0.001,71.8,7.7
+Mississippi,Forrest,167.1888,Not rural,0.3,0.686,0.003,91.2,21.7
+Michigan,Ingham,508.0884,Not rural,0.782,0.181,0.01,73.6,14.3
+Kansas,Shawnee,328.3392,Not rural,0.757,0.228,0.001,72.1,23.7
+South Dakota,Hanson,7.92255,Rural,0.613,0.298,0.064,100.0,6.7
+Minnesota,Itasca,16.89023,Rural,0.65,0.171,0.074,100.0,15.5
+Colorado,Lincoln,2.165859,Rural,0.784,0.172,0.001,100.0,14.5
+New York,Madison,103.8711,Not rural,0.555,0.143,0.206,99.8,15.1
+New York,Washington,73.76168,Rural,0.373,0.115,0.397,100.0,16.5
+Indiana,Johnson,505.4447,Not rural,0.663,0.324,0.001,60.1,9.9
+Texas,Terry,13.29357,Rural,0.589,0.408,0.0,100.0,23.7
+New Mexico,Harding,0.3156936,Rural,0.634,0.119,0.0,100.0,38.3
+Alabama,Talladega,110.0748,Not rural,0.333,0.644,0.004,97.8,21.0
+Wisconsin,Langlade,22.4096,Rural,0.778,0.1,0.019,100.0,19.3
+Texas,Foard,1.526129,Rural,0.522,0.478,0.0,100.0,26.4
+Iowa,Buena Vista,35.9837,Rural,0.676,0.312,0.004,100.0,10.2
+Iowa,Mills,33.38814,Rural,0.76,0.213,0.003,100.0,10.9
+Texas,Real,4.047721,Rural,0.11,0.807,0.0,100.0,35.4
+Ohio,Delaware,487.5906,Not rural,0.749,0.227,0.015,60.8,4.6
+North Carolina,Forsyth,940.9203,Not rural,0.317,0.627,0.044,75.9,15.3
+Nevada,Carson City,403.0124,Not rural,0.782,0.182,0.005,73.4,14.3
+Iowa,Dallas,170.606,Not rural,0.667,0.323,0.001,67.2,7.0
+Texas,Carson,6.303826,Rural,0.692,0.272,0.025,100.0,18.9
+Georgia,Sumter,60.83948,Rural,0.151,0.838,0.0,100.0,28.5
+Missouri,Wayne,14.59591,Rural,0.389,0.469,0.0,100.0,25.4
+South Carolina,Anderson,286.6015,Not rural,0.335,0.642,0.005,88.8,18.2
+Wyoming,Carbon,1.849755,Rural,0.727,0.188,0.003,100.0,15.3
+Montana,Silver Bow,49.17384,Not rural,0.712,0.222,0.005,61.5,19.4
+Illinois,Stephenson,78.83432,Not rural,0.826,0.137,0.009,83.6,15.1
+Michigan,Lapeer,137.0778,Not rural,0.821,0.086,0.022,99.9,14.5
+Louisiana,Claiborne,18.81704,Rural,0.51,0.469,0.002,100.0,46.8
+Mississippi,Yalobusha,26.75582,Rural,0.489,0.481,0.0,100.0,41.4
+Michigan,Kalkaska,32.03967,Rural,0.716,0.077,0.009,100.0,21.4
+Louisiana,Evangeline,48.81266,Rural,0.287,0.695,0.002,100.0,24.8
+Tennessee,Hardeman,38.2154,Rural,0.541,0.432,0.0,100.0,30.7
+Arizona,Cochise,20.21078,Not rural,0.636,0.33,0.0,91.8,15.2
+New Mexico,Hidalgo,1.209818,Rural,0.453,0.496,0.0,100.0,19.8
+North Dakota,Divide,1.740503,Rural,0.42,0.525,0.023,100.0,33.5
+California,San Bernardino,108.6578,Not rural,0.749,0.207,0.001,89.8,13.0
+Colorado,Montezuma,12.84648,Rural,0.725,0.136,0.01,100.0,26.8
+Mississippi,Clarke,22.48922,Rural,0.313,0.673,0.001,100.0,29.7
+Iowa,Marion,60.3924,Rural,0.806,0.169,0.001,100.0,15.2
+Nebraska,Douglas,1784.984,Not rural,0.752,0.237,0.001,64.2,11.1
+Virginia,Fairfax,3884.359,Not rural,0.575,0.358,0.05,76.7,3.0
+Oklahoma,Harmon,4.651396,Rural,0.704,0.281,0.0,100.0,19.5
+Missouri,Cedar,30.16842,Rural,0.498,0.351,0.004,100.0,20.3
+Georgia,Clarke,1080.168,Not rural,0.298,0.69,0.002,72.8,15.4
+Idaho,Valley,3.227726,Rural,0.242,0.439,0.023,100.0,15.2
+Texas,Knox,3.918313,Rural,0.655,0.343,0.002,100.0,16.1
+Arkansas,Ouachita,30.85211,Rural,0.553,0.391,0.0,100.0,27.4
+Ohio,Darke,86.52534,Rural,0.563,0.333,0.039,100.0,15.3
+Oklahoma,Kay,47.69304,Not rural,0.73,0.229,0.014,84.2,26.1
+South Dakota,Dewey,2.291111,Rural,0.721,0.201,0.067,100.0,37.1
+Oregon,Tillamook,24.78737,Rural,0.059,0.778,0.008,100.0,14.5
+Georgia,Coweta,334.298,Not rural,0.483,0.495,0.002,77.8,11.7
+Mississippi,Simpson,43.94183,Rural,0.405,0.576,0.001,100.0,36.7
+Mississippi,Stone,41.21354,Rural,0.173,0.794,0.002,100.0,25.1
+California,Contra Costa,1621.78,Not rural,0.691,0.273,0.001,79.9,6.2
+Tennessee,Carroll,47.48706,Rural,0.509,0.461,0.003,100.0,23.8
+Virginia,Henrico,1425.419,Not rural,0.367,0.588,0.035,74.7,10.4
+Indiana,Owen,55.44066,Rural,0.503,0.355,0.002,100.0,22.4
+New York,Westchester,2316.304,Not rural,0.536,0.119,0.322,74.7,10.2
+Missouri,Bollinger,17.24863,Rural,0.435,0.361,0.006,100.0,20.5
+West Virginia,McDowell,35.44987,Rural,0.14,0.684,0.05,100.0,32.4
+West Virginia,Harrison,158.319,Rural,0.805,0.17,0.001,100.0,15.4
+North Carolina,Granville,114.9662,Not rural,0.337,0.624,0.013,99.2,18.0
+Nebraska,Pierce,12.73618,Rural,0.668,0.273,0.003,100.0,12.4
+Georgia,Bleckley,57.5,Rural,0.256,0.736,0.0,100.0,25.3
+Georgia,Burke,29.42663,Rural,0.208,0.778,0.0,100.0,23.0
+Illinois,Union,41.41634,Rural,0.509,0.444,0.001,100.0,30.5
+Illinois,Kankakee,158.7917,Not rural,0.851,0.138,0.002,95.5,17.2
+North Dakota,McIntosh,2.595009,Rural,0.362,0.391,0.213,100.0,23.7
+Nebraska,Platte,50.76628,Not rural,0.36,0.621,0.002,74.2,15.2
+North Carolina,Warren,43.78993,Rural,0.233,0.689,0.039,100.0,38.1
+Georgia,Marion,20.52929,Rural,0.197,0.797,0.0,100.0,41.1
+South Dakota,Clay,36.29099,Rural,0.635,0.336,0.012,100.0,8.1
+Delaware,Sussex,257.084,Rural,0.374,0.512,0.084,100.0,16.4
+Georgia,Jasper,40.39563,Rural,0.266,0.714,0.0,100.0,21.3
+Missouri,Randolph,51.06969,Rural,0.462,0.491,0.0,100.0,16.8
+Kansas,Butler,47.29471,Not rural,0.68,0.286,0.0,92.6,12.7
+Texas,Hays,362.4883,Not rural,0.341,0.65,0.0,85.3,13.3
+Texas,Medina,38.80604,Rural,0.264,0.729,0.0,100.0,20.4
+Michigan,Mason,58.94917,Rural,0.762,0.112,0.01,100.0,18.2
+South Carolina,Beaufort,328.223,Not rural,0.177,0.814,0.001,90.1,15.3
+South Dakota,Yankton,44.72657,Rural,0.691,0.275,0.009,100.0,18.9
+Wisconsin,Rock,228.1042,Not rural,0.781,0.182,0.012,73.9,15.4
+South Carolina,Pickens,263.8275,Not rural,0.363,0.597,0.015,73.6,16.3
+Washington,Columbia,4.582165,Rural,0.046,0.725,0.086,100.0,13.8
+Indiana,Clinton,81.51733,Rural,0.743,0.226,0.005,100.0,20.4
+Illinois,Clinton,78.06452,Rural,0.713,0.253,0.001,100.0,15.8
+Idaho,Minidoka,28.56818,Rural,0.208,0.732,0.017,100.0,15.3
+Pennsylvania,Sullivan,13.06842,Rural,0.117,0.149,0.464,100.0,22.7
+Mississippi,Rankin,202.6895,Not rural,0.506,0.484,0.0,77.8,13.4
+Texas,Motley,1.235895,Rural,0.465,0.489,0.0,100.0,33.3
+Oregon,Lane,83.92847,Not rural,0.187,0.746,0.004,74.5,11.2
+Texas,Wichita,206.4776,Not rural,0.457,0.529,0.001,78.4,17.4
+Michigan,Shiawassee,128.3018,Not rural,0.81,0.101,0.036,99.7,15.1
+Kansas,Jewell,3.218784,Rural,0.847,0.066,0.0,100.0,21.1
+Kansas,Mitchell,8.30588,Rural,0.817,0.139,0.005,100.0,18.5
+Florida,Bradford,94.62318,Rural,0.036,0.946,0.0,100.0,22.4
+Mississippi,Marion,44.91536,Rural,0.26,0.716,0.002,100.0,39.0
+Mississippi,George,51.27889,Rural,0.151,0.8,0.0,100.0,28.1
+Illinois,Jo Daviess,36.51378,Not rural,0.834,0.121,0.01,94.6,13.4
+Indiana,Hancock,262.0302,Not rural,0.683,0.299,0.004,65.5,10.6
+Virginia,Franklin,989.9313,Rural,0.062,0.831,0.1,100.0,20.0
+Texas,Midland,188.1397,Not rural,0.449,0.54,0.0,80.8,12.7
+Kansas,Scott,7.146191,Rural,0.766,0.223,0.0,100.0,13.5
+Montana,Cascade,31.28859,Not rural,0.812,0.14,0.005,69.9,18.1
+Virginia,Harrisonburg,2987.156,Not rural,0.185,0.751,0.049,69.0,20.8
+Illinois,Williamson,159.7296,Rural,0.32,0.663,0.002,100.0,17.7
+Montana,Flathead,20.82669,Not rural,0.524,0.374,0.006,90.2,11.7
+Kansas,Stevens,7.253254,Rural,0.825,0.164,0.0,100.0,24.8
+Kentucky,Fayette,1131.83,Not rural,0.432,0.561,0.001,65.3,10.5
+Kentucky,Hancock,48.26426,Rural,0.568,0.391,0.001,100.0,18.5
+South Dakota,Brown,22.3452,Not rural,0.536,0.425,0.013,67.3,14.1
+West Virginia,Barbour,45.52586,Rural,0.567,0.278,0.011,100.0,22.0
+Tennessee,Wayne,22.23784,Rural,0.299,0.62,0.0,100.0,25.7
+Nebraska,Box Butte,10.02467,Rural,0.666,0.302,0.005,100.0,14.5
+Pennsylvania,Northumberland,199.5726,Rural,0.298,0.29,0.32,100.0,21.1
+Texas,Victoria,103.4014,Not rural,0.29,0.692,0.0,87.2,26.1
+Virginia,Buena Vista,1031.196,Rural,0.379,0.573,0.009,100.0,26.2
+Michigan,St. Clair,222.1106,Not rural,0.86,0.087,0.009,90.6,12.1
+Nebraska,Thurston,17.06371,Rural,0.647,0.297,0.013,100.0,29.8
+Vermont,Lamoille,56.31813,Rural,0.353,0.047,0.413,100.0,13.7
+Virginia,Franklin,79.40516,Rural,0.104,0.768,0.066,100.0,22.5
+Oklahoma,Blaine,9.328069,Rural,0.542,0.419,0.007,100.0,25.9
+Washington,Kittitas,19.33772,Not rural,0.33,0.546,0.02,82.5,12.6
+Indiana,Randolph,54.34821,Not rural,0.592,0.293,0.016,96.9,21.4
+Utah,Kane,1.956366,Rural,0.328,0.451,0.011,100.0,20.0
+West Virginia,Tucker,16.10092,Rural,0.622,0.18,0.024,100.0,18.6
+Wisconsin,Crawford,28.24609,Rural,0.761,0.078,0.022,100.0,19.2
+Alabama,Jackson,48.8101,Rural,0.239,0.725,0.002,100.0,21.8
+Iowa,Mahaska,38.64231,Rural,0.712,0.249,0.003,100.0,14.6
+Kansas,Douglas,261.3052,Not rural,0.684,0.305,0.001,69.2,8.9
+Kentucky,Daviess,224.5129,Not rural,0.691,0.296,0.001,72.7,13.7
+Kentucky,Powell,73.1385,Rural,0.347,0.576,0.009,100.0,30.2
+Missouri,Jasper,192.3051,Not rural,0.492,0.478,0.0,75.4,18.0
+Oregon,Union,12.90465,Rural,0.517,0.306,0.011,100.0,13.9
+Georgia,Henry,755.7325,Not rural,0.517,0.474,0.0,83.7,9.5
+North Dakota,Adams,2.217617,Rural,0.533,0.352,0.057,100.0,12.0
+North Carolina,Pamlico,36.6016,Rural,0.199,0.776,0.004,100.0,20.6
+Kentucky,Graves,66.51665,Rural,0.606,0.362,0.006,100.0,18.9
+Pennsylvania,Cambria,193.8342,Rural,0.491,0.123,0.303,100.0,16.8
+Tennessee,McMinn,124.4592,Rural,0.268,0.696,0.005,100.0,21.1
+Michigan,Livingston,343.7252,Not rural,0.865,0.091,0.017,96.2,9.5
+Colorado,Adams,445.8143,Not rural,0.706,0.275,0.001,74.9,12.4
+Pennsylvania,Lackawanna,469.9903,Not rural,0.7,0.181,0.088,69.2,14.1
+Oklahoma,Pontotoc,52.91295,Rural,0.553,0.418,0.004,100.0,26.9
+Oklahoma,Creek,75.87791,Not rural,0.566,0.398,0.0,86.7,14.9
+Texas,Tyler,21.59479,Rural,0.218,0.759,0.001,100.0,27.3
+Tennessee,Van Buren,22.61029,Rural,0.206,0.608,0.042,100.0,25.7
+Oklahoma,Pottawatomie,92.32623,Not rural,0.555,0.412,0.0,87.1,20.8
+New Mexico,Socorro,2.47548,Rural,0.62,0.103,0.0,100.0,42.2
+Georgia,Atkinson,24.116,Rural,0.052,0.94,0.0,100.0,36.4
+Florida,Duval,1305.646,Not rural,0.036,0.948,0.003,76.3,13.5
+Texas,Falls,22.22483,Rural,0.399,0.556,0.016,100.0,30.0
+Arkansas,Yell,21.86404,Rural,0.302,0.638,0.0,100.0,25.1
+Kansas,Comanche,2.315116,Rural,0.814,0.164,0.005,100.0,19.3
+Kentucky,Jessamine,310.1534,Not rural,0.358,0.612,0.005,75.3,11.4
+Kentucky,Monroe,34.3911,Rural,0.306,0.621,0.001,100.0,23.1
+Oklahoma,Kiowa,8.320542,Rural,0.648,0.297,0.003,100.0,23.0
+South Dakota,Lake,19.90973,Rural,0.659,0.286,0.011,100.0,9.8
+North Carolina,Caswell,53.47621,Rural,0.26,0.624,0.042,100.0,26.6
+Texas,Presidio,1.599895,Rural,0.332,0.581,0.043,100.0,42.8
+Ohio,Greene,405.1132,Not rural,0.663,0.3,0.021,68.7,9.4
+Texas,Willacy,34.38461,Rural,0.132,0.856,0.0,100.0,33.6
+New Mexico,Los Alamos,176.4342,Rural,0.856,0.12,0.0,100.0,6.3
+Alabama,Baldwin,146.8177,Not rural,0.109,0.878,0.001,90.2,14.2
+Iowa,Appanoose,24.69139,Rural,0.645,0.313,0.001,100.0,24.4
+Virginia,New Kent,110.9152,Rural,0.193,0.767,0.018,100.0,19.0
+Georgia,Talbot,14.80157,Rural,0.273,0.677,0.006,100.0,35.1
+New York,Lewis,20.90935,Rural,0.367,0.075,0.306,100.0,16.2
+West Virginia,Clay,23.5393,Rural,0.531,0.367,0.0,100.0,22.0
+Indiana,Jefferson,91.64722,Rural,0.286,0.65,0.016,100.0,19.6
+Virginia,Bedford,104.9343,Not rural,0.074,0.815,0.055,91.8,19.7
+New Mexico,Mora,2.184556,Rural,0.359,0.054,0.0,100.0,43.2
+Nebraska,Boone,7.861122,Rural,0.479,0.475,0.005,100.0,13.7
+Missouri,Oregon,11.11991,Rural,0.405,0.378,0.002,100.0,34.5
+Tennessee,Houston,41.2045,Rural,0.222,0.708,0.004,100.0,19.9
+Pennsylvania,Wyoming,66.00119,Not rural,0.254,0.227,0.361,97.6,12.0
+North Carolina,Lenoir,137.9925,Not rural,0.283,0.697,0.009,96.4,17.8
+Indiana,Vigo,263.4954,Not rural,0.51,0.46,0.008,71.8,14.9
+Indiana,Elkhart,446.586,Not rural,0.847,0.131,0.001,76.4,17.2
+Virginia,Grayson,34.75896,Rural,0.076,0.536,0.238,100.0,23.8
+Texas,Lubbock,347.8209,Not rural,0.466,0.524,0.001,78.5,17.8
+Minnesota,Meeker,38.40993,Rural,0.688,0.229,0.026,100.0,15.2
+Ohio,Ashland,124.1696,Not rural,0.632,0.225,0.05,82.4,17.8
+Nebraska,Madison,62.06216,Not rural,0.587,0.377,0.012,73.5,16.3
+Florida,Martin,293.1086,Not rural,0.031,0.942,0.0,75.6,11.4
+Colorado,Mineral,0.9066406,Rural,0.356,0.215,0.0,100.0,11.5
+Georgia,Dawson,129.7503,Not rural,0.474,0.482,0.004,91.6,11.5
+Georgia,Johnson,30.44365,Rural,0.195,0.77,0.003,100.0,35.4
+Arkansas,Monroe,11.17274,Rural,0.418,0.569,0.0,100.0,34.4
+Missouri,Dallas,31.71819,Rural,0.282,0.485,0.018,100.0,30.4
+Virginia,Pittsylvania,62.47763,Rural,0.167,0.693,0.091,100.0,22.5
+Kansas,Pawnee,8.336617,Rural,0.659,0.292,0.019,100.0,22.5
+Kansas,Wyandotte,1107.833,Not rural,0.716,0.275,0.0,82.6,19.3
+Florida,Dixie,23.73926,Rural,0.068,0.868,0.0,100.0,36.3
+Michigan,Tuscola,66.12243,Rural,0.78,0.087,0.038,100.0,22.0
+Kansas,Graham,2.704427,Rural,0.88,0.112,0.0,100.0,20.7
+Louisiana,St. Landry,89.363,Not rural,0.324,0.672,0.001,99.9,32.4
+Tennessee,Giles,49.62423,Rural,0.309,0.642,0.003,100.0,21.5
+Ohio,Lucas,1266.004,Not rural,0.783,0.204,0.003,70.9,14.0
+Arkansas,Mississippi,44.74151,Rural,0.542,0.443,0.0,100.0,22.1
+Indiana,Floyd,540.17,Not rural,0.54,0.436,0.006,65.5,16.9
+Kansas,Morton,3.683551,Rural,0.852,0.144,0.0,100.0,25.1
+Kentucky,Grant,97.2378,Rural,0.308,0.572,0.055,100.0,24.5
+Kentucky,Taylor,97.80264,Rural,0.407,0.533,0.002,100.0,16.3
+North Carolina,Graham,27.56134,Rural,0.117,0.64,0.104,100.0,34.3
+West Virginia,Logan,71.3,Rural,0.304,0.673,0.007,100.0,16.7
+West Virginia,Pleasants,58.57698,Rural,0.792,0.166,0.0,100.0,23.0
+Virginia,Giles,46.7801,Rural,0.096,0.767,0.065,100.0,20.4
+West Virginia,Fayette,61.28878,Rural,0.44,0.485,0.017,100.0,20.9
+Washington,Snohomish,396.9956,Not rural,0.444,0.508,0.007,70.1,6.2
+New Mexico,Eddy,14.66928,Not rural,0.459,0.523,0.0,90.2,15.9
+Nebraska,McPherson,0.5306922,Rural,0.601,0.264,0.0,100.0,27.8
+Nebraska,Red Willow,14.90922,Rural,0.64,0.301,0.006,100.0,14.5
+Nebraska,Rock,1.301214,Rural,0.426,0.52,0.0,100.0,21.7
+Tennessee,Humphreys,35.85784,Rural,0.534,0.44,0.001,100.0,22.4
+Illinois,Mason,24.24021,Rural,0.783,0.188,0.004,100.0,15.7
+Virginia,Wythe,61.20764,Rural,0.108,0.682,0.102,100.0,24.2
+Georgia,Washington,29.43882,Rural,0.331,0.653,0.003,100.0,30.9
+Washington,Yakima,59.64426,Not rural,0.256,0.679,0.013,88.6,15.6
+Arkansas,Washington,262.7136,Not rural,0.508,0.459,0.001,77.9,18.2
+Texas,Henderson,94.56259,Rural,0.158,0.816,0.0,100.0,20.8
+Wisconsin,Eau Claire,165.6895,Not rural,0.663,0.262,0.033,63.8,10.6
+Tennessee,Sequatchie,60.42859,Not rural,0.285,0.626,0.021,99.8,23.4
+Texas,Walker,98.41853,Not rural,0.194,0.781,0.0,88.7,17.9
+Arizona,Coconino,7.773004,Not rural,0.579,0.243,0.003,80.5,20.7
+Kansas,Sumner,19.05527,Not rural,0.733,0.202,0.003,99.3,15.5
+Michigan,Oceana,49.63155,Rural,0.689,0.091,0.048,100.0,22.3
+Minnesota,Kanabec,30.95226,Rural,0.71,0.115,0.022,100.0,18.7
+Ohio,Ashtabula,139.0075,Not rural,0.655,0.205,0.057,100.0,21.8
+California,Alpine,2.051899,Rural,0.46,0.087,0.032,100.0,14.3
+Texas,Galveston,924.5987,Not rural,0.488,0.502,0.0,74.5,11.4
+Alabama,Bullock,16.58277,Rural,0.246,0.733,0.0,100.0,39.2
+Illinois,Livingston,34.27562,Rural,0.826,0.149,0.0,100.0,16.4
+Ohio,Preble,96.47916,Rural,0.479,0.353,0.083,100.0,16.4
+Ohio,Jackson,77.47369,Rural,0.439,0.472,0.019,100.0,22.1
+Texas,Harris,2768.681,Not rural,0.432,0.558,0.001,86.4,14.8
+Massachusetts,Middlesex,1984.565,Not rural,0.63,0.161,0.193,62.0,7.3
+Texas,Dawson,13.70867,Rural,0.649,0.34,0.0,100.0,27.0
+New York,Ontario,174.3399,Not rural,0.716,0.159,0.07,83.8,10.3
+Alabama,Autauga,98.84851,Not rural,0.391,0.597,0.001,79.1,14.7
+Kansas,Miami,59.58196,Rural,0.505,0.464,0.001,100.0,22.6
+Georgia,Dodge,40.27922,Rural,0.206,0.778,0.0,100.0,31.6
+New York,Cortland,93.7399,Rural,0.592,0.137,0.151,100.0,22.3
+Georgia,Camden,87.43047,Rural,0.077,0.901,0.002,100.0,14.4
+Michigan,Washtenaw,524.4041,Not rural,0.797,0.181,0.007,73.5,8.2
+Indiana,LaGrange,106.3243,Rural,0.72,0.126,0.002,100.0,47.6
+Texas,Pecos,3.172654,Rural,0.396,0.582,0.01,100.0,36.7
+Georgia,Peach,186.6732,Not rural,0.253,0.738,0.0,93.5,20.1
+Georgia,White,116.9914,Rural,0.25,0.697,0.006,100.0,21.9
+Georgia,Jefferson,29.60944,Rural,0.285,0.696,0.0,100.0,29.7
+Wisconsin,Oconto,39.14676,Not rural,0.785,0.089,0.022,99.5,14.4
+Texas,Nacogdoches,68.4417,Not rural,0.283,0.701,0.0,89.2,16.8
+Rhode Island,Washington,394.7964,Not rural,0.396,0.131,0.426,77.8,7.2
+Washington,Okanogan,8.039188,Rural,0.059,0.703,0.008,100.0,17.5
+Washington,Spokane,305.353,Not rural,0.514,0.437,0.012,67.3,8.7
+Wisconsin,Forest,9.109053,Rural,0.766,0.085,0.014,100.0,22.5
+Wisconsin,Sawyer,14.3583,Rural,0.79,0.098,0.008,100.0,20.4
+New Jersey,Hudson,15414.02,Not rural,0.694,0.251,0.031,83.5,11.5
+Ohio,Stark,650.5615,Not rural,0.801,0.154,0.026,66.2,12.2
+Texas,Guadalupe,244.3973,Not rural,0.137,0.851,0.0,81.1,9.8
+Washington,Island,414.9688,Not rural,0.355,0.551,0.015,91.3,7.4
+West Virginia,Jefferson,277.3255,Rural,0.134,0.738,0.065,100.0,11.8
+Virginia,Prince William,1435.07,Not rural,0.57,0.405,0.018,79.2,4.6
+Pennsylvania,Chester,714.7781,Not rural,0.473,0.296,0.203,63.5,9.1
+West Virginia,Mercer,142.0893,Rural,0.239,0.683,0.023,100.0,22.0
+Tennessee,Roane,149.0624,Not rural,0.356,0.62,0.001,95.8,19.8
+Washington,Clallam,44.4756,Rural,0.051,0.842,0.006,100.0,11.2
+Washington,Stevens,18.88254,Rural,0.262,0.383,0.019,100.0,18.7
+Iowa,Van Buren,14.86617,Rural,0.679,0.172,0.001,100.0,27.1
+Nebraska,Gosper,4.088135,Rural,0.442,0.457,0.005,100.0,11.7
+Mississippi,Monroe,44.65871,Rural,0.357,0.626,0.0,100.0,23.5
+Florida,Escambia,489.0395,Not rural,0.201,0.78,0.001,75.7,13.6
+Texas,Tarrant,2443.058,Not rural,0.322,0.668,0.001,77.7,11.2
+Maryland,Prince George's,1983.222,Not rural,0.551,0.399,0.032,94.2,11.3
+Virginia,Scott,40.19205,Not rural,0.056,0.865,0.028,95.1,27.4
+Texas,Jackson,18.09649,Rural,0.328,0.663,0.0,100.0,22.3
+Oklahoma,Love,19.76595,Rural,0.147,0.8,0.001,100.0,27.1
+Georgia,Twiggs,22.14276,Rural,0.246,0.704,0.005,100.0,34.7
+Ohio,Mahoning,554.0367,Not rural,0.81,0.146,0.023,75.3,14.6
+Alabama,Macon,31.54115,Rural,0.486,0.493,0.0,100.0,34.3
+Illinois,Wayne,22.59222,Rural,0.666,0.251,0.001,100.0,23.4
+Texas,Swisher,7.851401,Rural,0.703,0.267,0.01,100.0,21.9
+Missouri,Osage,22.04821,Rural,0.368,0.397,0.005,100.0,26.2
+Illinois,Kane,995.9382,Not rural,0.876,0.112,0.001,72.4,9.2
+California,El Dorado,112.2546,Not rural,0.633,0.21,0.006,82.9,9.9
+South Carolina,Kershaw,90.52836,Not rural,0.235,0.723,0.008,91.9,21.4
+North Carolina,Gates,30.85326,Rural,0.269,0.666,0.016,100.0,23.5
+Colorado,Otero,14.7233,Rural,0.837,0.126,0.0,100.0,24.9
+Oregon,Douglas,22.10667,Not rural,0.259,0.563,0.016,91.7,14.3
+Pennsylvania,Monroe,276.3645,Not rural,0.221,0.458,0.239,99.8,10.4
+Arkansas,Newton,8.821355,Rural,0.309,0.408,0.0,100.0,27.0
+North Dakota,Cavalier,2.478636,Rural,0.539,0.407,0.042,100.0,21.7
+Oklahoma,Noble,15.00729,Rural,0.554,0.374,0.009,100.0,21.2
+Kansas,Gove,2.573563,Rural,0.792,0.149,0.014,100.0,17.8
+Louisiana,Pointe Coupee,37.0855,Rural,0.513,0.483,0.0,100.0,22.7
+Nebraska,Gage,25.43158,Rural,0.579,0.393,0.002,100.0,13.2
+Alabama,St. Clair,145.2237,Not rural,0.324,0.666,0.0,94.5,18.3
+Mississippi,Scott,45.86599,Rural,0.377,0.606,0.001,100.0,34.5
+Georgia,Dougherty,258.7544,Not rural,0.202,0.781,0.0,93.4,21.9
+Indiana,Harrison,81.97385,Not rural,0.413,0.509,0.017,99.9,22.2
+Idaho,Bonner,27.68026,Rural,0.325,0.325,0.02,100.0,19.4
+Georgia,Catoosa,419.6531,Not rural,0.189,0.795,0.0,69.9,11.6
+Louisiana,LaSalle,23.62794,Rural,0.335,0.646,0.0,100.0,16.9
+Maine,Waldo,54.48359,Rural,0.142,0.085,0.563,100.0,16.2
+Maryland,Howard,1323.017,Not rural,0.451,0.488,0.046,75.9,4.0
+Utah,Salt Lake,1568.228,Not rural,0.854,0.137,0.0,59.0,9.1
+Florida,Monroe,83.46004,Not rural,0.028,0.883,0.0,92.0,13.0
+Ohio,Tuscarawas,163.5759,Rural,0.701,0.218,0.029,100.0,20.0
+New York,Richmond,8569.25,Not rural,0.88,0.059,0.043,70.3,13.9
+Ohio,Highland,78.26122,Rural,0.367,0.476,0.034,100.0,25.9
+Minnesota,Lake of the Woods,2.917076,Rural,0.624,0.269,0.001,100.0,46.4
+Idaho,Bingham,23.0464,Rural,0.528,0.391,0.016,100.0,9.4
+South Carolina,Greenville,672.1299,Not rural,0.404,0.571,0.008,77.1,13.1
+South Dakota,Lyman,2.264528,Rural,0.542,0.391,0.043,100.0,23.5
+Wisconsin,Trempealeau,41.85596,Rural,0.712,0.141,0.051,100.0,16.6
+California,Yolo,214.3568,Not rural,0.638,0.312,0.002,81.1,9.6
+Texas,Sterling,1.507392,Rural,0.339,0.625,0.0,100.0,15.5
+Texas,Winkler,9.012577,Rural,0.547,0.43,0.0,100.0,23.1
+South Dakota,Jackson,1.522628,Rural,0.597,0.295,0.056,100.0,59.4
+Utah,Sevier,11.34115,Rural,0.811,0.124,0.007,100.0,12.0
+Virginia,Charles City,36.95987,Rural,0.065,0.817,0.066,100.0,34.3
+Alabama,Choctaw,13.86895,Rural,0.244,0.708,0.001,100.0,32.3
+Indiana,Knox,70.07726,Rural,0.627,0.348,0.006,100.0,16.2
+Nebraska,Dawson,23.72716,Rural,0.484,0.486,0.0,100.0,13.7
+Kansas,Ford,31.15079,Not rural,0.809,0.169,0.0,89.1,18.6
+North Dakota,Williams,18.80824,Not rural,0.541,0.433,0.0,65.2,19.0
+North Dakota,Cass,105.5722,Not rural,0.476,0.494,0.007,55.8,11.5
+Illinois,Hardin,20.66082,Rural,0.782,0.187,0.0,100.0,21.0
+Nebraska,Arthur,0.6781777,Rural,0.584,0.292,0.006,100.0,15.7
+Texas,Frio,16.01322,Rural,0.102,0.869,0.0,100.0,28.4
+Iowa,Johnson,250.1805,Not rural,0.719,0.26,0.002,67.2,9.0
+Kansas,Neosho,27.69295,Rural,0.728,0.213,0.0,100.0,24.4
+Kentucky,Greenup,104.0866,Rural,0.525,0.435,0.007,100.0,16.0
+Kansas,Linn,16.32101,Rural,0.594,0.369,0.002,100.0,33.5
+Utah,Garfield,0.9886948,Rural,0.301,0.417,0.051,100.0,16.2
+Nevada,Eureka,0.388439,Rural,0.196,0.27,0.011,100.0,13.7
+Nebraska,Hayes,1.288803,Rural,0.602,0.321,0.0,100.0,19.3
+Colorado,Phillips,6.531208,Rural,0.765,0.207,0.0,100.0,17.8
+Arkansas,Calhoun,7.593058,Rural,0.405,0.553,0.0,100.0,31.3
+Kentucky,Henderson,102.5986,Not rural,0.475,0.51,0.003,78.2,19.5
+Mississippi,Holmes,22.26586,Rural,0.443,0.525,0.012,100.0,53.5
+Mississippi,Oktibbeha,112.1423,Not rural,0.349,0.636,0.003,86.3,20.6
+Montana,Fergus,2.649257,Rural,0.694,0.157,0.021,100.0,16.4
+Maryland,Garrett,44.45695,Rural,0.316,0.252,0.251,100.0,18.3
+Louisiana,Webster,61.95828,Rural,0.516,0.468,0.001,100.0,45.1
+Michigan,Hillsdale,76.39861,Rural,0.797,0.06,0.027,100.0,21.6
+Kentucky,Logan,49.79573,Rural,0.527,0.427,0.005,100.0,26.9
+South Dakota,Custer,5.46905,Rural,0.448,0.396,0.004,100.0,17.2
+New Hampshire,Merrimack,164.9889,Not rural,0.417,0.114,0.358,82.3,9.7
+Pennsylvania,York,505.383,Not rural,0.591,0.229,0.131,97.8,14.0
+North Carolina,Rutherford,114.3894,Rural,0.183,0.721,0.055,100.0,21.2
+South Dakota,Beadle,15.16567,Rural,0.599,0.368,0.007,100.0,21.2
+Alabama,Cullman,120.1569,Rural,0.219,0.753,0.007,100.0,19.5
+Georgia,Douglas,723.2495,Not rural,0.56,0.423,0.004,87.3,17.2
+Nebraska,Johnson,14.07698,Rural,0.593,0.33,0.016,100.0,19.8
+North Carolina,Washington,31.89232,Rural,0.294,0.65,0.041,100.0,29.1
+South Dakota,Jones,1.037464,Rural,0.417,0.509,0.034,100.0,16.0
+North Carolina,Anson,41.77163,Rural,0.332,0.564,0.079,100.0,18.6
+North Dakota,Billings,0.7305254,Rural,0.494,0.441,0.0,100.0,17.8
+Nebraska,Antelope,7.352212,Rural,0.712,0.232,0.007,100.0,16.2
+Missouri,Gasconade,28.51804,Rural,0.4,0.422,0.016,100.0,17.6
+Kentucky,Butler,29.01822,Rural,0.311,0.601,0.006,100.0,24.7
+Wyoming,Campbell,9.757676,Not rural,0.683,0.271,0.0,66.8,7.6
+Georgia,Morgan,58.06086,Rural,0.199,0.763,0.003,100.0,20.8
+Arkansas,Cross,27.30248,Rural,0.41,0.574,0.001,100.0,24.7
+Arkansas,Phillips,23.71661,Rural,0.644,0.345,0.0,100.0,30.8
+Louisiana,St. James,84.46098,Rural,0.35,0.65,0.0,100.0,22.9
+California,Yuba,129.2789,Not rural,0.609,0.295,0.0,87.1,12.7
+Alabama,Shelby,285.0835,Not rural,0.441,0.549,0.0,67.8,8.7
+Colorado,Ouray,9.129389,Rural,0.706,0.155,0.0,100.0,10.8
+New Mexico,Curry,34.38362,Not rural,0.438,0.529,0.001,86.8,17.1
+Oklahoma,Washita,10.89634,Rural,0.682,0.27,0.005,100.0,21.1
+North Carolina,Orange,367.045,Not rural,0.39,0.579,0.008,72.6,9.8
+Indiana,Pulaski,28.81882,Rural,0.806,0.126,0.0,100.0,20.2
+Michigan,Benzie,56.48492,Rural,0.765,0.088,0.012,100.0,11.8
+New York,Erie,912.2498,Not rural,0.895,0.079,0.01,68.3,13.9
+Maryland,Montgomery,2143.19,Not rural,0.543,0.415,0.027,78.3,6.5
+Virginia,Manassas Park,5644.046,Not rural,0.716,0.27,0.005,78.4,9.2
+Virginia,Arlington,9071.863,Not rural,0.481,0.494,0.008,61.4,7.4
+Virginia,Carroll,61.3509,Rural,0.073,0.697,0.112,100.0,24.0
+Missouri,St. Charles,724.8188,Not rural,0.694,0.297,0.002,54.4,7.4
+California,San Benito,46.63013,Not rural,0.709,0.217,0.001,92.9,7.4
+Maryland,Queen Anne's,135.3785,Not rural,0.196,0.634,0.129,88.4,10.5
+Kansas,Brown,16.6167,Rural,0.781,0.168,0.015,100.0,19.6
+Georgia,Bulloch,118.0968,Not rural,0.085,0.897,0.002,88.3,17.4
+Kentucky,Floyd,90.97374,Rural,0.316,0.643,0.021,100.0,21.6
+Montana,Broadwater,5.851425,Rural,0.572,0.147,0.007,100.0,19.2
+Georgia,Wheeler,25.55082,Rural,0.1,0.863,0.0,100.0,46.3
+North Carolina,Craven,143.0822,Not rural,0.249,0.732,0.006,87.2,14.0
+Missouri,Holt,9.237225,Rural,0.521,0.368,0.003,100.0,22.9
+Texas,Lipscomb,3.258909,Rural,0.7,0.242,0.001,100.0,11.5
+Oregon,Columbia,80.25848,Rural,0.365,0.514,0.017,100.0,11.0
+South Carolina,Florence,171.1606,Not rural,0.147,0.832,0.007,92.1,24.2
+North Dakota,Mountrail,5.286103,Rural,0.574,0.404,0.006,100.0,23.3
+Utah,Washington,75.50578,Not rural,0.554,0.423,0.0,69.7,10.5
+Montana,Big Horn,2.619145,Rural,0.636,0.274,0.005,100.0,28.1
+Pennsylvania,Elk,37.3515,Rural,0.739,0.14,0.049,100.0,15.2
+Nebraska,Sioux,0.562243,Rural,0.658,0.173,0.013,100.0,26.1
+Mississippi,Covington,44.27787,Rural,0.281,0.707,0.0,100.0,42.0
+Indiana,Brown,49.72315,Rural,0.475,0.395,0.019,100.0,17.9
+Indiana,Clark,326.1393,Not rural,0.533,0.439,0.005,70.7,17.9
+Kentucky,Boyle,169.7554,Rural,0.413,0.55,0.001,100.0,16.3
+Kentucky,Estill,55.86352,Rural,0.387,0.5,0.019,100.0,22.9
+Texas,Collingsworth,3.119418,Rural,0.565,0.428,0.0,100.0,22.9
+Texas,Colorado,21.43308,Rural,0.356,0.613,0.0,100.0,21.9
+Illinois,Grundy,125.8563,Not rural,0.865,0.127,0.001,87.6,10.0
+Minnesota,Lincoln,10.48838,Rural,0.63,0.261,0.046,100.0,20.7
+Georgia,Evans,58.82622,Rural,0.073,0.916,0.0,100.0,28.4
+Texas,Wise,77.46836,Rural,0.246,0.732,0.0,100.0,19.1
+Georgia,Webster,11.22784,Rural,0.272,0.707,0.003,100.0,28.3
+Georgia,Jones,72.0462,Not rural,0.254,0.73,0.0,97.1,15.0
+Georgia,Gwinnett,2223.937,Not rural,0.642,0.35,0.002,81.8,10.3
+Wisconsin,Polk,49.35693,Rural,0.745,0.131,0.026,100.0,18.1
+Wisconsin,Green,63.46439,Rural,0.778,0.12,0.049,100.0,15.2
+New York,Putnam,425.3686,Not rural,0.164,0.212,0.589,69.1,5.2
+Virginia,Newport News,2683.028,Not rural,0.38,0.599,0.012,79.9,21.3
+Colorado,Bent,3.675851,Rural,0.861,0.096,0.0,100.0,21.6
+Oklahoma,Jackson,30.86765,Rural,0.703,0.278,0.0,100.0,16.4
+Montana,Sanders,4.569989,Rural,0.301,0.223,0.033,100.0,22.3
+Texas,Glasscock,1.18638,Rural,0.186,0.773,0.022,100.0,29.3
+Arkansas,Franklin,28.17905,Rural,0.339,0.604,0.001,100.0,33.4
+Oklahoma,Major,8.039791,Rural,0.621,0.304,0.008,100.0,20.2
+Tennessee,Montgomery,412.3103,Not rural,0.23,0.757,0.002,75.2,10.0
+Washington,Pend Oreille,9.691162,Rural,0.052,0.65,0.002,100.0,26.5
+North Dakota,McLean,4.634975,Rural,0.697,0.254,0.008,100.0,22.7
+Oregon,Hood River,45.8936,Rural,0.323,0.542,0.026,100.0,15.3
+Iowa,Wright,22.22042,Rural,0.792,0.189,0.006,100.0,24.3
+Texas,Shelby,30.36366,Rural,0.305,0.663,0.005,100.0,25.4
+Missouri,Crawford,31.00838,Rural,0.354,0.506,0.003,100.0,23.4
+Virginia,Bath,7.893021,Rural,0.083,0.501,0.138,100.0,21.3
+Minnesota,Otter Tail,30.46813,Rural,0.6,0.274,0.05,100.0,19.7
+Louisiana,Plaquemines,29.87102,Not rural,0.371,0.618,0.0,75.3,14.8
+Mississippi,Pontotoc,62.67809,Rural,0.444,0.53,0.001,100.0,30.9
+Louisiana,Morehouse,31.9995,Rural,0.382,0.592,0.003,100.0,40.7
+Kentucky,Bullitt,277.6386,Not rural,0.517,0.46,0.003,69.6,14.4
+Alabama,Dallas,39.15859,Rural,0.484,0.489,0.0,100.0,25.5
+Texas,Comanche,14.55714,Rural,0.366,0.605,0.002,100.0,23.8
+Montana,Lincoln,5.579701,Rural,0.162,0.478,0.029,100.0,20.2
+Minnesota,Cass,14.9832,Rural,0.601,0.246,0.023,100.0,18.4
+Colorado,Archuleta,10.00601,Rural,0.703,0.128,0.0,100.0,13.7
+Mississippi,Yazoo,29.77972,Rural,0.504,0.445,0.029,100.0,26.2
+Wisconsin,Outagamie,298.9707,Not rural,0.791,0.154,0.019,65.0,9.5
+Missouri,Lafayette,52.29834,Not rural,0.683,0.292,0.0,100.0,20.8
+North Carolina,Wilson,214.0166,Not rural,0.361,0.624,0.005,89.7,19.8
+Ohio,Morrow,86.2992,Rural,0.563,0.257,0.047,100.0,19.0
+Montana,Granite,1.95002,Rural,0.566,0.142,0.006,100.0,20.0
+North Dakota,Foster,5.343177,Rural,0.632,0.324,0.003,100.0,15.1
+Arkansas,Crawford,101.791,Not rural,0.422,0.519,0.0,82.2,21.9
+Texas,Burnet,49.94371,Rural,0.192,0.775,0.0,100.0,18.9
+Missouri,Ste. Genevieve,37.05076,Rural,0.445,0.401,0.004,100.0,16.9
+Texas,Gray,22.97256,Rural,0.654,0.323,0.003,100.0,21.1
+Illinois,McDonough,46.44312,Rural,0.632,0.323,0.001,100.0,17.0
+Iowa,Montgomery,24.25154,Rural,0.72,0.249,0.008,100.0,14.9
+Arkansas,Jackson,26.48944,Rural,0.551,0.433,0.0,100.0,28.2
+Texas,Hudspeth,0.7283587,Rural,0.594,0.372,0.0,100.0,42.9
+Louisiana,Rapides,98.07161,Not rural,0.302,0.689,0.0,95.1,16.8
+Nebraska,Lincoln,13.46728,Not rural,0.66,0.31,0.002,73.1,11.8
+Texas,Cass,30.56414,Rural,0.324,0.657,0.0,100.0,24.3
+Tennessee,Henry,57.4922,Rural,0.411,0.567,0.002,100.0,24.0
+Virginia,Winchester,3057.033,Not rural,0.411,0.476,0.092,71.4,21.2
+North Carolina,Duplin,60.52629,Rural,0.241,0.745,0.004,100.0,27.5
+North Carolina,Haywood,112.2769,Not rural,0.148,0.589,0.188,80.8,23.3
+Minnesota,Dakota,780.684,Not rural,0.837,0.145,0.002,57.3,7.3
+Oregon,Harney,0.7396562,Rural,0.059,0.6,0.113,100.0,16.7
+Wisconsin,Adams,32.10736,Rural,0.807,0.089,0.014,100.0,19.3
+Missouri,Clark,13.2638,Rural,0.582,0.307,0.003,100.0,26.5
+Kentucky,Boone,552.8538,Not rural,0.506,0.464,0.014,60.4,7.4
+Kentucky,Washington,40.44949,Rural,0.259,0.639,0.005,100.0,21.7
+Louisiana,Avoyelles,47.51411,Rural,0.429,0.547,0.001,100.0,26.5
+Mississippi,Tate,69.40844,Rural,0.419,0.544,0.0,100.0,22.8
+Missouri,Worth,7.43356,Rural,0.497,0.348,0.006,100.0,19.8
+Nebraska,Sherman,5.248712,Rural,0.635,0.274,0.005,100.0,17.0
+South Dakota,Campbell,2.090839,Rural,0.608,0.268,0.088,100.0,19.7
+South Dakota,Harding,0.4401906,Rural,0.757,0.205,0.006,100.0,6.3
+Michigan,Gratiot,73.07427,Rural,0.803,0.098,0.021,100.0,21.1
+Iowa,Union,28.57816,Rural,0.699,0.274,0.001,100.0,19.1
+Illinois,Massac,59.60337,Rural,0.625,0.36,0.0,100.0,25.4
+Nebraska,Logan,1.470129,Rural,0.762,0.195,0.0,100.0,15.0
+Nebraska,Merrick,15.75136,Not rural,0.518,0.442,0.005,99.1,19.2
+Nebraska,Sheridan,2.090226,Rural,0.568,0.364,0.007,100.0,21.6
+Kentucky,Carlisle,25.23977,Rural,0.526,0.443,0.003,100.0,12.9
+Wyoming,Natrona,14.88727,Not rural,0.761,0.2,0.001,62.8,12.8
+Georgia,Worth,36.2823,Rural,0.179,0.81,0.0,100.0,24.8
+Indiana,Morgan,177.6897,Not rural,0.558,0.397,0.015,84.7,12.5
+Texas,Ellis,208.9325,Not rural,0.237,0.752,0.001,81.8,10.0
+Georgia,Pierce,58.2219,Rural,0.05,0.929,0.001,100.0,31.2
+Indiana,Grant,160.7386,Not rural,0.612,0.361,0.003,85.3,23.0
+Florida,Flagler,241.7053,Not rural,0.024,0.957,0.0,77.7,22.5
+Mississippi,Lawrence,27.71237,Rural,0.29,0.664,0.006,100.0,48.4
+Louisiana,Winn,14.38416,Rural,0.315,0.653,0.001,100.0,19.8
+Illinois,Henry,59.72458,Not rural,0.849,0.135,0.003,94.1,17.6
+Oregon,Lincoln,51.30977,Rural,0.267,0.636,0.003,100.0,14.7
+Maine,York,214.5801,Not rural,0.19,0.084,0.644,85.8,10.3
+South Dakota,Codington,41.30689,Not rural,0.629,0.346,0.002,63.4,14.3
+Georgia,Pike,88.59893,Not rural,0.299,0.676,0.0,99.8,19.2
+Georgia,Stewart,11.16298,Rural,0.399,0.591,0.0,100.0,31.2
+New Jersey,Monmouth,1373.534,Not rural,0.827,0.126,0.036,61.6,7.8
+Arkansas,Clay,22.74164,Rural,0.634,0.325,0.0,100.0,25.1
+Arkansas,Faulkner,192.5258,Not rural,0.338,0.641,0.0,78.6,15.6
+Oklahoma,Delaware,55.29076,Rural,0.358,0.523,0.003,100.0,27.1
+Iowa,Keokuk,17.31082,Rural,0.706,0.226,0.008,100.0,16.5
+Illinois,Greene,22.1212,Rural,0.759,0.201,0.002,100.0,20.4
+Minnesota,Lake,5.175175,Rural,0.717,0.163,0.05,100.0,16.2
+Georgia,Troup,167.936,Not rural,0.235,0.747,0.0,92.0,22.3
+California,Humboldt,38.15332,Not rural,0.629,0.172,0.007,93.8,13.0
+Tennessee,Dickson,111.3759,Rural,0.49,0.487,0.002,100.0,19.6
+Minnesota,Anoka,862.5973,Not rural,0.863,0.119,0.002,61.2,7.4
+South Dakota,Bon Homme,12.45321,Rural,0.469,0.431,0.068,100.0,18.4
+Tennessee,Greene,113.151,Rural,0.102,0.834,0.006,100.0,22.7
+Virginia,Sussex,22.16529,Rural,0.128,0.726,0.087,100.0,25.1
+Indiana,St. Joseph,595.0182,Not rural,0.836,0.152,0.002,70.6,17.5
+North Dakota,Pembina,6.126762,Rural,0.612,0.249,0.101,100.0,19.7
+South Dakota,Bennett,2.862468,Rural,0.53,0.374,0.004,100.0,40.7
+Louisiana,Vernon,36.51994,Rural,0.173,0.802,0.003,100.0,20.6
+Maine,Penobscot,44.93136,Not rural,0.196,0.111,0.582,91.1,13.8
+Maryland,Talbot,140.2417,Rural,0.275,0.598,0.098,100.0,10.2
+Georgia,Stephens,149.456,Rural,0.332,0.6,0.0,100.0,24.1
+California,Riverside,336.9963,Not rural,0.73,0.235,0.0,86.4,10.5
+Arkansas,Baxter,75.46245,Rural,0.384,0.557,0.002,100.0,20.3
+Mississippi,Attala,24.27626,Rural,0.542,0.423,0.0,100.0,25.1
+Iowa,Story,172.1666,Not rural,0.724,0.261,0.0,69.4,18.4
+Kansas,Bourbon,22.66858,Rural,0.652,0.287,0.0,100.0,18.9
+Virginia,Cumberland,32.5978,Rural,0.188,0.616,0.119,100.0,31.9
+South Carolina,Sumter,158.1754,Not rural,0.128,0.852,0.007,91.6,20.3
+West Virginia,Wyoming,42.51908,Rural,0.272,0.633,0.017,100.0,19.5
+California,Kern,111.4836,Not rural,0.628,0.316,0.001,89.4,17.3
+Texas,Cooke,47.84949,Rural,0.346,0.634,0.0,100.0,20.5
+South Carolina,Orangeburg,76.06732,Rural,0.158,0.816,0.003,100.0,24.0
+Wisconsin,Taylor,20.49018,Rural,0.633,0.147,0.047,100.0,21.3
+Minnesota,Mower,56.35249,Not rural,0.806,0.159,0.005,78.5,14.5
+Minnesota,Murray,11.59412,Rural,0.757,0.11,0.095,100.0,17.7
+Rhode Island,Providence,1606.871,Not rural,0.655,0.114,0.211,74.6,13.1
+Missouri,Phelps,66.75186,Not rural,0.302,0.629,0.002,81.6,16.0
+Mississippi,Prentiss,60.11058,Rural,0.513,0.457,0.0,100.0,20.9
+Kentucky,Whitley,83.68622,Rural,0.39,0.556,0.006,100.0,28.5
+Indiana,Starke,75.39523,Rural,0.854,0.093,0.001,100.0,22.2
+Texas,Williamson,553.3029,Not rural,0.501,0.49,0.001,73.2,6.0
+Iowa,Mitchell,22.45468,Rural,0.832,0.139,0.009,100.0,14.9
+Georgia,Emanuel,33.65834,Rural,0.148,0.832,0.004,100.0,27.2
+Louisiana,Catahoula,12.56312,Rural,0.386,0.575,0.0,100.0,35.5
+Pennsylvania,Carbon,170.5061,Not rural,0.187,0.295,0.414,88.5,14.2
+Nebraska,Pawnee,5.922408,Rural,0.6,0.272,0.0,100.0,26.0
+Tennessee,Unicoi,95.90797,Not rural,0.383,0.528,0.022,99.6,27.2
+South Carolina,Spartanburg,408.3717,Not rural,0.295,0.67,0.016,95.1,15.8
+Wisconsin,Marathon,89.19269,Not rural,0.734,0.154,0.035,89.0,12.9
+Nevada,Elko,3.121097,Not rural,0.516,0.246,0.011,87.0,12.7
+West Virginia,Braxton,24.48434,Rural,0.495,0.334,0.0,100.0,30.3
+Michigan,Wexford,59.77078,Rural,0.784,0.073,0.01,100.0,20.0
+Texas,Cochran,3.262879,Rural,0.692,0.302,0.0,100.0,27.0
+Pennsylvania,Blair,233.4704,Not rural,0.588,0.151,0.21,85.3,15.8
+Missouri,Hickory,21.19315,Rural,0.33,0.432,0.043,100.0,30.9
+Missouri,Barry,44.59583,Rural,0.497,0.377,0.003,100.0,30.4
+Minnesota,Ramsey,3594.118,Not rural,0.734,0.235,0.003,66.8,10.1
+Arkansas,Little River,22.63321,Rural,0.33,0.611,0.0,100.0,24.9
+Nevada,Lyon,29.6722,Not rural,0.757,0.161,0.009,86.8,10.9
+Florida,Lee,989.5978,Not rural,0.027,0.946,0.001,79.1,12.7
+Oregon,Josephine,53.69912,Not rural,0.255,0.551,0.024,86.4,14.7
+Mississippi,Pike,97.99484,Rural,0.266,0.719,0.0,100.0,40.1
+Tennessee,Coffee,135.3961,Not rural,0.267,0.724,0.001,88.9,24.5
+Idaho,Lemhi,1.762388,Rural,0.209,0.465,0.018,100.0,17.2
+Kentucky,Ohio,40.50792,Rural,0.411,0.513,0.006,100.0,22.3
+Nebraska,Sarpy,803.3217,Not rural,0.749,0.244,0.0,57.1,5.8
+Georgia,Colquitt,83.74823,Rural,0.109,0.871,0.003,100.0,22.9
+Minnesota,Wilkin,8.593438,Rural,0.627,0.251,0.079,100.0,15.6
+Illinois,Randolph,52.85842,Rural,0.598,0.372,0.004,100.0,17.3
+Maine,Kennebec,142.9475,Rural,0.159,0.074,0.649,100.0,13.3
+Virginia,Smyth,66.00881,Rural,0.117,0.7,0.104,100.0,22.6
+New Mexico,Roosevelt,7.825675,Rural,0.321,0.578,0.0,100.0,16.8
+Pennsylvania,Somerset,68.65005,Rural,0.286,0.17,0.38,100.0,23.1
+Virginia,Washington,96.19682,Rural,0.125,0.808,0.028,100.0,19.6
+North Carolina,Guilford,835.277,Not rural,0.436,0.539,0.011,81.0,20.7
+Idaho,Ada,472.8965,Not rural,0.71,0.266,0.004,60.1,10.6
+Oklahoma,Custer,28.7132,Rural,0.504,0.483,0.0,100.0,16.7
+Ohio,Marion,161.8744,Not rural,0.732,0.226,0.013,81.2,14.7
+Illinois,Pike,17.77347,Rural,0.624,0.341,0.0,100.0,22.7
+Illinois,Woodford,72.81485,Not rural,0.808,0.17,0.0,92.2,12.4
+Georgia,Richmond,635.6078,Not rural,0.392,0.595,0.002,85.6,19.8
+Alabama,Pickens,21.47134,Rural,0.322,0.626,0.003,100.0,27.8
+Oklahoma,Ellis,3.049185,Rural,0.64,0.313,0.0,100.0,25.1
+Illinois,Perry,47.51004,Rural,0.559,0.409,0.002,100.0,18.2
+Iowa,Grundy,24.61067,Rural,0.804,0.169,0.009,100.0,12.8
+Colorado,Routt,10.56045,Rural,0.639,0.272,0.0,100.0,5.6
+New Jersey,Somerset,1142.814,Not rural,0.82,0.118,0.049,72.3,5.3
+California,Colusa,18.95489,Rural,0.517,0.366,0.009,100.0,13.5
+Illinois,Johnson,38.73025,Rural,0.385,0.567,0.0,100.0,25.5
+Colorado,Hinsdale,0.8154089,Rural,0.559,0.159,0.0,100.0,20.8
+Idaho,Cassia,9.689316,Rural,0.294,0.623,0.028,100.0,9.9
+Minnesota,Isanti,94.67862,Rural,0.815,0.107,0.012,100.0,11.6
+Pennsylvania,Erie,338.5839,Not rural,0.827,0.104,0.029,74.5,13.8
+Mississippi,Copiah,36.293,Rural,0.395,0.575,0.001,100.0,49.4
+Texas,Van Zandt,71.27347,Rural,0.188,0.774,0.0,100.0,23.3
+Virginia,Roanoke,385.7672,Not rural,0.457,0.472,0.052,69.6,10.8
+Virginia,Augusta,80.0694,Rural,0.27,0.506,0.128,100.0,18.7
+Utah,Piute,2.326533,Rural,0.469,0.316,0.028,100.0,25.1
+Kentucky,Mason,71.07902,Rural,0.406,0.558,0.002,100.0,18.4
+Minnesota,Benton,101.1519,Not rural,0.652,0.273,0.018,72.1,12.4
+Texas,Donley,3.557573,Rural,0.555,0.32,0.106,100.0,30.5
+Florida,Bay,238.6704,Not rural,0.101,0.88,0.0,90.7,11.3
+Alabama,Lauderdale,141.2079,Not rural,0.312,0.662,0.002,87.3,23.4
+Indiana,Fountain,41.6208,Rural,0.694,0.222,0.019,100.0,16.5
+Illinois,Shelby,27.74126,Rural,0.766,0.191,0.0,100.0,21.6
+Illinois,Fayette,29.95913,Rural,0.782,0.168,0.0,100.0,22.0
+Ohio,Perry,86.90377,Rural,0.571,0.332,0.044,100.0,23.5
+Virginia,Danville,993.2166,Not rural,0.362,0.597,0.027,86.2,22.8
+Georgia,Banks,79.01847,Rural,0.223,0.72,0.006,100.0,26.6
+Georgia,Wayne,47.1742,Rural,0.116,0.865,0.0,100.0,21.2
+Oklahoma,Oklahoma,1122.62,Not rural,0.616,0.374,0.001,75.4,14.4
+Oklahoma,Johnston,16.18847,Rural,0.282,0.657,0.002,100.0,31.5
+North Carolina,Jackson,86.31063,Rural,0.222,0.664,0.047,100.0,24.4
+Utah,Summit,22.73455,Rural,0.891,0.08,0.001,100.0,6.5
+Missouri,Polk,50.15841,Rural,0.249,0.642,0.001,100.0,18.0
+Nevada,Lander,1.037823,Rural,0.763,0.17,0.0,100.0,10.4
+Iowa,Winneshiek,29.06456,Rural,0.783,0.141,0.015,100.0,11.9
+Kentucky,Bracken,41.54635,Rural,0.34,0.591,0.019,100.0,27.0
+Wisconsin,Florence,9.372488,Rural,0.797,0.036,0.03,100.0,22.8
+West Virginia,Roane,29.0076,Rural,0.633,0.25,0.006,100.0,25.7
+Minnesota,Wadena,26.30386,Rural,0.528,0.29,0.059,100.0,16.2
+Virginia,Hopewell,2225.729,Not rural,0.24,0.714,0.019,83.4,18.3
+Illinois,Winnebago,554.7045,Not rural,0.859,0.125,0.0,74.7,12.6
+Arizona,Gila,11.22819,Rural,0.482,0.394,0.009,100.0,31.9
+Maryland,Wicomico,277.262,Not rural,0.293,0.593,0.084,93.4,17.6
+Kentucky,Carter,65.13105,Rural,0.299,0.616,0.004,100.0,34.2
+North Carolina,Iredell,327.0089,Not rural,0.341,0.617,0.024,76.6,14.1
+Virginia,Halifax,41.59436,Rural,0.157,0.657,0.113,100.0,35.2
+North Carolina,Hertford,61.25491,Rural,0.344,0.608,0.032,100.0,30.5
+New York,Montgomery,123.1026,Rural,0.538,0.113,0.252,100.0,20.7
+Minnesota,Pennington,22.7,Rural,0.695,0.239,0.022,100.0,14.4
+Washington,Whatcom,107.4601,Not rural,0.491,0.445,0.011,78.0,9.5
+Oregon,Gilliam,1.646024,Rural,0.205,0.479,0.164,100.0,19.4
+New Jersey,Ocean,1016.555,Not rural,0.795,0.149,0.044,63.2,16.3
+Arkansas,Boone,63.86389,Rural,0.455,0.457,0.0,100.0,14.9
+Oklahoma,Comanche,113.8824,Not rural,0.427,0.548,0.001,82.9,11.3
+Texas,Jones,21.27707,Not rural,0.418,0.553,0.0,98.9,19.1
+Texas,Grimes,37.38827,Rural,0.286,0.69,0.006,100.0,22.4
+Michigan,Genesee,636.2895,Not rural,0.85,0.129,0.004,74.5,18.1
+Louisiana,Assumption,61.23756,Rural,0.322,0.674,0.0,100.0,23.9
+Mississippi,Calhoun,22.49164,Rural,0.426,0.522,0.003,100.0,29.1
+Mississippi,Greene,19.18235,Rural,0.169,0.784,0.0,100.0,25.4
+Montana,Custer,3.160461,Rural,0.728,0.234,0.001,100.0,16.0
+South Dakota,Roberts,9.301984,Rural,0.492,0.4,0.069,100.0,23.6
+Illinois,Ogle,68.11014,Rural,0.799,0.165,0.009,100.0,13.5
+North Dakota,Richland,11.52629,Rural,0.441,0.466,0.057,100.0,14.0
+Wisconsin,Barron,54.09052,Rural,0.738,0.152,0.022,100.0,19.7
+Wisconsin,Iron,8.092759,Rural,0.764,0.087,0.047,100.0,19.4
+Minnesota,Wabasha,41.03859,Rural,0.797,0.126,0.01,100.0,14.1
+California,Del Norte,27.29274,Rural,0.082,0.602,0.146,100.0,16.0
+Oklahoma,Pushmataha,7.77119,Rural,0.389,0.489,0.013,100.0,28.1
+Washington,Chelan,27.06991,Not rural,0.032,0.937,0.001,88.0,15.2
+Michigan,Presque Isle,19.86133,Rural,0.775,0.053,0.018,100.0,21.8
+Oklahoma,Cleveland,547.535,Not rural,0.586,0.402,0.001,67.8,9.6
+New York,Sullivan,81.31529,Rural,0.213,0.18,0.504,100.0,15.3
+North Carolina,Polk,82.20056,Rural,0.221,0.641,0.058,100.0,19.0
+North Carolina,Scotland,107.2318,Rural,0.191,0.784,0.008,100.0,33.4
+North Carolina,Harnett,226.4422,Not rural,0.167,0.813,0.004,97.1,16.3
+North Carolina,Lee,249.1943,Not rural,0.215,0.762,0.006,89.5,23.2
+Indiana,Tipton,58.83147,Not rural,0.693,0.263,0.019,99.9,18.3
+Kansas,Clay,12.53374,Rural,0.75,0.19,0.022,100.0,28.8
+Oklahoma,Wagoner,146.408,Not rural,0.67,0.312,0.0,80.6,10.2
+Montana,Richland,5.452481,Rural,0.686,0.301,0.0,100.0,15.5
+Arkansas,Ashley,20.54908,Rural,0.462,0.502,0.0,100.0,33.7
+Arkansas,Desha,15.22476,Rural,0.49,0.507,0.0,100.0,39.9
+Tennessee,Perry,20.32959,Rural,0.363,0.573,0.0,100.0,35.9
+Minnesota,Washington,698.3062,Not rural,0.833,0.148,0.005,59.1,5.6
+Virginia,Portsmouth,2924.39,Not rural,0.502,0.47,0.014,83.1,15.5
+Pennsylvania,Fayette,162.3973,Not rural,0.493,0.197,0.262,99.4,18.3
+West Virginia,Grant,23.11405,Rural,0.17,0.458,0.152,100.0,20.4
+Virginia,Shenandoah,87.26393,Rural,0.188,0.583,0.126,100.0,19.1
+Texas,Irion,1.484484,Rural,0.286,0.662,0.0,100.0,26.4
+Missouri,Caldwell,20.81646,Rural,0.502,0.335,0.004,100.0,25.9
+Florida,Putnam,101.0552,Rural,0.103,0.87,0.001,100.0,22.6
+Indiana,Crawford,34.39314,Rural,0.364,0.49,0.012,100.0,30.0
+Missouri,Lewis,19.77554,Rural,0.603,0.361,0.0,100.0,19.1
+Nebraska,Grant,0.8352799,Rural,0.665,0.253,0.0,100.0,16.2
+Idaho,Oneida,3.813333,Rural,0.606,0.236,0.056,100.0,12.6
+Illinois,Moultrie,43.25242,Rural,0.698,0.246,0.004,100.0,23.3
+Kentucky,Hopkins,83.40847,Rural,0.463,0.515,0.0,100.0,23.0
+Idaho,Clearwater,3.585216,Rural,0.11,0.43,0.111,100.0,21.4
+Kentucky,Bell,67.54333,Rural,0.146,0.771,0.008,100.0,29.0
+Minnesota,Crow Wing,66.66739,Rural,0.725,0.196,0.013,100.0,12.0
+Arizona,Graham,8.31978,Rural,0.564,0.359,0.015,100.0,20.2
+Arkansas,St. Francis,36.4502,Rural,0.439,0.544,0.0,100.0,38.2
+Georgia,Echols,8.817643,Rural,0.064,0.925,0.0,100.0,44.7
+Kansas,Lincoln,4.071472,Rural,0.779,0.19,0.0,100.0,26.8
+Kansas,Smith,3.976708,Rural,0.817,0.129,0.003,100.0,14.4
+Florida,Jefferson,24.17405,Rural,0.084,0.877,0.011,100.0,20.9
+Mississippi,Amite,17.37159,Rural,0.291,0.678,0.001,100.0,33.5
+Arkansas,Montgomery,10.96158,Rural,0.342,0.475,0.0,100.0,32.6
+Michigan,Calhoun,189.7469,Not rural,0.834,0.095,0.013,81.5,15.1
+Alabama,Cleburne,27.03776,Rural,0.311,0.636,0.003,100.0,29.8
+Colorado,Weld,83.17941,Not rural,0.804,0.171,0.001,81.2,10.9
+Oklahoma,Beckham,24.72619,Rural,0.572,0.417,0.0,100.0,19.1
+California,Modoc,2.191106,Rural,0.132,0.225,0.168,100.0,21.1
+Iowa,Polk,861.9469,Not rural,0.679,0.31,0.001,61.7,11.6
+Georgia,Liberty,126.9211,Not rural,0.123,0.85,0.001,91.0,11.0
+Texas,Navarro,52.32632,Not rural,0.323,0.664,0.0,89.7,19.8
+Texas,Brooks,7.48287,Rural,0.313,0.648,0.024,100.0,28.2
+Tennessee,Williamson,427.0234,Not rural,0.579,0.414,0.001,60.9,4.8
+Wyoming,Laramie,37.34962,Not rural,0.764,0.208,0.0,70.0,11.1
+Washington,Asotin,35.16878,Rural,0.554,0.391,0.014,100.0,13.5
+Minnesota,Traverse,5.828828,Rural,0.584,0.274,0.124,100.0,22.0
+Illinois,Cass,34.47735,Rural,0.736,0.213,0.005,100.0,20.4
+Georgia,Rockdale,721.3219,Not rural,0.543,0.446,0.0,91.5,18.0
+Pennsylvania,Juniata,60.13171,Rural,0.1,0.298,0.351,100.0,23.2
+Pennsylvania,McKean,41.29758,Rural,0.833,0.079,0.019,100.0,19.5
+Oklahoma,Garvin,32.17123,Rural,0.307,0.673,0.003,100.0,17.6
+Nebraska,Burt,13.66396,Rural,0.676,0.254,0.027,100.0,20.1
+New Mexico,San Juan,22.07592,Not rural,0.721,0.108,0.002,94.4,32.0
+New York,Orleans,102.6115,Rural,0.636,0.13,0.147,100.0,15.6
+Louisiana,De Soto,30.60189,Rural,0.317,0.659,0.002,100.0,25.5
+California,Fresno,169.2204,Not rural,0.59,0.359,0.002,90.0,16.3
+Georgia,Elbert,55.73866,Rural,0.395,0.578,0.002,100.0,35.9
+Alabama,Barbour,28.10935,Rural,0.146,0.841,0.0,100.0,34.8
+North Carolina,Bladen,34.06391,Rural,0.259,0.718,0.005,100.0,24.7
+Texas,Dallam,4.766712,Rural,0.603,0.364,0.0,100.0,22.9
+Illinois,Sangamon,225.8856,Not rural,0.776,0.215,0.0,69.9,16.3
+Oklahoma,Craig,18.57983,Rural,0.418,0.452,0.0,100.0,26.5
+Tennessee,Cumberland,90.34409,Rural,0.463,0.49,0.004,100.0,17.4
+Michigan,Otsego,48.97221,Rural,0.759,0.108,0.007,100.0,14.0
+Iowa,Sac,17.00456,Rural,0.708,0.251,0.013,100.0,14.7
+Utah,Emery,2.217972,Rural,0.701,0.16,0.006,100.0,13.3
+Washington,Ferry,3.295145,Rural,0.066,0.345,0.011,100.0,32.3
+Montana,Wibaux,1.257909,Rural,0.884,0.116,0.0,100.0,27.6
+New Mexico,Lincoln,4.185783,Rural,0.696,0.148,0.0,100.0,19.5
+Oklahoma,Cherokee,63.2897,Rural,0.458,0.453,0.001,100.0,25.5
+Minnesota,Yellow Medicine,12.6057,Rural,0.704,0.222,0.03,100.0,14.2
+Texas,Hunt,120.8878,Not rural,0.291,0.68,0.0,92.4,16.3
+Texas,Mitchell,9.820071,Rural,0.463,0.512,0.0,100.0,24.8
+Texas,Wood,70.26962,Rural,0.234,0.732,0.001,100.0,17.5
+Oklahoma,Osage,20.47642,Not rural,0.562,0.381,0.007,99.1,21.4
+North Carolina,Cherokee,63.37081,Rural,0.203,0.683,0.038,100.0,20.6
+Michigan,Mecosta,72.28258,Rural,0.786,0.087,0.027,100.0,19.2
+Kentucky,Pike,74.0198,Rural,0.165,0.789,0.016,100.0,20.8
+Florida,Lafayette,14.92055,Rural,0.114,0.866,0.0,100.0,17.1
+North Carolina,Catawba,401.15,Not rural,0.226,0.727,0.022,92.3,13.4
+Kentucky,Breathitt,27.57798,Rural,0.219,0.568,0.076,100.0,32.8
+Texas,Childress,9.735671,Rural,0.646,0.334,0.0,100.0,19.1
+Missouri,Ripley,17.218,Rural,0.35,0.524,0.0,100.0,28.7
+Illinois,Tazewell,203.0662,Not rural,0.794,0.194,0.0,63.6,12.6
+Texas,Jeff Davis,0.8796427,Rural,0.437,0.507,0.0,100.0,34.5
+Virginia,Lexington,2939.294,Rural,0.628,0.367,0.0,100.0,20.4
+Arkansas,Sharp,28.81378,Rural,0.348,0.577,0.002,100.0,37.3
+Colorado,Larimer,138.443,Not rural,0.745,0.232,0.001,62.9,8.1
+North Carolina,Tyrrell,8.672475,Rural,0.204,0.775,0.018,100.0,28.7
+Minnesota,Rice,135.4292,Not rural,0.774,0.188,0.003,73.7,10.1
+Missouri,Warren,83.36404,Rural,0.256,0.685,0.003,100.0,15.6
+Kentucky,Warren,249.7712,Not rural,0.431,0.553,0.002,75.0,11.3
+Louisiana,Caddo,268.6384,Not rural,0.43,0.561,0.001,88.3,25.6
+South Dakota,Todd,6.735594,Rural,0.452,0.412,0.028,100.0,56.3
+Iowa,Marshall,69.95421,Not rural,0.759,0.227,0.0,83.6,17.9
+Oklahoma,Tillman,8.050425,Rural,0.622,0.35,0.001,100.0,22.6
+North Carolina,Macon,71.9346,Rural,0.25,0.632,0.041,100.0,21.0
+West Virginia,Monroe,26.30968,Rural,0.243,0.522,0.059,100.0,24.6
+Indiana,Switzerland,44.84575,Rural,0.377,0.481,0.034,100.0,23.8
+Kentucky,Hickman,18.53251,Rural,0.669,0.296,0.0,100.0,25.9
+Alabama,Geneva,46.38418,Not rural,0.083,0.894,0.002,99.6,25.2
+Illinois,LaSalle,96.45747,Rural,0.859,0.128,0.003,100.0,12.9
+Iowa,Delaware,30.33322,Rural,0.819,0.113,0.007,100.0,15.5
+Kansas,Morris,7.744382,Rural,0.76,0.146,0.004,100.0,15.7
+Iowa,Davis,18.10675,Rural,0.649,0.141,0.009,100.0,40.0
+Idaho,Boise,4.110961,Rural,0.149,0.429,0.011,100.0,16.8
+Wisconsin,Monroe,51.29072,Rural,0.709,0.158,0.03,100.0,17.9
+North Carolina,Perquimans,52.80926,Rural,0.24,0.72,0.023,100.0,20.1
+Florida,Hamilton,26.23396,Rural,0.092,0.858,0.007,100.0,30.7
+Indiana,Delaware,286.0323,Not rural,0.663,0.311,0.01,70.9,15.9
+Florida,Levy,38.69237,Rural,0.043,0.929,0.0,100.0,27.4
+Mississippi,Hancock,97.07487,Not rural,0.1,0.885,0.0,87.8,19.5
+Georgia,Wilcox,23.39531,Rural,0.123,0.862,0.003,100.0,42.9
+Louisiana,Red River,19.61798,Rural,0.391,0.584,0.0,100.0,26.4
+Tennessee,Knox,947.0107,Not rural,0.343,0.647,0.001,64.1,13.8
+Maine,Oxford,28.05835,Rural,0.12,0.057,0.61,100.0,17.8
+Missouri,Jackson,1183.627,Not rural,0.732,0.256,0.001,71.3,14.7
+Georgia,Towns,75.36095,Rural,0.395,0.55,0.006,100.0,19.4
+Mississippi,Smith,22.49053,Rural,0.305,0.683,0.0,100.0,45.5
+Idaho,Payette,62.84446,Rural,0.434,0.444,0.014,100.0,14.5
+Idaho,Shoshone,5.080334,Rural,0.57,0.29,0.006,100.0,21.9
+North Carolina,Hyde,7.570935,Rural,0.494,0.469,0.014,100.0,37.1
+Iowa,Floyd,31.16643,Rural,0.756,0.208,0.006,100.0,18.3
+Kentucky,McCracken,271.6115,Not rural,0.565,0.424,0.002,88.5,13.7
+Kentucky,Union,39.35802,Rural,0.457,0.514,0.006,100.0,22.5
+South Dakota,Turner,14.07796,Rural,0.551,0.377,0.035,100.0,19.0
+Tennessee,Cocke,82.96972,Rural,0.201,0.716,0.012,100.0,34.0
+Tennessee,Hancock,30.25317,Rural,0.088,0.752,0.0,100.0,40.6
+Tennessee,Hardin,46.44953,Rural,0.488,0.46,0.001,100.0,24.0
+South Carolina,Marion,59.69288,Rural,0.136,0.837,0.012,100.0,44.4
+Louisiana,Washington,67.96815,Rural,0.298,0.672,0.004,100.0,26.4
+Missouri,Stoddard,34.81293,Rural,0.482,0.481,0.001,100.0,18.7
+Georgia,Dooly,28.61723,Rural,0.197,0.799,0.0,100.0,34.5
+Minnesota,Stearns,118.1198,Not rural,0.645,0.296,0.019,75.4,12.9
+Nebraska,Saunders,29.87468,Rural,0.525,0.4,0.013,100.0,12.7
+Minnesota,Sherburne,225.9595,Not rural,0.817,0.153,0.007,81.9,7.2
+South Dakota,Davison,45.83213,Rural,0.589,0.362,0.006,100.0,13.0
+Tennessee,Claiborne,73.84191,Rural,0.09,0.827,0.013,100.0,31.2
+Texas,Montague,21.69608,Rural,0.49,0.471,0.001,100.0,23.9
+Texas,Brown,40.40331,Rural,0.34,0.65,0.0,100.0,18.9
+Wisconsin,Racine,592.4335,Not rural,0.81,0.157,0.015,76.7,12.4
+Wisconsin,Shawano,45.73092,Rural,0.75,0.092,0.04,100.0,16.4
+Iowa,Audubon,12.75732,Rural,0.7,0.246,0.015,100.0,16.4
+Texas,Haskell,5.988044,Rural,0.639,0.333,0.0,100.0,25.2
+Oklahoma,Logan,67.11922,Not rural,0.545,0.428,0.003,89.4,15.2
+New York,Oneida,190.5697,Not rural,0.648,0.154,0.144,77.9,14.2
+Colorado,Lake,19.64082,Rural,0.677,0.223,0.0,100.0,17.3
+Oklahoma,Pittsburg,33.51787,Rural,0.43,0.491,0.001,100.0,19.8
+West Virginia,Doddridge,24.54313,Rural,0.863,0.11,0.0,100.0,25.7
+West Virginia,Wirt,22.37312,Rural,0.646,0.286,0.0,100.0,20.5
+New Hampshire,Carroll,54.38457,Rural,0.279,0.113,0.462,100.0,10.9
+West Virginia,Tyler,32.52416,Rural,0.79,0.146,0.006,100.0,23.2
+Minnesota,Le Sueur,64.16958,Rural,0.838,0.104,0.006,100.0,12.8
+Washington,Douglas,23.74008,Rural,0.024,0.965,0.0,100.0,15.8
+New York,Cattaraugus,58.86118,Rural,0.679,0.145,0.058,100.0,23.5
+Wisconsin,Dodge,101.6696,Not rural,0.747,0.179,0.028,96.3,12.4
+Iowa,Jones,36.01865,Rural,0.786,0.144,0.007,100.0,15.0
+Kansas,Barber,3.598527,Rural,0.768,0.196,0.002,100.0,17.6
+Missouri,Pulaski,98.1992,Rural,0.231,0.724,0.002,100.0,13.2
+Alabama,Dale,88.13731,Not rural,0.114,0.87,0.001,98.0,20.0
+Kansas,Logan,2.564788,Rural,0.814,0.144,0.017,100.0,12.6
+California,Madera,73.58401,Not rural,0.538,0.321,0.003,97.1,16.8
+Missouri,Gentry,12.65512,Rural,0.593,0.274,0.007,100.0,21.5
+Nebraska,Blaine,0.5403108,Rural,0.627,0.209,0.025,100.0,11.7
+Utah,Daggett,0.9159886,Rural,0.655,0.047,0.013,100.0,6.2
+Wyoming,Platte,4.140365,Rural,0.732,0.14,0.01,100.0,23.8
+North Carolina,Gaston,643.6308,Not rural,0.425,0.551,0.008,75.7,15.7
+New Mexico,Guadalupe,1.456545,Rural,0.571,0.185,0.001,100.0,47.1
+Montana,Golden Valley,0.7160965,Rural,0.625,0.104,0.093,100.0,22.5
+North Carolina,Johnston,276.5622,Not rural,0.198,0.779,0.007,90.1,19.0
+California,Santa Clara,1484.668,Not rural,0.622,0.348,0.001,84.3,6.3
+South Carolina,Charleston,446.4112,Not rural,0.219,0.769,0.001,67.2,18.7
+Washington,Benton,122.085,Not rural,0.188,0.791,0.002,71.4,12.3
+Missouri,Adair,44.59357,Rural,0.475,0.492,0.001,100.0,20.8
+Ohio,Erie,299.6521,Not rural,0.709,0.253,0.008,88.0,15.0
+Illinois,Vermilion,82.50188,Not rural,0.662,0.322,0.0,91.0,18.2
+Missouri,St. Louis,1967.94,Not rural,0.771,0.223,0.001,67.9,9.9
+Illinois,Boone,190.4214,Not rural,0.874,0.111,0.001,72.4,9.1
+California,Tehama,22.20446,Rural,0.484,0.287,0.02,100.0,19.8
+Wisconsin,Dane,467.9447,Not rural,0.745,0.229,0.005,63.9,8.6
+Texas,Fisher,4.09366,Rural,0.502,0.459,0.0,100.0,22.2
+Louisiana,Sabine,25.62701,Rural,0.216,0.749,0.0,100.0,35.5
+Illinois,Morgan,57.79332,Rural,0.713,0.264,0.002,100.0,18.5
+Georgia,Pulaski,39.66519,Rural,0.238,0.715,0.0,100.0,26.9
+North Carolina,Bertie,25.48427,Rural,0.325,0.586,0.074,100.0,36.7
+North Carolina,Stanly,158.7606,Rural,0.189,0.71,0.073,100.0,13.1
+Tennessee,Rhea,104.7031,Rural,0.449,0.52,0.001,100.0,23.0
+North Carolina,Greene,76.50681,Rural,0.233,0.734,0.016,100.0,20.5
+Kentucky,Leslie,26.11267,Rural,0.131,0.741,0.0,100.0,25.7
+Maryland,Somerset,77.1606,Rural,0.209,0.591,0.127,100.0,22.2
+Illinois,Marshall,30.34985,Rural,0.775,0.189,0.013,100.0,16.1
+Kentucky,Lyon,40.79332,Rural,0.414,0.558,0.002,100.0,23.6
+Texas,Concho,3.28842,Rural,0.45,0.544,0.005,100.0,20.6
+Texas,Coke,3.625309,Rural,0.405,0.576,0.0,100.0,24.0
+Tennessee,Overton,52.07992,Rural,0.242,0.66,0.004,100.0,27.1
+Michigan,Huron,37.63199,Rural,0.766,0.104,0.04,100.0,21.6
+Michigan,Iosco,46.10963,Rural,0.806,0.092,0.003,100.0,17.1
+Georgia,Coffee,72.69936,Rural,0.05,0.935,0.0,100.0,27.6
+Georgia,Ware,39.94151,Rural,0.084,0.893,0.0,100.0,30.0
+North Dakota,Grant,1.398236,Rural,0.619,0.272,0.084,100.0,22.0
+Louisiana,Jefferson,1449.729,Not rural,0.451,0.543,0.001,78.2,18.1
+Louisiana,St. Tammany,314.8918,Not rural,0.372,0.62,0.0,96.5,10.6
+Iowa,Hardin,29.61671,Rural,0.811,0.157,0.013,100.0,20.8
+Louisiana,Cameron,4.240101,Rural,0.14,0.858,0.0,100.0,20.0
+Ohio,Clinton,102.9454,Rural,0.48,0.419,0.045,100.0,13.5
+Minnesota,St. Louis,32.02918,Not rural,0.674,0.179,0.073,78.4,14.9
+Ohio,Lorain,638.283,Not rural,0.799,0.179,0.006,71.1,15.5
+Iowa,Boone,46.80215,Not rural,0.77,0.201,0.0,99.4,14.2
+Texas,Polk,47.80876,Rural,0.209,0.77,0.0,100.0,24.4
+Nebraska,Dixon,11.71787,Rural,0.617,0.314,0.011,100.0,21.0
+Maryland,Harford,597.2178,Not rural,0.44,0.418,0.109,83.2,8.2
+South Carolina,Edgefield,52.2885,Not rural,0.217,0.752,0.006,96.0,26.6
+Virginia,Accomack,74.26114,Rural,0.231,0.606,0.138,100.0,26.2
+Wisconsin,Calumet,164.5279,Not rural,0.814,0.118,0.032,72.3,9.4
+Kentucky,Knox,78.1896,Rural,0.364,0.591,0.009,100.0,35.6
+Michigan,Ionia,116.6825,Rural,0.764,0.089,0.04,100.0,15.2
+North Carolina,New Hanover,1186.624,Not rural,0.102,0.882,0.004,64.3,12.3
+Tennessee,Obion,56.29095,Rural,0.464,0.525,0.003,100.0,19.8
+Kentucky,Calloway,97.03791,Rural,0.471,0.509,0.005,100.0,15.9
+Virginia,Albemarle,156.1656,Rural,0.265,0.654,0.045,100.0,11.7
+Tennessee,Robertson,153.8768,Not rural,0.349,0.637,0.0,90.6,14.7
+Virginia,Clarke,84.57689,Rural,0.236,0.519,0.127,100.0,13.8
+Washington,Garfield,3.249698,Rural,0.139,0.618,0.08,100.0,17.0
+Kentucky,Jackson,37.66213,Rural,0.132,0.66,0.049,100.0,28.2
+Minnesota,Cook,3.862817,Rural,0.514,0.307,0.053,100.0,15.8
+South Carolina,Oconee,125.7251,Rural,0.264,0.703,0.006,100.0,20.5
+Louisiana,East Baton Rouge,997.5125,Not rural,0.354,0.637,0.0,82.6,13.1
+Mississippi,Claiborne,18.55502,Rural,0.369,0.58,0.006,100.0,30.9
+Maryland,St. Mary's,317.4162,Rural,0.2,0.577,0.169,100.0,15.1
+Michigan,Kent,774.293,Not rural,0.871,0.104,0.004,69.3,10.0
+North Carolina,Pitt,262.4232,Not rural,0.185,0.8,0.004,80.1,16.1
+Montana,Carbon,5.198309,Rural,0.745,0.179,0.0,100.0,18.9
+Nebraska,Stanton,13.62776,Rural,0.508,0.347,0.082,100.0,12.4
+Georgia,Appling,36.28245,Rural,0.083,0.904,0.0,100.0,35.5
+Iowa,Jasper,51.76156,Rural,0.753,0.216,0.001,100.0,15.3
+Mississippi,Wayne,24.37351,Rural,0.401,0.575,0.009,100.0,31.1
+Texas,Cottle,1.828855,Rural,0.556,0.423,0.0,100.0,23.9
+Virginia,Greensville,38.52289,Rural,0.184,0.673,0.124,100.0,33.8
+Florida,Polk,409.4398,Not rural,0.04,0.94,0.001,87.5,29.8
+Texas,Young,19.57685,Rural,0.489,0.486,0.0,100.0,20.7
+Alabama,Tallapoosa,57.5707,Rural,0.24,0.731,0.001,100.0,19.8
+New Hampshire,Rockingham,453.2254,Not rural,0.382,0.101,0.457,72.4,6.0
+Colorado,Rio Grande,12.54665,Rural,0.583,0.213,0.013,100.0,25.2
+Iowa,Plymouth,29.6942,Not rural,0.601,0.36,0.006,99.9,11.6
+New York,Yates,73.08522,Rural,0.525,0.22,0.089,100.0,28.0
+Washington,King,1065.527,Not rural,0.434,0.52,0.025,69.8,6.0
+Oregon,Deschutes,66.06286,Not rural,0.421,0.467,0.008,70.5,9.4
+Iowa,Pottawattamie,98.33498,Not rural,0.796,0.189,0.002,69.8,16.8
+Missouri,Wright,27.09842,Rural,0.47,0.327,0.007,100.0,29.9
+Montana,Toole,2.620551,Rural,0.643,0.297,0.008,100.0,19.6
+New York,Tioga,93.19022,Rural,0.451,0.124,0.283,100.0,12.6
+Texas,Lee,27.88855,Rural,0.309,0.671,0.003,100.0,18.1
+Georgia,Fulton,2015.954,Not rural,0.512,0.48,0.001,77.4,12.1
+Texas,Cherokee,48.26797,Rural,0.356,0.598,0.0,100.0,23.6
+Missouri,Audrain,35.93068,Rural,0.495,0.471,0.0,100.0,21.9
+South Carolina,Colleton,36.4987,Rural,0.146,0.827,0.006,100.0,18.7
+Wisconsin,Jefferson,154.4172,Not rural,0.775,0.164,0.017,91.0,11.9
+Arkansas,Greene,79.59605,Not rural,0.212,0.754,0.0,74.2,17.8
+Texas,Hall,3.22244,Rural,0.648,0.339,0.0,100.0,33.1
+Wisconsin,Burnett,20.1571,Rural,0.74,0.1,0.011,100.0,18.3
+New Mexico,Torrance,4.544703,Rural,0.575,0.113,0.0,100.0,27.3
+Washington,Pacific,25.06555,Rural,0.089,0.762,0.02,100.0,15.1
+North Carolina,Pender,70.69012,Not rural,0.087,0.881,0.014,97.9,17.1
+Texas,Hood,148.4529,Rural,0.126,0.857,0.003,100.0,12.5
+South Dakota,Stanley,2.062403,Rural,0.715,0.227,0.041,100.0,14.6
+Nevada,Washoe,77.05569,Not rural,0.646,0.309,0.017,73.7,11.6
+Kentucky,Ballard,31.3321,Rural,0.544,0.442,0.005,100.0,18.7
+Texas,Archer,9.575006,Not rural,0.355,0.61,0.0,96.1,19.1
+Texas,Baylor,4.005853,Rural,0.643,0.32,0.0,100.0,17.4
+Texas,San Augustine,14.92484,Rural,0.242,0.717,0.0,100.0,27.8
+Nevada,Storey,15.52314,Rural,0.657,0.055,0.081,100.0,17.6
+Georgia,Schley,27.3503,Rural,0.329,0.646,0.003,100.0,24.4
+Texas,Madison,29.08605,Rural,0.277,0.71,0.0,100.0,21.9
+California,San Joaquin,559.8505,Not rural,0.682,0.276,0.001,88.7,13.0
+Mississippi,Winston,29.21526,Rural,0.514,0.466,0.003,100.0,29.6
+Kentucky,Henry,54.9553,Rural,0.366,0.582,0.01,100.0,24.9
+Kentucky,Mercer,90.87238,Rural,0.3,0.66,0.002,100.0,19.0
+Nebraska,Wheeler,1.340442,Rural,0.535,0.379,0.0,100.0,17.0
+Kentucky,Lewis,27.05352,Rural,0.293,0.523,0.008,100.0,21.4
+Minnesota,Grant,11.11902,Rural,0.577,0.265,0.117,100.0,17.7
+Mississippi,Humphreys,18.49623,Rural,0.578,0.396,0.026,100.0,33.6
+Alabama,Clarke,18.61888,Rural,0.36,0.611,0.002,100.0,37.9
+Kansas,Chase,3.32448,Rural,0.697,0.221,0.002,100.0,19.6
+Kentucky,Trigg,32.06379,Rural,0.434,0.519,0.009,100.0,25.3
+Alabama,Houston,184.6071,Not rural,0.063,0.925,0.0,82.8,21.3
+South Dakota,Aurora,3.655817,Rural,0.413,0.477,0.053,100.0,19.9
+Nebraska,Franklin,5.03807,Rural,0.721,0.201,0.0,100.0,20.2
+Maryland,Kent,69.63847,Rural,0.199,0.586,0.155,100.0,21.0
+Kansas,Crawford,66.14774,Not rural,0.679,0.302,0.001,80.1,17.3
+Minnesota,Chippewa,21.44786,Rural,0.74,0.194,0.031,100.0,18.5
+South Dakota,Pennington,39.75345,Not rural,0.648,0.317,0.004,71.8,12.2
+South Carolina,Hampton,33.73367,Rural,0.135,0.845,0.003,100.0,22.6
+Idaho,Fremont,7.25284,Rural,0.516,0.299,0.036,100.0,14.2
+Georgia,Bryan,102.8308,Not rural,0.087,0.905,0.001,89.2,9.2
+Virginia,Dinwiddie,55.68128,Not rural,0.155,0.75,0.045,94.4,19.8
+Florida,St. Lucie,585.2379,Not rural,0.041,0.931,0.003,82.1,12.3
+New York,Monroe,1151.401,Not rural,0.783,0.182,0.017,69.6,11.4
+South Dakota,Lincoln,113.982,Not rural,0.717,0.267,0.004,69.8,6.4
+Wisconsin,Chippewa,65.705,Not rural,0.715,0.175,0.043,79.9,13.1
+Kansas,Woodson,6.295465,Rural,0.705,0.24,0.0,100.0,29.0
+Kentucky,Marshall,104.9433,Rural,0.575,0.409,0.0,100.0,15.5
+Georgia,Clinch,8.236853,Rural,0.051,0.946,0.0,100.0,48.1
+Georgia,Lowndes,237.8274,Not rural,0.091,0.894,0.002,84.6,30.5
+Michigan,Macomb,1832.6,Not rural,0.905,0.085,0.001,64.4,9.8
+Georgia,Turner,31.16138,Rural,0.3,0.695,0.0,100.0,32.5
+Illinois,Jasper,18.79244,Rural,0.789,0.161,0.002,100.0,17.8
+Texas,Milam,24.6764,Rural,0.31,0.637,0.008,100.0,27.1
+Indiana,Spencer,50.22829,Rural,0.62,0.336,0.004,100.0,20.9
+Kentucky,Hart,46.8777,Rural,0.296,0.599,0.008,100.0,28.1
+Kentucky,Lincoln,73.05428,Rural,0.142,0.733,0.015,100.0,26.2
+Montana,Blaine,1.662915,Rural,0.724,0.167,0.0,100.0,26.0
+Virginia,Norfolk,4448.115,Not rural,0.375,0.586,0.02,77.2,13.5
+Texas,Reeves,5.320728,Rural,0.589,0.403,0.0,100.0,34.2
+Virginia,Pulaski,105.8064,Rural,0.159,0.721,0.069,100.0,24.4
+North Carolina,Union,379.4768,Not rural,0.53,0.449,0.005,71.2,6.3
+North Dakota,McKenzie,5.101564,Rural,0.478,0.503,0.004,100.0,15.9
+Florida,Okaloosa,228.0134,Not rural,0.262,0.723,0.0,89.6,13.4
+California,Alameda,2256.156,Not rural,0.692,0.274,0.001,84.4,8.6
+Illinois,Calhoun,17.61813,Rural,0.693,0.225,0.0,100.0,22.4
+Indiana,Kosciusko,151.3643,Rural,0.752,0.199,0.004,100.0,16.9
+Mississippi,Noxubee,14.76066,Rural,0.459,0.516,0.0,100.0,35.0
+Arkansas,Woodruff,10.68138,Rural,0.442,0.539,0.005,100.0,40.4
+New Jersey,Gloucester,939.7936,Not rural,0.789,0.105,0.093,61.2,8.1
+New Hampshire,Hillsborough,482.2802,Not rural,0.527,0.116,0.304,67.6,7.2
+Montana,Judith Basin,1.090557,Rural,0.674,0.129,0.065,100.0,18.0
+North Carolina,Mitchell,67.74673,Rural,0.197,0.374,0.303,100.0,21.5
+Montana,Powell,3.008544,Rural,0.668,0.166,0.016,100.0,23.4
+Oregon,Polk,118.2308,Not rural,0.385,0.537,0.01,87.6,9.6
+Oregon,Wasco,11.18752,Rural,0.132,0.752,0.019,100.0,16.6
+South Dakota,Perkins,1.034677,Rural,0.552,0.331,0.065,100.0,16.5
+Iowa,Taylor,11.12236,Rural,0.711,0.237,0.005,100.0,18.3
+Alabama,Washington,14.28736,Rural,0.181,0.769,0.0,100.0,33.7
+Ohio,Defiance,93.08784,Rural,0.683,0.267,0.009,100.0,14.3
+West Virginia,Greenbrier,32.35366,Rural,0.275,0.556,0.059,100.0,20.0
+Illinois,Marion,65.57298,Rural,0.691,0.279,0.001,100.0,16.5
+Virginia,Dickenson,42.63705,Rural,0.068,0.856,0.031,100.0,34.3
+Virginia,Amelia,37.45211,Rural,0.121,0.693,0.088,100.0,23.1
+Georgia,Randolph,14.8633,Rural,0.165,0.819,0.004,100.0,21.4
+New Mexico,Luna,8.563734,Rural,0.405,0.542,0.003,100.0,26.5
+Texas,Nueces,420.9078,Not rural,0.174,0.819,0.001,88.8,14.9
+Wyoming,Weston,2.864882,Rural,0.69,0.224,0.002,100.0,19.3
+Illinois,Warren,30.90061,Rural,0.816,0.137,0.011,100.0,11.8
+Alabama,Madison,486.2529,Not rural,0.245,0.743,0.001,74.1,10.8
+Tennessee,Wilson,261.0738,Not rural,0.378,0.612,0.001,72.3,11.2
+Texas,Camp,64.04477,Rural,0.296,0.679,0.0,100.0,32.8
+Oklahoma,Jefferson,7.141392,Rural,0.474,0.482,0.006,100.0,28.3
+West Virginia,Ritchie,18.82121,Rural,0.83,0.119,0.0,100.0,24.1
+Iowa,Page,28.46094,Rural,0.723,0.241,0.009,100.0,14.2
+Kansas,Jefferson,34.52142,Not rural,0.723,0.187,0.004,99.8,12.0
+Louisiana,Iberia,121.7209,Not rural,0.327,0.665,0.0,85.0,18.8
+North Carolina,Onslow,267.2746,Not rural,0.061,0.915,0.006,82.3,11.1
+Minnesota,Faribault,19.55285,Rural,0.83,0.1,0.045,100.0,16.9
+Tennessee,Grainger,84.28059,Rural,0.086,0.837,0.004,100.0,22.9
+Texas,Freestone,22.32917,Rural,0.24,0.749,0.0,100.0,28.6
+Pennsylvania,Mifflin,112.2672,Rural,0.178,0.244,0.417,100.0,26.7
+Alabama,Crenshaw,21.6879,Rural,0.269,0.709,0.005,100.0,28.9
+Virginia,Bristol,1323.576,Rural,0.225,0.735,0.014,100.0,17.3
+Texas,Runnels,9.379012,Rural,0.562,0.432,0.0,100.0,23.8
+Texas,Terrell,0.3655706,Rural,0.608,0.259,0.101,100.0,30.4
+Kansas,Rawlins,2.378868,Rural,0.855,0.118,0.0,100.0,15.5
+Kansas,Thomas,7.357495,Rural,0.831,0.159,0.0,100.0,11.9
+Georgia,Jeff Davis,44.69675,Rural,0.079,0.908,0.0,100.0,32.0
+Iowa,Cherokee,20.10897,Rural,0.709,0.254,0.005,100.0,13.6
+Arkansas,White,74.57652,Not rural,0.325,0.649,0.001,87.8,17.3
+Mississippi,Leflore,46.99747,Rural,0.654,0.344,0.0,100.0,52.8
+Missouri,Cooper,29.91236,Rural,0.553,0.395,0.0,100.0,20.1
+Michigan,Dickinson,34.08513,Rural,0.85,0.082,0.01,100.0,16.8
+Illinois,Will,833.5857,Not rural,0.902,0.091,0.001,68.2,7.2
+Texas,Deaf Smith,12.41631,Rural,0.616,0.354,0.027,100.0,15.4
+South Dakota,Brookings,43.71402,Not rural,0.571,0.393,0.013,63.6,11.8
+Missouri,Clay,636.4534,Not rural,0.706,0.287,0.0,66.6,8.6
+Mississippi,Coahoma,38.44502,Rural,0.666,0.318,0.0,100.0,31.9
+Indiana,Boone,168.4511,Not rural,0.658,0.314,0.009,75.4,9.3
+Iowa,Des Moines,93.29798,Not rural,0.764,0.215,0.0,77.5,16.8
+Iowa,Scott,380.5206,Not rural,0.785,0.204,0.001,65.4,13.6
+Kansas,Ottawa,8.002993,Rural,0.773,0.155,0.025,100.0,26.5
+Florida,Columbia,87.57713,Rural,0.065,0.903,0.004,100.0,15.9
+Florida,Holmes,40.78256,Rural,0.067,0.907,0.0,100.0,22.6
+Mississippi,Harrison,363.9037,Not rural,0.219,0.766,0.001,80.5,15.7
+Tennessee,Bradley,331.1181,Not rural,0.173,0.803,0.004,84.5,17.0
+Minnesota,Carlton,42.22293,Rural,0.688,0.168,0.061,100.0,16.6
+Texas,Marion,25.38189,Rural,0.261,0.716,0.0,100.0,30.4
+New York,Schoharie,48.19731,Rural,0.23,0.167,0.433,100.0,19.3
+Oklahoma,Pawnee,27.592,Rural,0.554,0.394,0.002,100.0,33.9
+New York,Broome,281.1094,Not rural,0.68,0.169,0.1,93.0,13.5
+Texas,Liberty,80.73788,Rural,0.234,0.74,0.003,100.0,17.7
+Ohio,Athens,121.6653,Not rural,0.474,0.457,0.012,82.9,19.4
+Ohio,Jefferson,159.9513,Rural,0.543,0.285,0.133,100.0,17.1
+West Virginia,Randolph,26.93565,Rural,0.514,0.332,0.017,100.0,22.4
+West Virginia,Marion,181.9842,Rural,0.708,0.264,0.004,100.0,14.7
+New Jersey,Cumberland,317.7377,Not rural,0.679,0.108,0.187,86.9,18.9
+California,Nevada,106.8347,Rural,0.689,0.154,0.006,100.0,11.1
+Wisconsin,Douglas,33.80585,Not rural,0.754,0.168,0.025,71.1,16.7
+Kentucky,Pulaski,98.98959,Rural,0.13,0.829,0.011,100.0,23.5
+North Carolina,Edgecombe,97.07851,Not rural,0.394,0.58,0.02,97.8,29.8
+Texas,Jasper,35.19078,Rural,0.108,0.872,0.003,100.0,30.1
+Utah,Beaver,2.74961,Rural,0.551,0.319,0.013,100.0,21.3
+Georgia,Murray,116.2952,Rural,0.153,0.817,0.002,100.0,16.0
+Indiana,Jay,53.27095,Rural,0.597,0.267,0.022,100.0,29.5
+Michigan,Montcalm,94.85078,Rural,0.783,0.065,0.017,100.0,22.9
+New York,Rensselaer,246.6716,Not rural,0.58,0.15,0.208,73.9,11.0
+Florida,Collier,190.4106,Not rural,0.044,0.912,0.001,84.5,14.4
+New Mexico,McKinley,13.22182,Not rural,0.467,0.084,0.001,98.1,54.7
+Georgia,Ben Hill,68.64365,Rural,0.131,0.848,0.002,100.0,34.6
+Arkansas,Lee,14.44798,Rural,0.583,0.397,0.006,100.0,36.6
+Florida,Baker,47.79145,Rural,0.031,0.938,0.002,100.0,15.6
+Georgia,Lanier,50.6976,Rural,0.06,0.931,0.0,100.0,32.9
+Kansas,Rice,12.99995,Rural,0.796,0.158,0.0,100.0,16.8
+Alabama,Calhoun,191.7212,Not rural,0.335,0.646,0.001,92.3,20.1
+Mississippi,Jackson,198.8322,Not rural,0.166,0.818,0.0,85.5,16.0
+Kentucky,Campbell,615.3981,Not rural,0.544,0.412,0.015,60.2,14.3
+Kentucky,Cumberland,19.57747,Rural,0.189,0.685,0.0,100.0,30.7
+Mississippi,Panola,48.39201,Rural,0.543,0.447,0.001,100.0,35.1
+Texas,Hansford,5.729445,Rural,0.613,0.385,0.0,100.0,19.2
+Texas,Chambers,78.77626,Not rural,0.38,0.614,0.0,87.6,11.4
+Georgia,Quitman,14.41442,Rural,0.357,0.581,0.017,100.0,48.4
+Texas,Hardin,63.52742,Not rural,0.208,0.773,0.002,87.7,13.5
+Ohio,Sandusky,144.2392,Rural,0.752,0.197,0.006,100.0,16.4
+Maine,Piscataquis,4.275853,Rural,0.146,0.08,0.584,100.0,25.6
+Illinois,Pulaski,25.98014,Rural,0.522,0.442,0.0,100.0,38.2
+Oklahoma,Okfuskee,18.35046,Rural,0.5,0.441,0.0,100.0,28.5
+Michigan,Saginaw,237.0373,Not rural,0.83,0.122,0.011,96.7,16.1
+New Mexico,Rio Arriba,6.873548,Rural,0.668,0.074,0.007,100.0,35.9
+Vermont,Caledonia,46.85364,Rural,0.236,0.037,0.473,100.0,18.7
+Virginia,Botetourt,62.32307,Not rural,0.242,0.653,0.045,83.5,15.0
+Illinois,Madison,371.078,Not rural,0.663,0.322,0.002,76.0,11.6
+Texas,Collin,1282.77,Not rural,0.496,0.496,0.001,70.4,6.5
+South Carolina,Abbeville,49.60964,Rural,0.289,0.673,0.005,100.0,22.6
+Nebraska,Dodge,70.2652,Not rural,0.613,0.362,0.004,74.7,15.9
+Florida,Sarasota,790.2644,Not rural,0.044,0.936,0.001,74.9,11.7
+Wisconsin,Marquette,34.27379,Rural,0.776,0.094,0.006,100.0,17.0
+Arizona,Mohave,16.06864,Not rural,0.395,0.568,0.002,84.9,15.8
+Arizona,Yavapai,29.27883,Not rural,0.64,0.303,0.002,89.2,14.4
+South Carolina,Horry,314.6763,Not rural,0.101,0.889,0.001,93.6,13.4
+Pennsylvania,Montgomery,1773.19,Not rural,0.556,0.269,0.157,63.6,7.1
+Idaho,Lewis,7.581113,Rural,0.061,0.42,0.22,100.0,24.6
+Virginia,Norton,490.5404,Rural,0.032,0.943,0.011,100.0,29.7
+New Jersey,Morris,1103.663,Not rural,0.719,0.116,0.152,65.1,5.6
+Missouri,Sullivan,9.23328,Rural,0.663,0.278,0.003,100.0,25.2
+Kansas,Ness,2.490836,Rural,0.861,0.079,0.0,100.0,16.2
+Texas,Brazoria,274.7796,Not rural,0.495,0.49,0.002,85.5,10.5
+Virginia,Staunton,1284.155,Not rural,0.503,0.47,0.009,59.4,20.4
+Nebraska,Chase,4.14121,Rural,0.604,0.365,0.005,100.0,12.2
+Ohio,Montgomery,1162.067,Not rural,0.677,0.3,0.009,70.7,12.4
+Texas,Throckmorton,1.576896,Rural,0.406,0.594,0.0,100.0,25.8
+Georgia,Oglethorpe,34.10452,Not rural,0.255,0.689,0.0,99.9,27.4
+Arkansas,Conway,37.65421,Rural,0.309,0.618,0.016,100.0,28.3
+Missouri,Nodaway,24.10589,Rural,0.398,0.505,0.006,100.0,17.0
+North Dakota,Ransom,6.566009,Rural,0.36,0.463,0.147,100.0,16.6
+Michigan,Bay,234.5158,Not rural,0.865,0.09,0.008,87.4,13.1
+Tennessee,Shelby,1218.111,Not rural,0.493,0.499,0.001,84.3,21.7
+California,Butte,130.5263,Not rural,0.565,0.327,0.002,81.4,10.9
+Minnesota,Pine,20.61167,Rural,0.721,0.123,0.023,100.0,19.6
+Texas,Bastrop,110.8218,Rural,0.229,0.75,0.002,100.0,15.8
+Washington,Klickitat,12.18078,Rural,0.259,0.54,0.016,100.0,15.7
+Washington,San Juan,103.505,Rural,0.187,0.597,0.032,100.0,12.3
+Wisconsin,Brown,506.3142,Not rural,0.771,0.193,0.007,66.2,10.2
+Kansas,Wilson,15.19402,Rural,0.742,0.188,0.01,100.0,30.7
+Louisiana,Natchitoches,29.9029,Rural,0.291,0.694,0.002,100.0,30.5
+Louisiana,Terrebonne,88.51373,Not rural,0.323,0.663,0.006,87.0,19.1
+Georgia,Irwin,26.772,Rural,0.089,0.868,0.0,100.0,31.6
+Michigan,Arenac,41.38737,Rural,0.769,0.053,0.019,100.0,22.8
+Iowa,Lee,64.61597,Rural,0.679,0.294,0.001,100.0,19.0
+Kansas,Osborne,3.913656,Rural,0.84,0.125,0.0,100.0,18.8
+Michigan,Emmet,72.87398,Rural,0.776,0.097,0.005,100.0,13.4
+Iowa,Fremont,12.98791,Rural,0.81,0.151,0.004,100.0,16.1
+Maine,Lincoln,77.79907,Rural,0.195,0.071,0.582,100.0,16.9
+New York,Seneca,103.9582,Rural,0.627,0.157,0.113,100.0,17.7
+Kentucky,Laurel,143.974,Rural,0.135,0.818,0.016,100.0,20.8
+Tennessee,Meigs,65.79543,Rural,0.154,0.792,0.001,100.0,24.6
+Missouri,Taney,88.89443,Rural,0.155,0.791,0.0,100.0,17.5
+Georgia,Taylor,20.70423,Rural,0.27,0.698,0.0,100.0,35.2
+Virginia,Williamsburg,1732.568,Rural,0.429,0.541,0.02,100.0,13.1
+Texas,Scurry,18.64609,Rural,0.452,0.543,0.0,100.0,20.7
+Colorado,Gilpin,39.03412,Rural,0.71,0.153,0.031,100.0,6.3
+Oklahoma,McClain,74.28018,Not rural,0.557,0.423,0.001,99.4,9.1
+West Virginia,Pendleton,8.844196,Rural,0.213,0.286,0.085,100.0,34.2
+Virginia,Page,76.61831,Rural,0.129,0.543,0.196,100.0,27.5
+Oklahoma,Le Flore,30.53013,Not rural,0.419,0.522,0.004,98.8,26.1
+West Virginia,Summers,33.23727,Rural,0.267,0.453,0.044,100.0,29.1
+North Carolina,Mecklenburg,2130.234,Not rural,0.487,0.506,0.002,74.5,9.9
+New Jersey,Essex,6768.376,Not rural,0.772,0.156,0.046,84.2,14.9
+Missouri,Linn,19.3181,Rural,0.673,0.27,0.0,100.0,26.1
+Georgia,Montgomery,36.02394,Rural,0.102,0.889,0.0,100.0,19.5
+Oregon,Sherman,2.306905,Rural,0.077,0.553,0.204,100.0,17.9
+Georgia,Greene,49.08171,Rural,0.237,0.725,0.007,100.0,27.0
+South Dakota,Buffalo,3.943529,Rural,0.722,0.25,0.0,100.0,40.6
+South Dakota,Mellette,1.521443,Rural,0.485,0.324,0.055,100.0,56.4
+Texas,Ector,180.7583,Not rural,0.396,0.589,0.0,86.1,13.0
+Texas,Limestone,24.54303,Rural,0.328,0.649,0.0,100.0,31.8
+Washington,Grays Harbor,39.79691,Rural,0.15,0.723,0.012,100.0,11.8
+West Virginia,Berkeley,383.8831,Rural,0.156,0.732,0.055,100.0,12.2
+Montana,Park,6.180241,Rural,0.618,0.243,0.009,100.0,15.3
+Texas,Denton,1041.169,Not rural,0.438,0.553,0.001,71.3,6.7
+South Carolina,Cherokee,143.0158,Rural,0.244,0.715,0.01,100.0,25.7
+North Carolina,Yancey,59.3041,Rural,0.191,0.322,0.369,100.0,25.3
+Texas,Red River,11.13809,Rural,0.412,0.555,0.003,100.0,28.1
+Texas,Matagorda,33.1628,Rural,0.308,0.656,0.006,100.0,29.8
+Minnesota,Stevens,17.17706,Rural,0.669,0.248,0.037,100.0,15.3
+Georgia,Warren,18.27626,Rural,0.398,0.593,0.002,100.0,48.6
+Texas,Hardeman,5.094127,Rural,0.669,0.314,0.0,100.0,25.7
+Illinois,Monroe,90.5916,Not rural,0.661,0.316,0.001,83.9,10.5
+Georgia,Jenkins,25.05625,Rural,0.165,0.799,0.009,100.0,37.4
+Kentucky,Grayson,52.97917,Rural,0.252,0.681,0.001,100.0,31.2
+Texas,Palo Pinto,29.99216,Rural,0.403,0.574,0.0,100.0,21.0
+Georgia,Heard,38.81769,Rural,0.432,0.514,0.001,100.0,21.0
+Alabama,Lawrence,47.94664,Not rural,0.253,0.726,0.003,99.8,32.4
+Mississippi,Marshall,48.11769,Rural,0.556,0.412,0.0,100.0,32.1
+Kansas,Clark,2.028446,Rural,0.813,0.167,0.002,100.0,21.2
+Kansas,Haskell,6.467297,Rural,0.804,0.191,0.0,100.0,16.2
+Louisiana,Bienville,15.97104,Rural,0.38,0.595,0.0,100.0,26.7
+Georgia,Walker,152.5144,Not rural,0.237,0.732,0.002,81.9,16.4
+Iowa,Iowa,28.26303,Rural,0.799,0.149,0.012,100.0,15.4
+Nebraska,Buffalo,51.74752,Not rural,0.573,0.404,0.001,69.7,11.5
+Oklahoma,Beaver,2.79419,Rural,0.803,0.144,0.008,100.0,16.7
+Iowa,Butler,24.78031,Rural,0.72,0.229,0.009,100.0,18.8
+Montana,Roosevelt,4.586337,Rural,0.787,0.173,0.004,100.0,32.6
+Washington,Cowlitz,96.93743,Not rural,0.071,0.853,0.004,87.6,12.8
+Texas,Live Oak,10.93975,Rural,0.156,0.832,0.0,100.0,35.3
+Missouri,Moniteau,37.10787,Rural,0.567,0.293,0.0,100.0,29.1
+Virginia,Westmoreland,80.58394,Rural,0.087,0.77,0.115,100.0,19.9
+North Carolina,Yadkin,111.3026,Rural,0.072,0.771,0.105,100.0,25.2
+California,Merced,145.6602,Not rural,0.586,0.366,0.001,91.9,12.4
+Oklahoma,Dewey,4.505677,Rural,0.487,0.434,0.001,100.0,18.1
+North Carolina,Burke,173.4347,Not rural,0.169,0.703,0.078,99.9,22.0
+North Carolina,Wayne,212.0876,Not rural,0.17,0.817,0.006,95.5,15.3
+Pennsylvania,Warren,43.52909,Rural,0.783,0.077,0.026,100.0,19.6
+Arkansas,Howard,21.75772,Rural,0.337,0.6,0.0,100.0,29.8
+North Carolina,Davie,163.1784,Not rural,0.181,0.712,0.059,92.3,12.7
+North Carolina,McDowell,101.44,Rural,0.14,0.667,0.108,100.0,21.6
+Arkansas,Nevada,13.42204,Rural,0.488,0.478,0.0,100.0,39.0
+Colorado,Yuma,4.203183,Rural,0.779,0.205,0.0,100.0,17.2
+Texas,Sherman,2.615782,Rural,0.655,0.331,0.0,100.0,19.7
+Texas,Uvalde,16.00145,Rural,0.189,0.784,0.014,100.0,29.0
+Ohio,Auglaize,115.2575,Rural,0.689,0.238,0.01,100.0,9.8
+Louisiana,Bossier,153.5025,Not rural,0.432,0.562,0.0,80.0,31.1
+Iowa,Emmet,23.61517,Rural,0.831,0.137,0.02,100.0,15.8
+Kansas,Saline,75.1965,Not rural,0.731,0.248,0.003,71.5,15.1
+Kentucky,Magoffin,37.76057,Rural,0.422,0.516,0.033,100.0,25.5
+Texas,Bailey,8.346112,Rural,0.678,0.276,0.028,100.0,22.6
+Missouri,Callaway,53.34143,Rural,0.425,0.519,0.003,100.0,21.2
+Wyoming,Albany,8.77916,Not rural,0.651,0.291,0.002,64.5,10.0
+Wyoming,Park,4.305784,Rural,0.76,0.163,0.003,100.0,9.5
+Pennsylvania,Montour,139.3755,Rural,0.303,0.393,0.212,100.0,19.2
+New York,Queens,21713.92,Not rural,0.774,0.084,0.114,88.6,12.5
+Florida,Suwannee,63.72622,Rural,0.057,0.915,0.0,100.0,16.8
+Michigan,Cheboygan,35.94262,Rural,0.817,0.066,0.006,100.0,19.4
+Michigan,Gladwin,50.74073,Rural,0.797,0.046,0.007,100.0,26.9
+Kentucky,Montgomery,142.8136,Rural,0.317,0.656,0.004,100.0,18.8
+South Carolina,Lancaster,177.7757,Not rural,0.548,0.439,0.004,92.5,16.7
+Kentucky,Larue,57.08703,Rural,0.25,0.706,0.006,100.0,26.7
+Iowa,Woodbury,120.8918,Not rural,0.678,0.3,0.007,71.4,17.2
+Florida,Taylor,20.53124,Rural,0.108,0.858,0.0,100.0,27.1
+Illinois,Alexander,22.34976,Rural,0.496,0.474,0.0,100.0,42.5
+Missouri,Jefferson,345.8747,Not rural,0.395,0.578,0.005,68.2,10.9
+Missouri,Lincoln,96.03513,Rural,0.303,0.666,0.0,100.0,16.3
+Georgia,Chatham,684.0304,Not rural,0.288,0.704,0.001,79.2,11.8
+Florida,Union,63.73919,Rural,0.024,0.966,0.003,100.0,25.1
+New York,Genesee,118.0755,Rural,0.719,0.126,0.095,100.0,14.1
+Iowa,Clay,28.95258,Rural,0.621,0.361,0.002,100.0,14.2
+Montana,Fallon,1.814766,Rural,0.774,0.221,0.0,100.0,11.3
+South Dakota,Potter,3.004165,Rural,0.585,0.337,0.071,100.0,13.6
+Texas,Culberson,0.5721171,Rural,0.609,0.351,0.0,100.0,38.0
+Maine,Cumberland,362.7824,Not rural,0.323,0.115,0.505,73.0,8.8
+Texas,Atascosa,40.50946,Rural,0.128,0.852,0.0,100.0,15.0
+Kansas,Kingman,8.534673,Rural,0.776,0.161,0.0,100.0,18.4
+Georgia,Rabun,45.6996,Rural,0.312,0.612,0.009,100.0,21.5
+West Virginia,Upshur,67.32227,Rural,0.559,0.329,0.003,100.0,22.9
+Missouri,Texas,21.08953,Rural,0.381,0.452,0.0,100.0,30.7
+Arkansas,Pulaski,525.2369,Not rural,0.518,0.471,0.001,81.4,19.1
+Iowa,Crawford,23.03281,Rural,0.548,0.396,0.027,100.0,18.4
+Idaho,Bannock,78.59305,Not rural,0.647,0.317,0.006,66.7,10.6
+Ohio,Geauga,238.4538,Not rural,0.627,0.182,0.09,89.7,19.0
+California,Tulare,98.14592,Not rural,0.736,0.22,0.002,91.4,20.4
+New York,Wayne,151.2411,Not rural,0.666,0.152,0.099,93.5,14.7
+Virginia,Rockbridge,38.00669,Rural,0.207,0.522,0.131,100.0,19.3
+North Dakota,Towner,2.099281,Rural,0.334,0.613,0.047,100.0,23.2
+Pennsylvania,Delaware,3129.907,Not rural,0.635,0.211,0.138,67.0,9.6
+New York,Niagara,406.2963,Not rural,0.81,0.119,0.046,74.5,15.2
+Vermont,Bennington,55.3604,Rural,0.192,0.061,0.603,100.0,13.6
+Florida,Clay,363.2994,Not rural,0.027,0.959,0.001,73.4,7.7
+North Carolina,Wake,1356.443,Not rural,0.448,0.543,0.002,67.0,6.8
+Ohio,Hamilton,2041.345,Not rural,0.637,0.336,0.011,68.8,12.0
+New Jersey,Bergen,4094.894,Not rural,0.807,0.14,0.039,71.5,6.7
+Nevada,Lincoln,0.4238537,Rural,0.126,0.612,0.015,100.0,12.9
+Montana,McCone,0.6608066,Rural,0.471,0.375,0.055,100.0,20.3
+Iowa,Buchanan,36.12638,Rural,0.747,0.208,0.005,100.0,16.5
+Illinois,DuPage,2838.498,Not rural,0.844,0.145,0.001,64.0,6.3
+South Dakota,Fall River,4.06865,Rural,0.481,0.463,0.015,100.0,13.2
+Minnesota,Kittson,3.813468,Rural,0.519,0.282,0.131,100.0,29.3
+Georgia,Oconee,227.7183,Not rural,0.346,0.639,0.0,78.2,8.3
+Texas,Wilson,62.68364,Rural,0.137,0.851,0.0,100.0,11.8
+Nebraska,Fillmore,9.658124,Rural,0.678,0.281,0.002,100.0,17.0
+Florida,Madison,25.82233,Rural,0.173,0.802,0.001,100.0,35.7
+Indiana,Sullivan,46.49193,Rural,0.546,0.372,0.016,100.0,25.2
+Arizona,La Paz,3.709709,Rural,0.223,0.71,0.015,100.0,31.1
+Georgia,Brooks,32.99984,Not rural,0.118,0.854,0.002,98.8,27.1
+Kansas,Stafford,5.11839,Rural,0.854,0.118,0.0,100.0,21.2
+Georgia,Telfair,28.85613,Rural,0.173,0.826,0.0,100.0,65.3
+Michigan,Monroe,281.8278,Not rural,0.89,0.086,0.004,88.9,13.4
+Indiana,White,48.75886,Rural,0.796,0.164,0.004,100.0,14.5
+Indiana,Noble,115.4472,Rural,0.653,0.267,0.007,100.0,15.5
+Kentucky,Livingston,28.69379,Rural,0.477,0.466,0.001,100.0,22.4
+Georgia,Miller,20.9721,Rural,0.084,0.867,0.0,100.0,47.5
+Tennessee,Lincoln,62.00664,Rural,0.375,0.6,0.0,100.0,27.7
+Kentucky,Shelby,126.662,Not rural,0.488,0.475,0.009,98.9,14.6
+Nebraska,York,24.82402,Rural,0.594,0.382,0.004,100.0,12.8
+Pennsylvania,Adams,201.6696,Rural,0.466,0.292,0.151,100.0,14.7
+South Carolina,Allendale,19.78217,Rural,0.287,0.674,0.0,100.0,35.1
+Tennessee,Davidson,1409.769,Not rural,0.334,0.655,0.002,71.1,13.2
+Utah,Uintah,8.01962,Rural,0.711,0.204,0.003,100.0,12.7
+Utah,Utah,332.2695,Not rural,0.837,0.153,0.0,51.3,9.7
+Indiana,Clay,73.81425,Not rural,0.405,0.518,0.025,86.0,19.7
+New York,Kings,38624.28,Not rural,0.774,0.112,0.076,81.4,17.7
+Missouri,Morgan,35.42131,Rural,0.337,0.542,0.016,100.0,31.3
+Ohio,Holmes,104.7598,Rural,0.674,0.152,0.014,100.0,49.1
+Iowa,Osceola,15.42314,Rural,0.733,0.23,0.022,100.0,11.8
+Indiana,Jennings,73.3144,Rural,0.282,0.633,0.015,100.0,19.1
+Idaho,Twin Falls,47.14125,Not rural,0.562,0.369,0.022,78.5,13.6
+Illinois,Saline,62.26992,Rural,0.593,0.383,0.002,100.0,23.0
+Michigan,Kalamazoo,465.2077,Not rural,0.79,0.175,0.011,69.1,9.3
+South Carolina,Lee,40.36479,Rural,0.132,0.834,0.022,100.0,36.8
+Wyoming,Johnson,2.054812,Rural,0.766,0.157,0.0,100.0,14.5
+Indiana,Daviess,77.61558,Rural,0.654,0.256,0.013,100.0,32.8
+Michigan,Grand Traverse,205.2715,Rural,0.836,0.118,0.009,100.0,10.9
+Louisiana,Allen,29.91533,Rural,0.325,0.64,0.0,100.0,23.2
+South Dakota,Hughes,24.0207,Rural,0.59,0.385,0.006,100.0,15.3
+South Dakota,Hyde,1.532599,Rural,0.421,0.445,0.061,100.0,11.7
+South Carolina,Clarendon,51.32185,Rural,0.092,0.88,0.011,100.0,25.9
+Montana,Stillwater,4.99681,Rural,0.772,0.109,0.001,100.0,17.3
+Tennessee,Bledsoe,36.44276,Rural,0.247,0.569,0.07,100.0,23.8
+Kentucky,Todd,32.79197,Rural,0.381,0.542,0.009,100.0,41.0
+Tennessee,Weakley,56.76888,Rural,0.329,0.652,0.001,100.0,25.7
+Missouri,Greene,443.0257,Not rural,0.549,0.43,0.001,65.1,19.0
+Pennsylvania,Lehigh,1083.307,Not rural,0.365,0.408,0.196,73.9,12.6
+Nebraska,Seward,30.87695,Rural,0.657,0.31,0.009,100.0,10.9
+New York,Chemung,205.198,Not rural,0.746,0.144,0.061,88.5,14.5
+New York,Wyoming,68.05212,Rural,0.587,0.188,0.102,100.0,18.1
+California,Stanislaus,368.989,Not rural,0.719,0.252,0.0,84.4,11.3
+Pennsylvania,Northampton,849.9445,Not rural,0.429,0.301,0.236,69.2,12.4
+Alabama,Morgan,212.3661,Not rural,0.248,0.733,0.0,81.2,20.5
+Kentucky,Breckinridge,36.03143,Rural,0.339,0.542,0.005,100.0,24.8
+Mississippi,Grenada,50.87154,Rural,0.529,0.466,0.0,100.0,25.8
+Kentucky,Simpson,83.58695,Rural,0.468,0.52,0.0,100.0,17.3
+Vermont,Grand Isle,89.70759,Rural,0.315,0.073,0.471,100.0,9.7
+Ohio,Columbiana,191.2385,Rural,0.61,0.261,0.074,100.0,17.1
+Virginia,Nelson,31.38215,Rural,0.197,0.623,0.074,100.0,30.3
+Florida,Osceola,296.5969,Not rural,0.041,0.922,0.001,89.2,15.0
+Arkansas,Grant,28.52089,Rural,0.445,0.517,0.0,100.0,20.2
+Georgia,Laurens,61.19758,Rural,0.086,0.902,0.001,100.0,37.0
+New York,New York,72639.64,Not rural,0.505,0.265,0.164,73.5,12.7
+Arkansas,Benton,337.9933,Not rural,0.538,0.427,0.001,75.1,29.6
+Florida,Marion,238.1136,Not rural,0.111,0.87,0.002,85.7,15.2
+Virginia,Nottoway,49.74081,Rural,0.157,0.596,0.157,100.0,27.4
+New Jersey,Warren,307.7882,Not rural,0.538,0.116,0.307,81.2,9.2
+New York,Columbia,96.85291,Rural,0.293,0.153,0.475,100.0,16.0
+Virginia,Martinsville,1235.816,Rural,0.306,0.583,0.101,100.0,20.0
+Oklahoma,Choctaw,18.54273,Rural,0.334,0.609,0.02,100.0,31.4
+Kansas,Dickinson,21.8306,Rural,0.785,0.173,0.001,100.0,17.3
+Texas,Starr,53.72557,Rural,0.06,0.914,0.002,100.0,36.8
+Georgia,Effingham,136.4036,Not rural,0.08,0.909,0.0,98.2,14.4
+Oklahoma,Roger Mills,2.999646,Rural,0.514,0.412,0.004,100.0,22.6
+Wisconsin,Richland,29.43958,Rural,0.764,0.077,0.022,100.0,21.7
+New Mexico,Lea,16.64628,Not rural,0.466,0.507,0.0,93.0,17.4
+Alabama,Lamar,22.95625,Rural,0.331,0.626,0.006,100.0,27.8
+Tennessee,Marshall,92.06522,Rural,0.3,0.671,0.004,100.0,19.4
+Virginia,Appomattox,48.62913,Rural,0.081,0.767,0.088,100.0,23.9
+Arkansas,Madison,20.06263,Rural,0.417,0.357,0.001,100.0,30.2
+Wyoming,Sheridan,12.35495,Rural,0.715,0.223,0.001,100.0,11.9
+Pennsylvania,Cumberland,478.969,Rural,0.421,0.365,0.164,100.0,11.7
+Pennsylvania,Franklin,202.103,Not rural,0.224,0.499,0.198,95.9,16.1
+Pennsylvania,Luzerne,365.6643,Not rural,0.547,0.238,0.167,76.3,15.8
+Michigan,Crawford,23.7179,Rural,0.748,0.082,0.002,100.0,13.4
+Alabama,Russell,91.78211,Not rural,0.215,0.767,0.007,87.8,23.5
+Ohio,Carroll,67.81595,Rural,0.488,0.256,0.119,100.0,20.0
+Virginia,Fluvanna,95.57766,Rural,0.12,0.767,0.036,100.0,11.6
+Illinois,Lake,1607.643,Not rural,0.857,0.135,0.0,76.0,7.3
+Georgia,Madison,107.6,Not rural,0.163,0.779,0.002,95.8,22.6
+Arkansas,Dallas,9.698454,Rural,0.432,0.53,0.001,100.0,33.2
+Colorado,Jackson,0.892345,Rural,0.386,0.338,0.0,100.0,15.1
+Colorado,Kit Carson,3.257557,Rural,0.824,0.148,0.0,100.0,13.5
+Idaho,Owyhee,1.570511,Rural,0.167,0.63,0.018,100.0,22.7
+Wisconsin,Wood,93.48534,Rural,0.785,0.122,0.034,100.0,13.4
+New York,Chautauqua,120.1799,Not rural,0.75,0.158,0.028,92.6,19.1
+Georgia,Cobb,2253.868,Not rural,0.702,0.292,0.002,72.9,7.1
+Tennessee,Johnson,60.2533,Rural,0.198,0.603,0.095,100.0,34.5
+Ohio,Belmont,125.0717,Rural,0.559,0.299,0.09,100.0,19.6
+Virginia,Wise,89.4929,Rural,0.048,0.883,0.03,100.0,30.5
+Missouri,Carter,10.44429,Rural,0.41,0.468,0.0,100.0,22.0
+Oklahoma,Bryan,51.44923,Rural,0.27,0.707,0.0,100.0,23.6
+Nebraska,Clay,10.63797,Rural,0.626,0.322,0.0,100.0,15.9
+Maryland,Charles,364.8439,Not rural,0.293,0.545,0.129,89.6,9.6
+Iowa,Cerro Gordo,75.62732,Not rural,0.821,0.168,0.001,74.5,14.9
+Iowa,Greene,15.45234,Rural,0.753,0.218,0.004,100.0,16.5
+Kentucky,Rowan,87.71944,Rural,0.253,0.688,0.0,100.0,13.5
+Utah,Wayne,1.028811,Rural,0.205,0.453,0.083,100.0,16.2
+Missouri,Cape Girardeau,141.2284,Not rural,0.505,0.465,0.0,81.9,11.7
+Washington,Walla Walla,48.93573,Not rural,0.397,0.554,0.012,81.5,10.4
+Missouri,Mississippi,29.8958,Rural,0.568,0.422,0.001,100.0,25.4
+Arkansas,Cleveland,12.62396,Rural,0.367,0.579,0.0,100.0,30.6
+Texas,Dallas,2982.39,Not rural,0.369,0.622,0.001,86.3,17.8
+Indiana,DeKalb,119.3719,Rural,0.699,0.25,0.009,100.0,15.9
+Louisiana,Ouachita,261.4649,Not rural,0.323,0.667,0.002,95.9,23.6
+Louisiana,St. John the Baptist,195.7628,Not rural,0.235,0.758,0.002,89.6,20.8
+Louisiana,St. Helena,26.61271,Rural,0.212,0.753,0.0,100.0,28.8
+Missouri,Schuyler,13.23115,Rural,0.472,0.4,0.0,100.0,28.3
+Alabama,Franklin,50.49381,Rural,0.39,0.597,0.001,100.0,31.1
+Kentucky,Carroll,84.24251,Rural,0.423,0.516,0.018,100.0,28.9
+Colorado,Clear Creek,23.80067,Rural,0.746,0.16,0.0,100.0,12.4
+Texas,Kimble,3.450094,Rural,0.324,0.669,0.0,100.0,26.0
+Michigan,Mackinac,10.61084,Rural,0.578,0.249,0.031,100.0,21.3
+Texas,McCulloch,7.167787,Rural,0.452,0.52,0.0,100.0,20.4
+Mississippi,Tishomingo,44.39575,Rural,0.379,0.568,0.004,100.0,24.5
+Texas,Crockett,1.050467,Rural,0.569,0.431,0.0,100.0,35.0
+Texas,Hill,37.68859,Rural,0.291,0.684,0.0,100.0,17.4
+Colorado,Logan,11.58599,Rural,0.703,0.28,0.001,100.0,11.8
+Kansas,Finney,29.32955,Not rural,0.778,0.214,0.003,86.9,15.8
+Kansas,Montgomery,48.86312,Rural,0.726,0.238,0.002,100.0,19.0
+South Carolina,Fairfield,30.51414,Not rural,0.244,0.682,0.024,99.7,33.0
+Nebraska,Cheyenne,7.933896,Rural,0.7,0.277,0.003,100.0,14.1
+Minnesota,Martin,28.02069,Rural,0.814,0.157,0.01,100.0,16.1
+Tennessee,Sevier,166.1653,Not rural,0.195,0.777,0.004,92.9,19.4
+Tennessee,Polk,40.54253,Rural,0.232,0.693,0.024,100.0,25.3
+Texas,Kent,0.7035958,Rural,0.293,0.65,0.0,100.0,18.1
+Montana,Teton,2.746063,Rural,0.777,0.112,0.015,100.0,19.1
+Nebraska,Garden,1.042592,Rural,0.614,0.337,0.0,100.0,19.9
+Illinois,Macoupin,52.03751,Rural,0.77,0.198,0.003,100.0,15.1
+Ohio,Ross,111.6669,Not rural,0.444,0.457,0.049,89.1,17.0
+Illinois,Whiteside,81.22944,Rural,0.829,0.152,0.003,100.0,15.6
+Texas,El Paso,852.5492,Not rural,0.726,0.263,0.001,94.8,16.9
+Texas,Loving,0.1435369,Rural,0.4,0.6,0.0,100.0,32.7
+Oklahoma,Latimer,13.20718,Rural,0.438,0.491,0.0,100.0,27.2
+Ohio,Washington,94.36938,Rural,0.74,0.207,0.019,100.0,20.1
+Missouri,Howell,43.09858,Rural,0.424,0.442,0.007,100.0,20.0
+Kansas,Edwards,4.581163,Rural,0.765,0.164,0.0,100.0,21.8
+Kentucky,Jefferson,2046.143,Not rural,0.616,0.373,0.002,69.8,12.6
+Illinois,Logan,45.34729,Rural,0.772,0.213,0.003,100.0,16.4
+Wisconsin,Winnebago,393.8303,Not rural,0.769,0.192,0.005,63.7,11.4
+Kentucky,Fulton,31.46672,Rural,0.511,0.478,0.0,100.0,30.6
+Kansas,Harvey,62.91548,Rural,0.681,0.285,0.004,100.0,13.1
+Montana,Dawson,3.758549,Rural,0.788,0.199,0.002,100.0,17.8
+West Virginia,Taylor,96.09247,Rural,0.652,0.25,0.014,100.0,15.1
+Michigan,Midland,161.2466,Not rural,0.826,0.109,0.008,77.0,13.1
+Mississippi,Quitman,15.09339,Rural,0.579,0.4,0.0,100.0,36.4
+Kentucky,Hardin,177.9213,Not rural,0.284,0.692,0.006,84.0,17.6
+Illinois,Jefferson,64.84727,Rural,0.559,0.381,0.001,100.0,15.1
+South Dakota,Hamlin,12.22046,Rural,0.637,0.324,0.007,100.0,21.1
+Wisconsin,Lincoln,32.32261,Rural,0.755,0.127,0.021,100.0,17.3
+New York,Franklin,29.12853,Rural,0.193,0.147,0.49,100.0,21.7
+Virginia,Fredericksburg,2704.002,Not rural,0.407,0.563,0.013,69.5,14.4
+West Virginia,Raleigh,122.7391,Rural,0.379,0.569,0.009,100.0,18.4
+New Mexico,Chaves,10.6641,Not rural,0.486,0.494,0.002,90.7,26.1
+New Mexico,Santa Fe,80.86401,Not rural,0.763,0.156,0.001,92.2,17.4
+California,Orange,4004.788,Not rural,0.698,0.258,0.001,80.8,7.5
+Arizona,Santa Cruz,38.69629,Not rural,0.382,0.576,0.0,98.7,21.1
+North Carolina,Currituck,109.2588,Rural,0.097,0.866,0.01,100.0,13.3
+Illinois,Lawrence,41.11467,Rural,0.753,0.227,0.002,100.0,18.9
+Indiana,Howard,284.747,Not rural,0.74,0.242,0.001,73.1,17.0
+Indiana,Pike,36.5694,Rural,0.623,0.321,0.003,100.0,24.1
+Kentucky,Christian,101.3935,Not rural,0.364,0.604,0.006,81.5,20.7
+Michigan,Eaton,189.6217,Not rural,0.763,0.145,0.03,84.0,13.1
+Iowa,Wapello,81.72424,Not rural,0.747,0.208,0.0,76.0,19.1
+California,Imperial,43.00714,Not rural,0.422,0.528,0.0,98.1,15.8
+Michigan,Cass,105.291,Not rural,0.761,0.134,0.032,92.9,18.1
+Mississippi,Wilkinson,12.58062,Rural,0.34,0.637,0.0,100.0,43.1
+Kansas,Sheridan,2.734506,Rural,0.862,0.114,0.0,100.0,14.8
+Mississippi,Leake,36.60164,Rural,0.416,0.55,0.0,100.0,32.0
+Mississippi,Clay,45.35299,Rural,0.475,0.514,0.0,100.0,22.0
+Mississippi,Franklin,13.63563,Rural,0.394,0.566,0.0,100.0,23.3
+Mississippi,Neshoba,50.81258,Rural,0.374,0.6,0.0,100.0,27.8
+South Dakota,Edmunds,3.564893,Rural,0.549,0.339,0.071,100.0,19.0
+Alabama,Conecuh,13.61435,Rural,0.323,0.65,0.002,100.0,37.8
+Indiana,Dearborn,166.2117,Not rural,0.535,0.391,0.025,89.2,12.1
+Indiana,Jackson,90.6157,Rural,0.353,0.585,0.007,100.0,20.5
+Mississippi,Lee,185.221,Not rural,0.439,0.55,0.001,88.7,19.8
+Louisiana,West Feliciana,38.0793,Rural,0.22,0.776,0.0,100.0,22.0
+Arkansas,Crittenden,78.23095,Not rural,0.485,0.504,0.0,87.4,18.6
+Florida,Jackson,51.95211,Rural,0.075,0.905,0.0,100.0,23.4
+Texas,Dickens,1.741109,Rural,0.527,0.37,0.0,100.0,17.3
+Virginia,Mathews,99.37045,Rural,0.121,0.77,0.025,100.0,23.3
+North Dakota,Renville,2.60133,Rural,0.527,0.395,0.007,100.0,18.0
+Texas,La Salle,4.68486,Rural,0.21,0.782,0.0,100.0,36.3
+New York,Onondaga,607.1961,Not rural,0.733,0.198,0.037,68.6,16.6
+Iowa,Henry,47.05635,Rural,0.757,0.201,0.001,100.0,16.6
+Nebraska,Harlan,5.590222,Rural,0.605,0.364,0.0,100.0,16.6
+Montana,Powder River,0.5375665,Rural,0.727,0.142,0.0,100.0,17.7
+Wisconsin,Pepin,31.73601,Rural,0.683,0.125,0.043,100.0,16.2
+Arizona,Apache,5.898567,Rural,0.197,0.168,0.0,100.0,61.1
+Missouri,Macon,18.93766,Rural,0.564,0.366,0.001,100.0,27.8
+Texas,Lamb,12.81661,Rural,0.596,0.372,0.0,100.0,24.1
+Kansas,Kiowa,3.38343,Rural,0.737,0.239,0.0,100.0,19.6
+Texas,Austin,47.03203,Rural,0.338,0.634,0.003,100.0,22.8
+Missouri,Daviess,14.94456,Rural,0.583,0.265,0.001,100.0,23.5
+Georgia,Seminole,38.37994,Rural,0.04,0.949,0.0,100.0,28.0
+Michigan,Manistee,46.20473,Rural,0.79,0.078,0.017,100.0,16.3
+Iowa,Lyon,20.46087,Rural,0.677,0.247,0.014,100.0,11.0
+Texas,Hutchinson,23.20761,Rural,0.659,0.336,0.0,100.0,14.7
+Oklahoma,Texas,10.35814,Rural,0.745,0.247,0.0,100.0,19.3
+Oklahoma,Woodward,16.42358,Rural,0.62,0.355,0.0,100.0,18.1
+Iowa,Adams,8.690868,Rural,0.676,0.271,0.003,100.0,18.7
+California,Sutter,164.4295,Not rural,0.658,0.281,0.004,85.5,13.6
+Pennsylvania,Potter,15.15839,Rural,0.735,0.079,0.031,100.0,18.3
+Texas,Val Verde,15.16591,Not rural,0.204,0.781,0.0,94.6,27.2
+Kansas,Harper,6.810403,Rural,0.838,0.133,0.0,100.0,21.9
+Iowa,Monona,12.49293,Rural,0.615,0.299,0.039,100.0,18.6
+Utah,Juab,3.521126,Rural,0.726,0.212,0.004,100.0,17.4
+Oklahoma,Stephens,49.57411,Not rural,0.528,0.414,0.003,82.0,17.9
+New York,Chenango,52.71293,Rural,0.312,0.166,0.34,100.0,17.2
+Illinois,Peoria,292.8518,Not rural,0.741,0.248,0.001,73.9,17.3
+Iowa,Humboldt,22.11469,Rural,0.735,0.247,0.006,100.0,18.7
+Nebraska,Washington,53.55456,Rural,0.647,0.28,0.019,100.0,10.2
+Wisconsin,Iowa,31.16042,Rural,0.734,0.109,0.056,100.0,13.6
+Minnesota,Morrison,30.24013,Rural,0.663,0.141,0.056,100.0,16.9
+Pennsylvania,Allegheny,1706.013,Not rural,0.825,0.154,0.011,61.9,11.6
+Missouri,Shelby,12.07714,Rural,0.556,0.379,0.002,100.0,20.2
+Ohio,Madison,94.19789,Not rural,0.666,0.275,0.033,100.0,10.7
+Kansas,Washington,6.179319,Rural,0.739,0.145,0.054,100.0,20.8
+Illinois,Champaign,207.3327,Not rural,0.618,0.364,0.002,77.4,13.7
+Idaho,Washington,7.304252,Rural,0.407,0.456,0.017,100.0,19.9
+Illinois,Edgar,27.03572,Rural,0.742,0.23,0.001,100.0,16.9
+Colorado,Washington,1.912963,Rural,0.716,0.229,0.019,100.0,12.9
+Ohio,Hardin,65.11367,Rural,0.67,0.237,0.006,100.0,21.2
+Michigan,Missaukee,26.71623,Rural,0.726,0.052,0.022,100.0,18.1
+North Dakota,Stutsman,9.725445,Rural,0.659,0.297,0.012,100.0,17.2
+Missouri,Shannon,7.10486,Rural,0.36,0.388,0.0,100.0,34.1
+Texas,Smith,254.665,Not rural,0.415,0.571,0.004,85.5,16.9
+Oklahoma,Tulsa,1173.053,Not rural,0.653,0.339,0.0,73.1,12.7
+Oklahoma,McIntosh,30.98726,Rural,0.467,0.505,0.0,100.0,33.1
+Texas,Robertson,19.77654,Rural,0.416,0.563,0.0,100.0,20.5
+Texas,Gillespie,25.47055,Rural,0.309,0.643,0.001,100.0,16.3
+Michigan,Oakland,1466.746,Not rural,0.871,0.115,0.002,66.5,7.5
+North Dakota,Golden Valley,1.732467,Rural,0.825,0.14,0.0,100.0,22.0
+Wyoming,Niobrara,0.936776,Rural,0.79,0.064,0.01,100.0,23.1
+Minnesota,Pipestone,20.16975,Rural,0.747,0.18,0.048,100.0,16.6
+Virginia,King George,150.2272,Rural,0.106,0.818,0.041,100.0,6.9
+Washington,Grant,37.00065,Not rural,0.026,0.955,0.002,93.5,13.3
+Minnesota,Renville,14.9628,Rural,0.724,0.208,0.042,100.0,21.9
+Florida,Alachua,319.4547,Not rural,0.204,0.776,0.001,78.7,12.4
+Nebraska,Hooker,0.9138054,Rural,0.729,0.209,0.0,100.0,31.3
+Virginia,Prince Edward,62.64389,Rural,0.107,0.753,0.075,100.0,28.5
+Utah,Carbon,13.74799,Rural,0.887,0.087,0.0,100.0,14.9
+Pennsylvania,Bucks,1067.502,Not rural,0.419,0.302,0.256,60.5,7.6
+South Dakota,Hand,2.140421,Rural,0.455,0.412,0.048,100.0,14.9
+Pennsylvania,Lycoming,92.78232,Not rural,0.392,0.255,0.234,90.7,17.2
+Idaho,Latah,37.06034,Not rural,0.364,0.498,0.025,71.2,11.7
+Georgia,Putnam,64.42464,Rural,0.195,0.767,0.01,100.0,22.9
+Virginia,Galax,811.8877,Rural,0.061,0.653,0.204,100.0,24.1
+New Mexico,Quay,3.006658,Rural,0.533,0.4,0.003,100.0,28.6
+Texas,King,0.2371351,Rural,0.375,0.488,0.0,100.0,13.9
+Arkansas,Lafayette,11.8552,Rural,0.434,0.543,0.006,100.0,36.5
+Texas,Tom Green,78.35146,Not rural,0.362,0.627,0.001,80.9,18.4
+Florida,Hardee,40.03957,Rural,0.039,0.921,0.0,100.0,36.7
+Ohio,Clermont,461.4878,Not rural,0.43,0.479,0.049,65.2,10.5
+Texas,Yoakum,9.540898,Rural,0.416,0.569,0.0,100.0,22.9
+Oregon,Yamhill,150.395,Not rural,0.266,0.653,0.009,80.2,12.0
+Iowa,Louisa,26.93785,Rural,0.758,0.197,0.0,100.0,15.2
+Kansas,Elk,3.807444,Rural,0.699,0.176,0.0,100.0,26.5
+Ohio,Noble,35.71751,Rural,0.609,0.191,0.072,100.0,26.3
+Ohio,Putnam,71.28881,Rural,0.596,0.327,0.022,100.0,12.7
+Texas,Somervell,50.14304,Rural,0.199,0.788,0.0,100.0,18.4
+Pennsylvania,Lebanon,395.9205,Not rural,0.383,0.238,0.332,94.7,15.0
+Montana,Glacier,4.601104,Rural,0.502,0.368,0.005,100.0,24.8
+Nevada,Pershing,1.091179,Rural,0.657,0.148,0.018,100.0,16.9
+Minnesota,Mahnomen,9.660013,Rural,0.486,0.272,0.129,100.0,23.7
+New Jersey,Passaic,2793.628,Not rural,0.848,0.092,0.046,82.6,14.2
+Montana,Lake,21.14035,Rural,0.226,0.572,0.033,100.0,20.4
+Texas,Kenedy,0.07953039,Rural,0.0,1.0,0.0,100.0,38.7
+Texas,Borden,0.7643941,Rural,0.326,0.605,0.0,100.0,13.5
+Missouri,Perry,39.99113,Rural,0.488,0.404,0.002,100.0,14.4
+Texas,San Saba,5.090226,Rural,0.432,0.55,0.006,100.0,19.1
+Oklahoma,Kingfisher,17.0251,Rural,0.672,0.321,0.001,100.0,24.4
+Texas,Burleson,27.24697,Rural,0.249,0.737,0.0,100.0,20.4
+New York,Fulton,107.5365,Rural,0.515,0.105,0.261,100.0,17.7
+Mississippi,Sunflower,37.07154,Rural,0.659,0.331,0.001,100.0,34.2
+Minnesota,Hennepin,2293.816,Not rural,0.784,0.191,0.002,61.6,9.8
+Pennsylvania,Centre,143.2953,Not rural,0.29,0.426,0.212,88.9,14.6
+Texas,Bee,35.19156,Rural,0.209,0.786,0.0,100.0,32.1
+Tennessee,Henderson,53.54716,Rural,0.628,0.351,0.001,100.0,19.8
+Iowa,Tama,23.60157,Rural,0.797,0.145,0.005,100.0,17.7
+Kansas,Seward,34.30298,Not rural,0.778,0.215,0.0,90.1,11.2
+Iowa,Monroe,17.46335,Rural,0.763,0.173,0.0,100.0,20.5
+Nebraska,Richardson,14.22511,Rural,0.607,0.325,0.002,100.0,15.4
+Illinois,Christian,47.77139,Rural,0.793,0.188,0.0,100.0,18.3
+Florida,Nassau,141.1141,Rural,0.042,0.934,0.006,100.0,10.9
+Florida,Washington,42.78261,Rural,0.082,0.898,0.001,100.0,18.2
+Georgia,Baker,8.416254,Rural,0.227,0.761,0.0,100.0,41.0
+Georgia,Thomas,83.84547,Rural,0.119,0.866,0.001,100.0,16.3
+Kentucky,Anderson,117.8634,Rural,0.265,0.685,0.001,100.0,18.7
+Kentucky,Oldham,363.0532,Not rural,0.541,0.447,0.003,63.7,6.5
+Georgia,Cherokee,637.8021,Not rural,0.678,0.314,0.0,65.9,5.6
+North Dakota,Oliver,2.535977,Rural,0.67,0.208,0.003,100.0,16.6
+Michigan,Osceola,40.65435,Rural,0.691,0.054,0.031,100.0,26.0
+Tennessee,McNairy,46.0076,Rural,0.395,0.57,0.003,100.0,23.2
+Washington,Adams,10.67902,Rural,0.235,0.708,0.012,100.0,26.6
+Missouri,Dade,15.50579,Rural,0.488,0.374,0.0,100.0,24.0
+Louisiana,St. Mary,87.93484,Rural,0.313,0.683,0.001,100.0,20.8
+Vermont,Chittenden,313.5125,Not rural,0.652,0.126,0.158,87.0,11.5
+Louisiana,Lafourche,91.0476,Not rural,0.326,0.668,0.0,99.9,17.5
+Iowa,Muscatine,98.22603,Not rural,0.827,0.154,0.002,80.7,15.9
+Florida,Santa Rosa,186.679,Not rural,0.093,0.887,0.0,77.7,8.6
+Indiana,Martin,29.3751,Rural,0.565,0.327,0.006,100.0,21.4
+Kentucky,Rockcastle,51.08244,Rural,0.098,0.763,0.023,100.0,27.0
+Kentucky,Trimble,57.5893,Rural,0.276,0.6,0.043,100.0,28.1
+Georgia,Chattooga,79.47615,Rural,0.35,0.619,0.003,100.0,24.3
+South Carolina,Dillon,69.75226,Rural,0.104,0.863,0.023,100.0,41.4
+North Carolina,Jones,19.65132,Rural,0.201,0.769,0.01,100.0,31.8
+Missouri,Scotland,10.81311,Rural,0.697,0.244,0.0,100.0,20.0
+Kansas,Nemaha,14.24395,Rural,0.762,0.171,0.01,100.0,13.7
+Kansas,Norton,6.185341,Rural,0.905,0.071,0.001,100.0,14.0
+Nebraska,Furnas,6.438321,Rural,0.684,0.256,0.0,100.0,17.8
+Georgia,Decatur,48.66223,Rural,0.085,0.897,0.001,100.0,41.9
+Indiana,Wayne,165.5787,Not rural,0.642,0.263,0.052,83.1,23.1
+Kentucky,Barren,91.32987,Rural,0.399,0.558,0.008,100.0,17.7
+Nebraska,Howard,11.37462,Rural,0.571,0.369,0.008,100.0,18.1
+North Dakota,Dunn,2.01594,Rural,0.597,0.337,0.02,100.0,12.7
+California,Amador,68.24428,Rural,0.523,0.258,0.004,100.0,12.6
+Tennessee,Fentress,37.38818,Rural,0.409,0.47,0.002,100.0,25.0
+Kansas,Coffey,13.29431,Rural,0.76,0.203,0.005,100.0,13.1
+Michigan,Branch,88.45587,Rural,0.778,0.077,0.041,100.0,19.0
+Virginia,Campbell,110.3283,Not rural,0.07,0.805,0.073,87.4,21.2
+Ohio,Meigs,51.71337,Rural,0.415,0.509,0.005,100.0,24.6
+West Virginia,Nicholas,38.06777,Rural,0.435,0.441,0.012,100.0,18.7
+Oklahoma,Grant,4.14893,Rural,0.682,0.215,0.076,100.0,23.5
+South Dakota,Spink,4.226808,Rural,0.598,0.327,0.009,100.0,15.1
+Vermont,Windsor,59.67326,Rural,0.271,0.064,0.476,100.0,12.9
+Texas,Trinity,19.79692,Rural,0.201,0.773,0.0,100.0,32.0
+New Mexico,Bernalillo,581.0073,Not rural,0.782,0.186,0.001,86.4,17.0
+Georgia,Mitchell,42.24087,Rural,0.167,0.815,0.0,100.0,22.8
+Kentucky,McCreary,39.5871,Rural,0.122,0.714,0.032,100.0,34.0
+Kentucky,Pendleton,52.81653,Rural,0.428,0.425,0.062,100.0,21.6
+Kentucky,Spencer,104.7248,Rural,0.299,0.654,0.009,100.0,11.9
+Montana,Hill,5.600466,Rural,0.821,0.142,0.003,100.0,18.2
+Nebraska,Valley,7.134159,Rural,0.435,0.514,0.0,100.0,16.9
+Texas,Castro,8.252049,Rural,0.595,0.368,0.023,100.0,28.1
+Maryland,Washington,337.8121,Not rural,0.267,0.504,0.181,91.9,16.8
+Kentucky,Letcher,63.59237,Rural,0.162,0.774,0.01,100.0,24.5
+New Jersey,Salem,195.3832,Not rural,0.517,0.162,0.281,87.0,13.6
+Virginia,Lynchburg,1616.409,Not rural,0.2,0.741,0.049,70.4,15.2
+Arkansas,Saline,171.3686,Not rural,0.411,0.569,0.001,77.2,12.0
+West Virginia,Mason,59.16877,Rural,0.296,0.659,0.017,100.0,23.6
+West Virginia,Gilmer,21.99097,Rural,0.789,0.146,0.0,100.0,22.9
+Mississippi,Jefferson,13.8614,Rural,0.295,0.694,0.003,100.0,24.2
+North Dakota,Rolette,13.61177,Rural,0.332,0.603,0.041,100.0,27.6
+Montana,Treasure,0.6954383,Rural,0.492,0.36,0.006,100.0,29.2
+Kentucky,Clark,146.1373,Rural,0.423,0.558,0.003,100.0,15.8
+Michigan,Allegan,145.6389,Not rural,0.781,0.058,0.027,97.9,17.3
+Tennessee,Benton,40.40768,Rural,0.473,0.479,0.001,100.0,27.6
+Minnesota,Brown,42.34921,Rural,0.767,0.165,0.025,100.0,13.5
+Tennessee,Pickett,30.93819,Rural,0.268,0.702,0.003,100.0,23.5
+Virginia,Louisa,76.96971,Rural,0.133,0.699,0.07,100.0,16.8
+Indiana,Shelby,109.3068,Not rural,0.572,0.371,0.023,99.5,16.6
+Ohio,Franklin,2475.789,Not rural,0.697,0.294,0.003,68.4,10.3
+Utah,Iron,17.61683,Not rural,0.651,0.305,0.008,69.1,13.1
+Nevada,Esmeralda,0.2735986,Rural,0.499,0.258,0.019,100.0,42.2
+Michigan,Keweenaw,3.865866,Rural,0.709,0.054,0.065,100.0,25.3
+Utah,Sanpete,18.12536,Rural,0.835,0.089,0.002,100.0,14.1
+Kansas,Kearny,4.553478,Rural,0.783,0.207,0.0,100.0,18.3
+Florida,Brevard,601.7135,Not rural,0.098,0.883,0.001,73.0,9.6
+Indiana,Monroe,355.0247,Not rural,0.507,0.47,0.002,67.8,11.3
+Iowa,Lucas,20.12163,Rural,0.669,0.248,0.003,100.0,18.1
+Kentucky,Woodford,141.8236,Rural,0.405,0.574,0.002,100.0,13.3
+South Carolina,Jasper,44.94167,Rural,0.228,0.759,0.0,100.0,31.5
+Texas,Brewster,1.528842,Rural,0.44,0.523,0.0,100.0,16.8
+South Carolina,McCormick,26.7844,Rural,0.174,0.78,0.026,100.0,26.5
+South Carolina,Union,52.87932,Rural,0.358,0.585,0.023,100.0,26.9
+Minnesota,Nicollet,76.65263,Rural,0.781,0.173,0.013,100.0,10.5
+Wisconsin,Marinette,29.88784,Rural,0.757,0.103,0.017,100.0,16.4
+Washington,Clark,802.0547,Not rural,0.344,0.616,0.005,67.6,7.2
+Wisconsin,Price,11.2164,Rural,0.697,0.098,0.027,100.0,19.5
+Indiana,Miami,96.1689,Not rural,0.717,0.227,0.017,99.5,19.8
+Kansas,Ellsworth,8.90752,Rural,0.779,0.18,0.0,100.0,16.9
+Louisiana,West Carroll,27.24599,Rural,0.357,0.618,0.0,100.0,53.9
+Florida,Liberty,9.220127,Rural,0.046,0.922,0.0,100.0,26.4
+Kansas,Hodgeman,2.058158,Rural,0.734,0.151,0.086,100.0,13.6
+Kansas,Meade,4.10906,Rural,0.868,0.115,0.0,100.0,14.2
+Kentucky,McLean,36.3251,Rural,0.452,0.526,0.003,100.0,21.1
+Mississippi,Adams,63.64315,Rural,0.397,0.589,0.003,100.0,20.7
+Mississippi,Itawamba,44.83524,Rural,0.453,0.519,0.0,100.0,23.3
+Kentucky,Franklin,247.5848,Not rural,0.463,0.515,0.003,82.5,15.3
+Maine,Hancock,35.18998,Rural,0.203,0.096,0.555,100.0,12.6
+Maine,Knox,111.5417,Rural,0.202,0.083,0.606,100.0,10.7
+Georgia,Newton,413.7767,Not rural,0.366,0.621,0.0,88.5,11.5
+South Dakota,Faulk,2.179862,Rural,0.486,0.456,0.034,100.0,16.9
+Michigan,Houghton,37.07658,Rural,0.793,0.088,0.034,100.0,15.3
+Montana,Mineral,3.814304,Rural,0.449,0.179,0.03,100.0,24.4
+Tennessee,Franklin,77.51163,Not rural,0.303,0.683,0.001,97.3,23.2
+Louisiana,Concordia,26.79419,Rural,0.483,0.505,0.0,100.0,31.4
+Louisiana,Livingston,221.29,Not rural,0.29,0.697,0.0,77.2,15.3
+Massachusetts,Essex,1636.711,Not rural,0.603,0.161,0.219,67.7,10.9
+South Dakota,Butte,4.608424,Rural,0.636,0.295,0.0,100.0,17.4
+Colorado,Douglas,428.3639,Not rural,0.767,0.221,0.0,55.9,2.8
+South Carolina,Richland,549.5269,Not rural,0.257,0.729,0.003,80.7,15.1
+Indiana,Madison,288.8668,Not rural,0.722,0.255,0.006,75.7,15.9
+Oklahoma,Murray,33.23208,Rural,0.375,0.571,0.018,100.0,30.1
+West Virginia,Brooke,250.5614,Rural,0.625,0.269,0.065,100.0,19.8
+West Virginia,Calhoun,22.48421,Rural,0.75,0.192,0.0,100.0,24.4
+Virginia,Bland,17.44998,Rural,0.007,0.745,0.098,100.0,23.4
+Montana,Yellowstone,62.85905,Not rural,0.764,0.208,0.001,67.8,11.7
+West Virginia,Lincoln,46.69486,Rural,0.424,0.516,0.014,100.0,20.4
+California,Lake,54.19884,Rural,0.315,0.387,0.092,100.0,19.1
+Georgia,Grady,57.37552,Rural,0.131,0.849,0.005,100.0,21.9
+Colorado,Conejos,5.866735,Rural,0.54,0.135,0.004,100.0,25.2
+Utah,San Juan,1.856395,Rural,0.48,0.166,0.007,100.0,44.4
+Indiana,Putnam,76.87644,Rural,0.513,0.382,0.042,100.0,17.4
+Idaho,Gooding,21.28004,Rural,0.222,0.648,0.033,100.0,21.4
+Tennessee,Tipton,134.1408,Rural,0.615,0.366,0.002,100.0,19.7
+Louisiana,West Baton Rouge,142.3318,Not rural,0.391,0.598,0.0,84.9,14.8
+Missouri,Putnam,9.081472,Rural,0.715,0.245,0.0,100.0,33.2
+Wyoming,Teton,5.841102,Rural,0.295,0.651,0.004,100.0,12.4
+Wisconsin,Grant,45.20276,Rural,0.696,0.151,0.059,100.0,16.7
+North Dakota,Morton,17.23465,Not rural,0.779,0.179,0.003,63.8,13.4
+North Carolina,Chowan,80.1299,Rural,0.363,0.588,0.023,100.0,26.2
+North Carolina,Buncombe,410.4346,Not rural,0.243,0.644,0.078,71.1,15.4
+California,Plumas,7.69664,Rural,0.307,0.106,0.172,100.0,15.2
+Virginia,Petersburg,1463.923,Not rural,0.326,0.632,0.022,93.4,23.7
+Vermont,Washington,86.99095,Rural,0.291,0.06,0.487,100.0,13.7
+South Dakota,Meade,8.634563,Not rural,0.626,0.333,0.002,85.7,12.4
+Indiana,Marion,2450.42,Not rural,0.588,0.401,0.002,74.7,17.2
+Arkansas,Chicot,16.0665,Rural,0.498,0.489,0.0,100.0,30.8
+Georgia,Bibb,627.7662,Not rural,0.376,0.61,0.001,84.2,21.3
+Arkansas,Pope,78.27221,Not rural,0.269,0.693,0.001,84.3,20.8
+Virginia,Southampton,30.04527,Rural,0.142,0.695,0.128,100.0,19.2
+Texas,Gregg,454.4765,Not rural,0.355,0.639,0.0,83.3,18.1
+New York,Rockland,1942.176,Not rural,0.853,0.103,0.026,70.5,20.0
+Arkansas,Marion,28.33564,Rural,0.293,0.559,0.001,100.0,19.4
+Virginia,Suffolk,237.6348,Not rural,0.407,0.546,0.03,75.2,14.6
+Colorado,El Paso,343.4529,Not rural,0.737,0.246,0.001,68.0,6.7
+Missouri,St. Francois,147.8558,Rural,0.276,0.688,0.0,100.0,16.2
+Texas,Ward,13.57942,Rural,0.442,0.548,0.003,100.0,23.4
+Colorado,Kiowa,0.7619603,Rural,0.842,0.111,0.0,100.0,9.5
+Texas,Wilbarger,13.17787,Rural,0.551,0.446,0.0,100.0,28.4
+Oregon,Curry,14.37254,Rural,0.049,0.774,0.004,100.0,14.8
+Colorado,Teller,44.4376,Rural,0.737,0.141,0.002,100.0,7.9
+Missouri,Clinton,50.49648,Rural,0.658,0.299,0.0,100.0,14.6
+Utah,Wasatch,29.74548,Rural,0.836,0.128,0.0,100.0,6.5
+Idaho,Caribou,4.000694,Rural,0.752,0.18,0.005,100.0,8.9
+North Carolina,Rockingham,161.2486,Rural,0.296,0.631,0.032,100.0,25.9
+Arkansas,Prairie,12.69002,Rural,0.357,0.597,0.0,100.0,36.0
+Arkansas,Bradley,16.11449,Rural,0.422,0.541,0.0,100.0,27.0
+Texas,Hamilton,9.862252,Rural,0.465,0.51,0.0,100.0,23.8
+Maryland,Caroline,104.307,Rural,0.184,0.56,0.165,100.0,14.5
+Minnesota,Douglas,61.36341,Rural,0.684,0.248,0.021,100.0,15.7
+Montana,Jefferson,7.406772,Rural,0.67,0.125,0.001,100.0,16.0
+Virginia,Fairfax,2929.141,Not rural,0.564,0.414,0.014,72.8,5.1
+Montana,Deer Lodge,12.80742,Rural,0.71,0.196,0.014,100.0,17.8
+Tennessee,Anderson,229.3463,Not rural,0.429,0.547,0.001,79.4,14.9
+Ohio,Huron,118.8803,Rural,0.66,0.256,0.021,100.0,16.0
+Georgia,Bacon,39.20692,Rural,0.083,0.907,0.0,100.0,28.7
+Delaware,Kent,311.2304,Not rural,0.525,0.332,0.107,96.5,12.1
+Ohio,Wood,213.1758,Not rural,0.753,0.217,0.004,70.4,10.8
+Georgia,Jackson,226.8507,Not rural,0.225,0.748,0.0,94.7,17.1
+Kansas,Anderson,13.45487,Rural,0.749,0.174,0.001,100.0,27.0
+Illinois,Knox,69.44728,Not rural,0.78,0.199,0.001,83.0,20.9
+Montana,Wheatland,1.448174,Rural,0.679,0.175,0.017,100.0,33.7
+Tennessee,Cannon,54.51458,Rural,0.265,0.694,0.001,100.0,24.4
+Maine,Franklin,17.58331,Rural,0.128,0.093,0.569,100.0,18.9
+Kentucky,Menifee,30.33333,Rural,0.363,0.541,0.0,100.0,23.3
+South Dakota,McPherson,1.98035,Rural,0.392,0.272,0.263,100.0,25.4
+Colorado,Gunnison,5.253863,Rural,0.491,0.341,0.003,100.0,11.1
+Michigan,Charlevoix,62.86845,Rural,0.758,0.106,0.013,100.0,16.2
+Minnesota,Swift,13.21518,Rural,0.698,0.22,0.056,100.0,19.6
+Ohio,Seneca,99.92625,Rural,0.663,0.258,0.02,100.0,15.6
+Georgia,Tattnall,50.55529,Rural,0.151,0.833,0.0,100.0,23.5
+Texas,Stephens,10.32651,Rural,0.419,0.553,0.0,100.0,16.6
+North Carolina,Martin,48.1845,Rural,0.301,0.629,0.037,100.0,23.7
+Montana,Ravalli,18.76898,Rural,0.617,0.196,0.005,100.0,15.1
+Georgia,Wilkes,20.46855,Rural,0.459,0.485,0.0,100.0,45.3
+Washington,Lincoln,4.776249,Rural,0.313,0.501,0.042,100.0,12.2
+California,San Mateo,1681.321,Not rural,0.665,0.306,0.002,81.7,6.7
+Ohio,Williams,87.8928,Rural,0.703,0.247,0.017,100.0,13.0
+Colorado,Baca,1.368301,Rural,0.875,0.102,0.0,100.0,21.3
+Idaho,Boundary,9.722713,Rural,0.423,0.282,0.0,100.0,17.7
+Idaho,Bear Lake,6.596102,Rural,0.663,0.17,0.007,100.0,9.4
+Ohio,Union,146.883,Not rural,0.743,0.209,0.016,77.9,8.4
+Ohio,Cuyahoga,2748.449,Not rural,0.818,0.163,0.001,73.8,16.0
+Texas,Lavaca,21.01558,Rural,0.351,0.61,0.001,100.0,18.5
+Oklahoma,Nowata,16.71917,Rural,0.495,0.362,0.002,100.0,30.6
+Georgia,Glascock,20.19541,Rural,0.328,0.639,0.0,100.0,24.7
+Oregon,Umatilla,24.85002,Rural,0.352,0.579,0.012,100.0,16.2
+South Dakota,Oglala Lakota,6.54136,Rural,0.534,0.339,0.026,100.0,51.7
+Kansas,Marshall,11.12446,Rural,0.798,0.164,0.005,100.0,15.2
+Louisiana,Madison,16.06602,Rural,0.493,0.49,0.012,100.0,41.7
+Montana,Valley,1.533054,Rural,0.796,0.167,0.001,100.0,16.8
+Georgia,Whitfield,354.7421,Not rural,0.112,0.875,0.002,93.3,15.0
+Kansas,Wichita,2.965627,Rural,0.815,0.185,0.0,100.0,15.3
+South Dakota,Charles Mix,8.478388,Rural,0.462,0.413,0.066,100.0,31.2
+Nebraska,Cedar,11.31384,Rural,0.637,0.333,0.009,100.0,11.8
+Washington,Kitsap,697.0635,Not rural,0.327,0.579,0.033,87.7,5.8
+Illinois,McHenry,515.6359,Not rural,0.892,0.1,0.0,67.2,5.1
+Montana,Petroleum,0.2512647,Rural,0.492,0.249,0.0,100.0,13.5
+Missouri,Carroll,12.25559,Rural,0.673,0.255,0.002,100.0,27.8
+Washington,Whitman,21.83199,Not rural,0.323,0.601,0.031,74.4,13.6
+Minnesota,Steele,87.05888,Not rural,0.826,0.131,0.003,65.6,9.4
+Nebraska,Thayer,8.724188,Rural,0.615,0.315,0.007,100.0,17.8
+Tennessee,Crockett,52.55562,Rural,0.429,0.548,0.003,100.0,23.9
+Iowa,Hamilton,25.97226,Rural,0.837,0.151,0.0,100.0,20.1
+Ohio,Warren,605.8259,Not rural,0.582,0.371,0.024,67.3,5.8
+Georgia,Spalding,344.0059,Not rural,0.526,0.462,0.0,87.9,27.3
+New Jersey,Hunterdon,301.7498,Not rural,0.533,0.099,0.326,80.7,6.2
+Missouri,Vernon,23.93176,Rural,0.494,0.405,0.0,100.0,17.7
+Indiana,Parke,36.7129,Rural,0.601,0.285,0.006,100.0,27.0
+Iowa,Franklin,17.20873,Rural,0.711,0.253,0.012,100.0,23.6
+Georgia,Butts,138.9406,Rural,0.275,0.685,0.01,100.0,26.9
+Colorado,Elbert,14.30042,Rural,0.82,0.099,0.003,100.0,6.0
+Rhode Island,Bristol,2099.232,Not rural,0.605,0.077,0.307,52.2,8.9
+Texas,Bosque,18.72283,Rural,0.31,0.66,0.001,100.0,21.3
+Rhode Island,Newport,834.1461,Not rural,0.41,0.12,0.44,64.5,10.7
+Ohio,Fairfield,315.9833,Not rural,0.686,0.274,0.016,74.8,11.1
+North Dakota,Pierce,3.927193,Rural,0.331,0.519,0.104,100.0,12.9
+Illinois,Carroll,35.01072,Rural,0.857,0.11,0.007,100.0,13.2
+Minnesota,Red Lake,9.047029,Rural,0.491,0.313,0.124,100.0,15.5
+Oregon,Jefferson,13.84018,Rural,0.157,0.621,0.016,100.0,16.1
+Tennessee,Cheatham,136.1463,Rural,0.277,0.69,0.012,100.0,14.4
+South Dakota,Union,36.24472,Not rural,0.597,0.368,0.004,84.3,13.4
+Alabama,Elmore,141.7813,Not rural,0.265,0.718,0.002,88.8,14.5
+Georgia,Lumpkin,118.0624,Rural,0.289,0.664,0.005,100.0,14.9
+Ohio,Knox,119.2333,Rural,0.711,0.186,0.019,100.0,16.2
+Iowa,Bremer,57.43556,Rural,0.8,0.167,0.005,100.0,11.0
+Texas,Goliad,8.323835,Rural,0.175,0.812,0.0,100.0,25.1
+North Carolina,Henderson,312.2917,Not rural,0.335,0.588,0.038,76.8,13.9
+Florida,Indian River,320.3526,Not rural,0.032,0.946,0.0,88.9,15.9
+Texas,Roberts,0.8267882,Rural,0.544,0.331,0.0,100.0,18.0
+Nebraska,Deuel,4.22416,Rural,0.814,0.142,0.0,100.0,21.9
+New York,Livingston,98.10664,Rural,0.651,0.147,0.099,100.0,12.0
+Iowa,O'Brien,24.67214,Rural,0.643,0.335,0.002,100.0,14.4
+Texas,Callahan,15.42076,Rural,0.305,0.669,0.004,100.0,21.5
+Texas,Rains,53.40973,Rural,0.208,0.751,0.004,100.0,23.3
+Kansas,Grant,12.76252,Rural,0.804,0.193,0.0,100.0,13.2
+Virginia,Lee,51.19005,Rural,0.092,0.803,0.028,100.0,44.1
+New Mexico,Sierra,2.751833,Rural,0.571,0.392,0.001,100.0,32.0
+Arkansas,Drew,20.88776,Rural,0.386,0.581,0.0,100.0,23.7
+Nebraska,Morrill,3.203852,Rural,0.656,0.271,0.003,100.0,19.4
+Missouri,Benton,27.86232,Rural,0.236,0.656,0.006,100.0,23.3
+Arkansas,Pike,16.99883,Rural,0.376,0.526,0.0,100.0,26.7
+Colorado,Mesa,46.9042,Not rural,0.797,0.169,0.0,67.1,10.0
+Missouri,Dent,19.27439,Rural,0.314,0.414,0.009,100.0,25.4
+Virginia,Tazewell,77.85791,Rural,0.124,0.783,0.047,100.0,19.8
+Pennsylvania,Pike,108.2703,Rural,0.338,0.393,0.181,100.0,10.5
+Pennsylvania,Susquehanna,46.80048,Not rural,0.277,0.168,0.36,98.5,14.0
+Texas,Morris,47.59331,Rural,0.386,0.601,0.002,100.0,19.2
+Pennsylvania,Washington,244.6075,Not rural,0.689,0.204,0.077,77.7,11.9
+Vermont,Addison,48.84832,Rural,0.285,0.051,0.464,100.0,11.8
+Kansas,Leavenworth,177.0582,Not rural,0.746,0.224,0.001,83.5,12.1
+Michigan,Muskegon,349.1611,Not rural,0.887,0.07,0.009,89.5,16.3
+Mississippi,Hinds,260.4383,Not rural,0.481,0.506,0.0,93.5,18.4
+Texas,Lampasas,30.63597,Not rural,0.213,0.764,0.005,99.1,19.0
+Virginia,Loudoun,815.8671,Not rural,0.657,0.313,0.02,74.0,4.0
+Missouri,St. Clair,13.82261,Rural,0.411,0.418,0.002,100.0,24.7
+New York,Delaware,30.94213,Rural,0.268,0.124,0.419,100.0,18.3
+Montana,Phillips,0.8234733,Rural,0.811,0.128,0.039,100.0,22.4
+Missouri,Mercer,7.749509,Rural,0.615,0.271,0.028,100.0,27.4
+Washington,Mason,68.83723,Rural,0.152,0.731,0.003,100.0,14.1
+North Carolina,Nash,175.8092,Not rural,0.337,0.65,0.002,91.2,17.7
+Virginia,York,670.8416,Not rural,0.5,0.458,0.033,70.7,6.8
+Missouri,Pettis,63.11453,Not rural,0.544,0.422,0.0,82.2,18.0
+Montana,Missoula,45.71561,Not rural,0.621,0.319,0.005,66.1,9.7
+Kansas,Chautauqua,5.304587,Rural,0.706,0.188,0.0,100.0,30.1
+Texas,Upshur,70.77603,Not rural,0.172,0.798,0.001,97.1,17.2
+Virginia,Culpeper,139.3052,Rural,0.432,0.465,0.059,100.0,11.8
+Oklahoma,Haskell,20.202,Rural,0.486,0.467,0.008,100.0,26.6
+West Virginia,Ohio,398.9787,Not rural,0.673,0.279,0.012,80.0,22.0
+West Virginia,Morgan,75.24686,Rural,0.085,0.584,0.108,100.0,21.8
+Virginia,Rockingham,98.73576,Not rural,0.145,0.639,0.121,90.2,18.5
+Indiana,Whitley,102.0923,Not rural,0.664,0.259,0.012,99.4,14.9
+California,Siskiyou,7.015549,Rural,0.097,0.304,0.233,100.0,15.5
+South Dakota,Day,5.333059,Rural,0.54,0.37,0.049,100.0,24.1
+Louisiana,Orleans,2244.302,Not rural,0.364,0.626,0.0,84.1,22.4
+Alabama,Jefferson,604.8049,Not rural,0.517,0.474,0.001,79.5,16.6
+Alabama,Walker,82.14355,Rural,0.183,0.788,0.004,100.0,22.1
+Missouri,DeKalb,28.09487,Rural,0.504,0.383,0.001,100.0,19.3
+Florida,Gadsden,84.71748,Not rural,0.146,0.831,0.007,99.9,36.4
+Georgia,Dade,93.28677,Not rural,0.304,0.649,0.009,96.5,20.0
+Mississippi,DeSoto,390.9218,Not rural,0.599,0.387,0.0,78.5,10.7
+Virginia,Warren,190.1461,Rural,0.145,0.658,0.112,100.0,11.8
+Illinois,Edwards,27.7968,Rural,0.657,0.283,0.006,100.0,14.6
+Tennessee,Madison,177.0434,Not rural,0.531,0.455,0.0,83.2,18.6
+Alabama,Randolph,38.20341,Rural,0.326,0.636,0.005,100.0,23.6
+North Carolina,Ashe,62.77564,Rural,0.184,0.469,0.237,100.0,24.1
+Colorado,Dolores,2.182407,Rural,0.778,0.072,0.0,100.0,26.9
+Ohio,Licking,262.0704,Not rural,0.739,0.209,0.017,81.6,10.8
+Virginia,Manassas,4329.981,Not rural,0.477,0.511,0.006,82.2,10.1
+Arkansas,Union,37.35564,Rural,0.479,0.499,0.0,100.0,32.9
+Illinois,Henderson,16.82714,Rural,0.867,0.105,0.001,100.0,13.7
+Alabama,Montgomery,290.4827,Not rural,0.48,0.511,0.001,88.1,17.5
+Colorado,Arapahoe,820.2358,Not rural,0.678,0.304,0.001,68.2,7.7
+Kentucky,Marion,57.1298,Rural,0.332,0.612,0.002,100.0,22.6
+Washington,Skagit,74.83393,Not rural,0.537,0.384,0.011,93.3,8.6
+Mississippi,Jones,96.6432,Rural,0.365,0.612,0.002,100.0,37.5
+Wisconsin,Columbia,76.11288,Rural,0.764,0.159,0.018,100.0,14.4
+North Carolina,Brunswick,164.3643,Not rural,0.11,0.868,0.007,94.1,13.6
+Minnesota,Clearwater,8.54952,Rural,0.538,0.216,0.076,100.0,16.8
+Virginia,Northampton,57.30432,Rural,0.203,0.651,0.132,100.0,21.4
+Kansas,Rooks,5.530433,Rural,0.802,0.159,0.0,100.0,18.1
+Indiana,Fayette,108.7848,Rural,0.649,0.271,0.036,100.0,23.9
+Nebraska,Hall,114.5244,Not rural,0.691,0.289,0.002,74.9,13.2
+Nebraska,Hamilton,17.33967,Rural,0.634,0.344,0.0,100.0,10.4
+Nebraska,Loup,1.116195,Rural,0.526,0.298,0.004,100.0,24.6
+Montana,Sheridan,2.206399,Rural,0.613,0.259,0.07,100.0,11.3
+Nebraska,Frontier,2.555838,Rural,0.59,0.282,0.001,100.0,18.6
+Alabama,Bibb,35.74633,Rural,0.291,0.669,0.0,100.0,23.8
+Mississippi,Lauderdale,103.3731,Not rural,0.281,0.695,0.0,93.6,23.9
+Minnesota,Big Stone,10.34001,Rural,0.682,0.237,0.033,100.0,17.7
+Minnesota,Blue Earth,92.29561,Not rural,0.787,0.184,0.007,72.1,10.9
+Virginia,Highland,5.412333,Rural,0.163,0.405,0.086,100.0,18.7
+Virginia,Spotsylvania,351.0152,Rural,0.377,0.574,0.023,100.0,8.0
+New Hampshire,Strafford,356.3962,Not rural,0.358,0.109,0.456,77.0,10.3
+Georgia,Houston,436.4278,Not rural,0.13,0.86,0.0,77.2,13.6
+Michigan,Delta,31.45672,Rural,0.799,0.097,0.013,100.0,18.4
+Arkansas,Sebastian,241.3181,Not rural,0.483,0.497,0.002,83.5,19.0
+California,Santa Cruz,603.3872,Not rural,0.684,0.233,0.002,78.6,10.6
+Georgia,McIntosh,25.92574,Rural,0.063,0.925,0.0,100.0,21.6
+Georgia,Monroe,71.4153,Not rural,0.34,0.636,0.007,99.8,16.8
+Missouri,Dunklin,51.99024,Rural,0.507,0.485,0.001,100.0,21.1
+Texas,Wheeler,5.445403,Rural,0.571,0.393,0.0,100.0,19.6
+Georgia,Forsyth,1127.358,Not rural,0.715,0.277,0.002,64.9,4.3
+Texas,San Patricio,99.43732,Not rural,0.207,0.787,0.0,94.2,24.4
+Mississippi,Walthall,34.38235,Rural,0.268,0.698,0.0,100.0,38.8
+Missouri,Monroe,13.3842,Rural,0.545,0.413,0.001,100.0,23.9
+Michigan,Isabella,113.3893,Not rural,0.715,0.183,0.014,88.4,21.5
+Texas,Moore,23.65682,Rural,0.611,0.356,0.0,100.0,14.2
+South Carolina,Calhoun,37.11118,Rural,0.17,0.807,0.004,100.0,23.9
+Wyoming,Sublette,1.801091,Rural,0.62,0.189,0.007,100.0,12.0
+Kentucky,Fleming,43.33868,Rural,0.227,0.638,0.0,100.0,23.0
+Wisconsin,Clark,28.68733,Rural,0.668,0.116,0.042,100.0,30.1
+South Carolina,York,415.5248,Not rural,0.481,0.5,0.005,74.8,9.4
+Indiana,Adams,105.7073,Rural,0.568,0.286,0.03,100.0,32.0
+Louisiana,Ascension,437.8835,Not rural,0.357,0.636,0.0,68.9,8.9
+Pennsylvania,Union,135.804,Rural,0.205,0.396,0.292,100.0,21.2
+Virginia,Chesterfield,864.2599,Not rural,0.305,0.659,0.024,72.6,6.9
+Louisiana,Acadia,88.01913,Not rural,0.282,0.693,0.0,99.9,16.6
+Pennsylvania,Crawford,82.85233,Rural,0.619,0.131,0.108,100.0,20.0
+South Dakota,Tripp,3.477665,Rural,0.522,0.397,0.036,100.0,17.8
+Iowa,Guthrie,17.97991,Rural,0.764,0.18,0.003,100.0,19.0
+Iowa,Washington,39.61477,Rural,0.702,0.243,0.004,100.0,16.8
+South Dakota,Sanborn,4.168704,Rural,0.514,0.382,0.051,100.0,15.6
+Oklahoma,Grady,50.26076,Rural,0.5,0.462,0.003,100.0,22.2
+West Virginia,Kanawha,199.5034,Not rural,0.533,0.449,0.004,92.5,17.3
+Wisconsin,St. Croix,129.822,Not rural,0.785,0.163,0.008,99.8,10.4
+Pennsylvania,Venango,74.85931,Rural,0.77,0.103,0.042,100.0,17.6
+Ohio,Summit,1306.613,Not rural,0.855,0.13,0.005,65.6,12.9
+Georgia,Glynn,201.5224,Rural,0.118,0.868,0.0,100.0,19.9
+Texas,Webb,79.51324,Not rural,0.144,0.843,0.002,98.3,31.1
+North Carolina,Montgomery,52.56773,Rural,0.145,0.749,0.07,100.0,26.1
+Maine,Aroostook,10.07887,Rural,0.041,0.096,0.7,100.0,24.8
+Mississippi,Jefferson Davis,27.64377,Rural,0.413,0.574,0.0,100.0,42.6
+Indiana,Washington,54.76665,Rural,0.378,0.493,0.007,100.0,24.6
+Texas,Blanco,16.36654,Rural,0.189,0.789,0.0,100.0,12.0
+Virginia,Brunswick,28.19476,Rural,0.137,0.66,0.141,100.0,25.6
+Tennessee,Dyer,71.86094,Rural,0.457,0.534,0.0,100.0,18.1
+Tennessee,Gibson,83.70868,Rural,0.424,0.562,0.004,100.0,19.8
+Virginia,Prince George,160.6757,Not rural,0.165,0.774,0.032,91.7,11.6
+Arkansas,Lawrence,27.67188,Rural,0.631,0.295,0.0,100.0,23.0
+North Dakota,Eddy,3.720812,Rural,0.675,0.276,0.022,100.0,23.9
+Washington,Pierce,550.9625,Not rural,0.368,0.588,0.01,69.6,9.3
+Idaho,Lincoln,4.330912,Rural,0.328,0.489,0.032,100.0,23.7
+Pennsylvania,Lancaster,586.0663,Not rural,0.414,0.346,0.175,69.9,19.9
+Wisconsin,Juneau,34.80077,Rural,0.751,0.134,0.018,100.0,17.0
+Tennessee,Scott,41.1741,Rural,0.584,0.378,0.003,100.0,27.0
+South Dakota,Corson,1.581572,Rural,0.853,0.084,0.049,100.0,42.7
+South Dakota,Gregory,3.924332,Rural,0.444,0.431,0.062,100.0,24.5
+North Carolina,Vance,168.3548,Rural,0.191,0.721,0.045,100.0,25.8
+Kentucky,Caldwell,36.64074,Rural,0.573,0.395,0.0,100.0,22.7
+South Carolina,Barnwell,37.66191,Rural,0.209,0.774,0.003,100.0,32.5
+Tennessee,Decatur,34.39273,Rural,0.537,0.413,0.004,100.0,20.8
+Indiana,Blackford,73.13958,Rural,0.523,0.418,0.007,100.0,22.6
+Alabama,Etowah,193.1357,Not rural,0.395,0.589,0.002,93.1,20.1
+Idaho,Camas,1.054705,Rural,0.232,0.402,0.096,100.0,19.3
+Kansas,Reno,49.29548,Not rural,0.732,0.235,0.004,80.5,15.3
+Tennessee,Maury,166.3604,Not rural,0.326,0.655,0.006,80.5,14.1
+Wyoming,Goshen,5.657767,Rural,0.794,0.175,0.0,100.0,20.4
+Wisconsin,Rusk,15.52071,Rural,0.718,0.09,0.037,100.0,23.0
+Wisconsin,Waukesha,740.9035,Not rural,0.798,0.174,0.012,58.3,6.4
+Kentucky,Garrard,74.69843,Rural,0.193,0.723,0.018,100.0,18.0
+Massachusetts,Norfolk,1823.039,Not rural,0.575,0.173,0.236,60.1,6.3
+Indiana,Hendricks,431.6584,Not rural,0.596,0.391,0.003,60.9,7.4
+Illinois,Jackson,91.12187,Not rural,0.403,0.571,0.001,87.6,17.7
+South Carolina,Georgetown,78.16145,Rural,0.108,0.872,0.009,100.0,22.7
+North Dakota,Hettinger,2.1877,Rural,0.67,0.279,0.013,100.0,15.8
+Utah,Grand,2.63555,Rural,0.812,0.137,0.0,100.0,6.9
+Utah,Tooele,10.5155,Not rural,0.819,0.163,0.006,72.2,5.7
+Virginia,Hampton,2666.442,Not rural,0.456,0.523,0.009,83.9,15.5
+Wisconsin,Buffalo,19.72355,Rural,0.672,0.126,0.07,100.0,15.7
+Virginia,Frederick,222.7046,Rural,0.375,0.502,0.036,100.0,16.0
+West Virginia,Lewis,43.72886,Rural,0.716,0.237,0.0,100.0,22.9
+Minnesota,Polk,15.793,Not rural,0.648,0.241,0.06,88.5,14.1
+Minnesota,Redwood,17.5603,Rural,0.69,0.211,0.058,100.0,20.6
+Tennessee,Fayette,59.91697,Not rural,0.633,0.346,0.001,99.9,19.0
+Louisiana,St. Charles,187.9119,Not rural,0.408,0.588,0.0,72.1,15.1
+Arkansas,Poinsett,30.32724,Rural,0.489,0.496,0.001,100.0,20.5
+Florida,Gulf,27.1058,Rural,0.194,0.778,0.0,100.0,19.0
+Tennessee,Hamblen,400.3451,Not rural,0.151,0.835,0.001,86.6,18.7
+Alabama,Chilton,65.15244,Rural,0.233,0.754,0.001,100.0,25.2
+Texas,Newton,13.20906,Rural,0.133,0.839,0.0,100.0,24.4
+Texas,Hockley,23.6627,Rural,0.563,0.412,0.0,100.0,19.1
+Georgia,Baldwin,169.2235,Rural,0.241,0.746,0.0,100.0,20.7
+North Carolina,Transylvania,87.56513,Not rural,0.239,0.642,0.054,99.1,15.2
+North Carolina,Surry,134.1025,Rural,0.116,0.723,0.1,100.0,28.6
+Alabama,Coffee,78.88084,Not rural,0.119,0.868,0.0,83.3,15.9
+Ohio,Shelby,118.0911,Not rural,0.638,0.271,0.014,82.0,13.5
+Idaho,Canyon,400.3171,Not rural,0.628,0.321,0.014,75.2,12.4
+Montana,Daniels,1.076234,Rural,0.657,0.22,0.087,100.0,22.9
+Florida,Leon,440.0296,Not rural,0.116,0.866,0.003,76.7,10.3
+Oklahoma,Payne,119.81,Not rural,0.516,0.466,0.003,78.8,16.4
+Alabama,Covington,36.42836,Rural,0.227,0.759,0.001,100.0,22.6
+Indiana,Lawrence,100.4417,Rural,0.557,0.374,0.004,100.0,19.5
+Kansas,Gray,6.582132,Rural,0.893,0.082,0.0,100.0,15.1
+Kentucky,Casey,35.88458,Rural,0.138,0.701,0.006,100.0,27.5
+Kentucky,Metcalfe,35.60489,Rural,0.353,0.529,0.006,100.0,21.8
+Kentucky,Russell,71.15279,Rural,0.069,0.86,0.013,100.0,28.1
+Louisiana,Beauregard,31.57988,Rural,0.215,0.748,0.003,100.0,18.3
+Maine,Somerset,12.90839,Rural,0.122,0.071,0.61,100.0,18.4
+Oklahoma,Cimarron,1.238276,Rural,0.886,0.109,0.0,100.0,27.5
+Kentucky,Meade,98.09364,Rural,0.298,0.66,0.001,100.0,10.9
+Kentucky,Nelson,111.7283,Rural,0.225,0.726,0.018,100.0,12.7
+Kentucky,Owen,32.03848,Rural,0.287,0.629,0.017,100.0,33.3
+Missouri,Pemiscot,31.57702,Rural,0.658,0.331,0.001,100.0,20.4
+Nebraska,Nance,7.622238,Rural,0.515,0.443,0.002,100.0,16.5
+Wisconsin,Menominee,11.96539,Rural,0.778,0.036,0.013,100.0,20.7
+Texas,Panola,27.78067,Rural,0.268,0.715,0.001,100.0,20.1
+Kentucky,Bath,45.82499,Rural,0.326,0.582,0.008,100.0,22.5
+Texas,Anderson,54.6547,Rural,0.23,0.752,0.0,100.0,28.4
+Virginia,Caroline,59.12622,Rural,0.143,0.759,0.061,100.0,21.3
+Iowa,Sioux,46.63949,Rural,0.585,0.384,0.011,100.0,7.9
+California,Glenn,21.80952,Rural,0.503,0.333,0.002,100.0,23.0
+Missouri,St. Louis,4828.575,Not rural,0.696,0.291,0.001,77.3,22.7
+Georgia,Fannin,65.70826,Rural,0.398,0.547,0.018,100.0,14.5
+South Dakota,Grant,11.05443,Rural,0.552,0.368,0.04,100.0,12.7
+South Dakota,Marshall,5.205938,Rural,0.493,0.328,0.145,100.0,23.0
+Washington,Thurston,407.2963,Not rural,0.358,0.584,0.006,76.1,9.1
+Nebraska,Knox,7.593061,Rural,0.564,0.38,0.004,100.0,20.6
+New Mexico,Valencia,71.81948,Rural,0.818,0.091,0.0,100.0,27.1
+Montana,Prairie,0.7387988,Rural,0.854,0.103,0.025,100.0,18.9
+Iowa,Allamakee,21.97878,Rural,0.73,0.147,0.034,100.0,23.9
+Texas,Cameron,473.0807,Not rural,0.084,0.905,0.0,98.0,40.4
+Texas,Montgomery,604.4883,Not rural,0.467,0.52,0.002,76.1,8.4
+Colorado,Las Animas,3.021619,Rural,0.744,0.143,0.002,100.0,23.4
+Texas,Llano,23.16433,Rural,0.102,0.874,0.0,100.0,15.1
+Texas,Mason,4.262324,Rural,0.345,0.618,0.0,100.0,21.9
+North Carolina,Clay,52.03192,Rural,0.29,0.605,0.034,100.0,18.9
+New York,Orange,494.0866,Not rural,0.54,0.142,0.287,96.6,17.9
+New York,Schenectady,779.0489,Not rural,0.747,0.162,0.062,68.6,12.2
+West Virginia,Mingo,55.45687,Rural,0.189,0.759,0.004,100.0,22.9
+Kansas,Wabaunsee,8.714196,Rural,0.655,0.161,0.04,100.0,15.8
+Minnesota,Houston,34.09807,Not rural,0.758,0.107,0.044,84.0,12.0
+Kentucky,Nicholas,38.97988,Rural,0.324,0.554,0.006,100.0,32.0
+Massachusetts,Plymouth,804.1646,Not rural,0.536,0.112,0.329,67.4,8.0
+New York,Bronx,34219.09,Not rural,0.526,0.14,0.274,96.6,19.4
+North Carolina,Dare,96.96552,Rural,0.061,0.931,0.002,100.0,7.5
+Ohio,Medina,432.6576,Not rural,0.769,0.18,0.018,67.0,9.5
+Pennsylvania,Armstrong,100.3151,Not rural,0.797,0.092,0.066,94.3,18.2
+New Jersey,Atlantic,493.7906,Not rural,0.748,0.162,0.063,98.0,13.1
+Wisconsin,Manitowoc,137.8614,Not rural,0.849,0.086,0.019,84.4,14.0
+Wisconsin,Door,62.32816,Rural,0.78,0.13,0.038,100.0,14.1
+North Carolina,Columbus,54.17957,Rural,0.222,0.739,0.023,100.0,25.8
+Ohio,Gallia,62.75272,Rural,0.405,0.505,0.007,100.0,28.4
+Texas,Taylor,156.2243,Not rural,0.434,0.558,0.0,76.8,19.1
+Virginia,Colonial Heights,2414.795,Not rural,0.376,0.572,0.042,72.3,14.1
+Ohio,Coshocton,64.95534,Rural,0.579,0.263,0.059,100.0,26.2
+Nebraska,Perkins,3.237812,Rural,0.64,0.296,0.021,100.0,11.8
+Texas,Hartley,3.67249,Rural,0.721,0.269,0.009,100.0,11.6
+Colorado,Grand,8.515813,Rural,0.563,0.319,0.001,100.0,6.6
+Texas,Jim Wells,45.14688,Rural,0.184,0.793,0.007,100.0,35.8
+Iowa,Winnebago,26.72732,Rural,0.819,0.15,0.011,100.0,17.4
+California,San Luis Obispo,85.34531,Not rural,0.748,0.192,0.0,87.8,9.0
+Alabama,Henry,30.7568,Not rural,0.09,0.894,0.0,99.7,19.3
+Ohio,Wyandot,53.6228,Rural,0.605,0.298,0.027,100.0,16.3
+Texas,Zapata,13.9181,Rural,0.074,0.907,0.0,100.0,36.1
+Georgia,Lee,92.64721,Not rural,0.068,0.926,0.0,79.4,11.6
+Kentucky,Boyd,301.7646,Not rural,0.52,0.462,0.003,81.8,13.9
+Minnesota,Carver,302.9738,Not rural,0.848,0.13,0.008,65.8,5.8
+Nebraska,Colfax,25.66034,Rural,0.569,0.355,0.053,100.0,18.1
+South Carolina,Chesterfield,54.48907,Rural,0.167,0.789,0.02,100.0,28.1
+Tennessee,Lewis,44.79745,Rural,0.419,0.544,0.0,100.0,30.9
+Oregon,Washington,827.7844,Not rural,0.515,0.457,0.006,67.7,7.1
+Virginia,Virginia Beach,1871.127,Not rural,0.354,0.619,0.016,68.4,7.8
+Montana,Madison,2.436349,Rural,0.555,0.192,0.014,100.0,20.5
+Virginia,Lancaster,81.51158,Rural,0.15,0.736,0.085,100.0,25.1
+Missouri,Bates,19.24354,Rural,0.53,0.389,0.001,100.0,23.6
+New Hampshire,Belknap,159.0505,Rural,0.263,0.091,0.53,100.0,10.1
+Virginia,Richmond,46.83569,Rural,0.077,0.724,0.14,100.0,23.0
+Washington,Franklin,77.87719,Not rural,0.315,0.663,0.005,85.9,13.4
+Iowa,Ida,16.15014,Rural,0.596,0.356,0.012,100.0,15.0
+Kansas,Sedgwick,524.3066,Not rural,0.695,0.293,0.002,70.3,13.0
+Texas,Travis,1296.451,Not rural,0.427,0.563,0.001,73.9,11.4
+Florida,Hillsborough,1436.242,Not rural,0.068,0.914,0.001,78.6,10.5
+New Jersey,Mercer,1709.441,Not rural,0.751,0.177,0.062,80.8,13.4
+Nebraska,Butler,14.31543,Rural,0.58,0.363,0.007,100.0,14.4
+Pennsylvania,Westmoreland,344.8572,Not rural,0.677,0.158,0.134,69.0,13.8
+Florida,Charlotte,278.8064,Not rural,0.025,0.955,0.0,80.0,11.2
+Iowa,Cass,23.24467,Rural,0.72,0.26,0.001,100.0,19.4
+Ohio,Mercer,91.51535,Rural,0.671,0.261,0.023,100.0,11.4
+Kentucky,Johnson,86.3891,Rural,0.243,0.708,0.003,100.0,17.7
+Rhode Island,Kent,1009.492,Not rural,0.562,0.1,0.311,59.7,9.3
+Vermont,Windham,58.34531,Rural,0.192,0.063,0.539,100.0,25.1
+Vermont,Orleans,39.53498,Rural,0.177,0.023,0.561,100.0,18.6
+Kansas,Jackson,20.22799,Rural,0.753,0.161,0.001,100.0,13.5
+Louisiana,Franklin,31.63871,Rural,0.378,0.604,0.0,100.0,42.5
+Mississippi,Webster,23.60635,Rural,0.509,0.477,0.0,100.0,23.8
+Massachusetts,Franklin,101.5149,Rural,0.269,0.136,0.444,100.0,13.1
+Nebraska,Cherry,0.9182293,Rural,0.44,0.468,0.033,100.0,14.3
+Montana,Beaverhead,1.708377,Rural,0.486,0.319,0.003,100.0,17.6
+Missouri,New Madrid,24.21306,Rural,0.451,0.534,0.0,100.0,20.3
+Arkansas,Hempstead,27.55363,Rural,0.478,0.47,0.0,100.0,22.1
+Missouri,Camden,65.89125,Rural,0.163,0.752,0.025,100.0,19.3
+Virginia,Mecklenburg,48.56314,Rural,0.219,0.65,0.083,100.0,33.4
+Kentucky,Webster,39.00592,Rural,0.468,0.495,0.004,100.0,27.3
+Oklahoma,Garfield,59.00384,Not rural,0.685,0.3,0.001,72.5,19.3
+Washington,Skamania,7.307619,Rural,0.197,0.563,0.006,100.0,16.9
+Michigan,Lenawee,132.4146,Not rural,0.875,0.074,0.016,93.3,13.8
+Georgia,Gilmer,73.95083,Rural,0.507,0.439,0.005,100.0,19.0
+Minnesota,Roseau,9.148537,Rural,0.633,0.258,0.033,100.0,34.1
+Mississippi,Madison,152.9444,Not rural,0.567,0.429,0.0,80.6,13.2
+Texas,Howard,38.28633,Not rural,0.546,0.448,0.0,87.7,22.1
+West Virginia,Wayne,76.94187,Not rural,0.475,0.482,0.004,97.1,26.8
