@@ -13,7 +13,6 @@ import logging
 from routes.log_routes import logs_collection
 import datetime
 import json
-import pandas as pd
 
 api = Blueprint('api', __name__)
 
@@ -55,7 +54,7 @@ def get_openai_response(question):
                     "content": question
                 }
             ],
-            temperature=0,
+            temperature=0.7,
             max_tokens=150
         )
         
@@ -301,10 +300,6 @@ def analyze_input():
         })
         # If out of scope for all datasets, use OpenAI
         if is_out_of_scope and matching_dataset is None:
-            # calling gpt with csv context
-            context_prompt = get_context_prompt(raw_county, raw_state)
-            user_input = f"{context_prompt}\n\n{user_input}"
-            
             openai_response = get_openai_response(user_input)
             processing_time = time.time() - start_time
             
@@ -366,11 +361,7 @@ def analyze_input():
 
         # 7. Handle all other questions
         analysis = answer_question(user_input, dataset_to_use, current_focus)
-        print(f"analysis: {analysis}")
-        if not analysis or analysis.get('result') == "No states match the condition.":
-            context_prompt = get_context_prompt(raw_county, raw_state)
-            user_input = f"{context_prompt}\n\n{user_input}"
-            
+        
         # Log answer generation
         log_backend_processing(question_id, {
             'step': 'answer_generation',
@@ -459,40 +450,6 @@ def analyze_input():
 #             return (parts[0].strip(), parts[1].strip())
 
 #     return None
-import os
-
-def get_context_prompt(raw_county: str, raw_state: str) -> str:
-    prompt = "Here is the dataset for the context: "
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-    if not raw_county and not raw_state:
-        csv_path = os.path.join(BASE_DIR, "county_cache.csv")
-        county_cache = pd.read_csv(csv_path)
-
-        csv_path = os.path.join(BASE_DIR, "state_cache.csv")
-        state_cache = pd.read_csv(csv_path)
-        
-        prompt += f"County dataset: {county_cache.to_string(index=False)}\nState dataset: {state_cache.to_string(index=False)}"
-        
-
-    # Construct the full path to the CSV file
-    elif raw_county:
-        # fetch country table 
-        csv_path = os.path.join(BASE_DIR, "county_cache.csv")
-        county_cache = pd.read_csv(csv_path)
-        county_cache = county_cache[(county_cache['county_name'].str.lower() == raw_county.lower()) & 
-                           (county_cache['state_name'].str.lower() == raw_state.lower())]
-        prompt += county_cache.to_string(index=False)
-    else:
-        # fetch state table
-        csv_path = os.path.join(BASE_DIR, "state_cache.csv")
-        state_cache = pd.read_csv(csv_path)
-        state_cache = state_cache[state_cache['state_name'].str.lower() == raw_state.lower()]
-        prompt += state_cache.to_string(index=False)
-    
-    prompt += "\n\nGiven the above dataset, please answer the following question: "
-    print(f"prompt: {prompt}")
-    return prompt
 
 @api.route('/test', methods=['GET'])
 def test():

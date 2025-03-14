@@ -732,7 +732,6 @@ def filter(question, dataset):
         results = con.execute(query).fetchall()
         if not results:
             return f"No states match the condition."
-
             
         states = [r[0] for r in results]
         metric_info = get_metric_info(dataset)
@@ -748,10 +747,7 @@ def sort(question, dataset):
     try:
         # Extract number of results from question
         system_prompt = """Extract the number of results requested.
-        Return just the number, or '50' if not specified.
-        
-        Example: "Which four states have the highest population density?" -> "4"
-        """
+        Return just the number, or '50' if not specified."""
         
         openai.api_key = DevelopmentConfig.OPENAI_API_KEY
         response = openai.chat.completions.create(
@@ -1138,8 +1134,7 @@ def get_gpt_spatial_pattern_summary(lisa_clusters, dataset, state_filter=None):
                     Pick examples that makes the most sense for the metric."""
                 },
                 {"role": "user", "content": prompt}
-            ],
-            temperature=0
+            ]
         )
         
         return response.choices[0].message.content
