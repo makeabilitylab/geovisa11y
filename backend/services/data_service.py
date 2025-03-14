@@ -42,17 +42,17 @@ METRIC_MAPPING = {
         'prefix': 'of'
     },
     'gas': {
-        'name': 'households with gas heating',
+        'name': 'with gas heating',
         'unit': 'households',
         'is_percentage': False
     },
     'electricit': {
-        'name': 'households with electricity heating',
+        'name': 'with electricity heating',
         'unit': 'households',
         'is_percentage': False
     },
     'oil': {
-        'name': 'households with oil heating',
+        'name': 'with oil heating',
         'unit': 'households',
         'is_percentage': False
     },
@@ -667,8 +667,14 @@ def get_extrema(question, dataset, state_filter=None):
         
         value_str = metric_info['format_value'](result[2])
         
+        # Improved sentence structure
+        if metric_info['unit'] == 'households':
+            response = f"{location_desc} has the {'highest' if is_highest else 'lowest'} number of households {metric_info['name']}, with {value_str}."
+        else:
+            response = f"{location_desc} has the {'highest' if is_highest else 'lowest'} {metric_info['name']}, with {value_str}."
+        
         return {
-            'result': f"{location_desc} has the {'highest' if is_highest else 'lowest'} {metric_info['name']} of {value_str}.",
+            'result': response,
             'state': result[1],  # Always return the state name
             'county': result[0] if is_county_question else None  # Return county name if it's a county question
         }
