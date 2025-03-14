@@ -753,7 +753,9 @@ def sort(question, dataset):
     try:
         # Extract number of results from question
         system_prompt = """Extract the number of results requested.
-        Return just the number, or '50' if not specified."""
+        Return just the number, or '49' if not specified.
+        Example: "Which four states have the highest population density?" -> "4"
+        """
         
         openai.api_key = DevelopmentConfig.OPENAI_API_KEY
         response = openai.chat.completions.create(
