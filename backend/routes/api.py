@@ -45,7 +45,6 @@ def get_openai_response(question):
                     When explaining concepts like population density, walking to work percentage, or public transit usage:
                     - Provide clear, concise definitions
                     - Use simple examples when helpful
-                    - Explain why the metric is important
                     - Keep responses focused and under 50 words
                     """
                 },
@@ -54,7 +53,7 @@ def get_openai_response(question):
                     "content": question
                 }
             ],
-            temperature=0.7,
+            temperature=0,
             max_tokens=150
         )
         
