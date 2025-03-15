@@ -682,7 +682,14 @@ const ChoroplethMap = ({
             // Clear county layers, turn on state layers
             toggleLayerSet(stateLayers, true);
             toggleLayerSet(countyLayers, false);
-
+            //clear state/county focus
+            onFocusChange({
+                type: null,
+                states: [],
+                county: null,
+                city: focus.city,
+                highlightOnly: false
+            });
             // Update announcement
             if (isMapInteractive) {
                 onAnnounce?.(`Now focused on ${name}, ${state}`);
