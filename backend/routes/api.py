@@ -122,12 +122,13 @@ def analyze_input():
         conversation_history = data.get('conversation_history', [])
         raw_county = data.get('raw_county')
         raw_state = data.get('raw_state')
+        showing_counties = data.get('showing_counties', False)
         
         # Debug the incoming data
         print(f"Processing input: {user_input} for dataset: {current_dataset}")
         print(f"Current focus: {current_focus}")
         print(f"Raw county: {raw_county}, Raw state: {raw_state}")
-        
+        print(f"Showing counties: {showing_counties}")
         # Fix for county context - if we have raw_county and raw_state but current_focus is just the state
         if raw_county and raw_state and (not isinstance(current_focus, dict) or not current_focus.get('county')):
             # Create a proper county context
@@ -135,13 +136,16 @@ def analyze_input():
             current_focus = {
                 'county': raw_county,
                 'state': state_name,
-                'full': f"{raw_county} County, {state_name}"
+                'full': f"{raw_county} County, {state_name}",
+                'showing_counties': showing_counties
             }
             print(f"Updated current_focus to include county: {current_focus}")
         
         # Handle the new focus structure where state is in the states array
         if isinstance(current_focus, dict) and current_focus.get('states') and len(current_focus['states']) > 0 and not current_focus.get('state'):
             current_focus['state'] = current_focus['states'][0]
+            if 'showing_counties' not in current_focus:
+                current_focus['showing_counties'] = showing_counties
             print(f"Updated current_focus with state from states array: {current_focus}")
         
         print(f"Conversation history: {conversation_history}")

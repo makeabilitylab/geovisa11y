@@ -15,7 +15,7 @@ const ChoroplethMap = ({
     apiUrl, 
     isMapInteractive, 
     onMapClick,
-    // showingCounties,
+    showingCounties = false,
     onShowingCountiesChange,
     isTaskPage = false,
     onAnnounce
@@ -33,8 +33,6 @@ const ChoroplethMap = ({
     const [lisaLayer, setLisaLayer] = useState(null);
     const [lisaLegend, setLisaLegend] = useState(null);
     const [layersInitialized, setLayersInitialized] = useState(false);
-
-    const [showingCounties, setShowingCounties] = useState(false);
 
     const [countyData, setCountyData] = useState(null);
 
@@ -501,6 +499,8 @@ const ChoroplethMap = ({
     // Main function to display county layers
     const displayingCountyData = async (stateName) => {
         try {
+
+            onShowingCountiesChange(true, stateName);
             // Step 1: Fetch county data
             const data = await fetchCountyData(stateName);
             if (!data) return false;
@@ -514,14 +514,6 @@ const ChoroplethMap = ({
             
             // Step 4: Zoom to county level
             zoomToCountyLevel(data);
-            
-            // Update state
-            setShowingCounties(true);
-            
-            // Notify parent component about county view
-            if (onShowingCountiesChange) {
-                onShowingCountiesChange(true, stateName);
-            }
             
             return true;
         } catch (error) {
@@ -644,25 +636,108 @@ const ChoroplethMap = ({
         }
     }, [selectedDataset, geoData, layersInitialized]);
 
-    // Update clusters visibility whenever showSpatialClusters changes
+    // Combined effect to handle LISA clusters for both states and counties
     useEffect(() => {
-        if (map.current && layersInitialized) {
-            try {
-                toggleLayerSet(stateLisaLayers, showSpatialClusters);
+        if (!map.current || !layersInitialized) return;
+        
+        if (showSpatialClusters) {
+            if (showingCounties) {
+                // // Hide state-level LISA clusters
+                // toggleLayerSet(stateLisaLayers, false);
                 
-                if (showSpatialClusters && !lisaLegend) {
-                    const legend = createLisaLegend();
-                    map.current.getContainer().appendChild(legend);
-                    setLisaLegend(legend);
-                } else if (!showSpatialClusters && lisaLegend) {
-                    lisaLegend.remove();
-                    setLisaLegend(null);
-                }
-            } catch (error) {
-                console.error('Error updating clusters visibility:', error);
+                // Fetch county-level LISA clusters
+                fetch(`${apiUrl}/api/lisa_clusters/${focus.states[0]}?dataset=${selectedDataset}&level=county`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (sourceExists('counties')) {
+                            map.current.getSource('counties').setData(data);
+                            
+                            // Add county LISA cluster layers if they don't exist
+                            if (!layerExists('county-lisa-clusters-fill')) {
+                                map.current.addLayer({
+                                    id: 'county-lisa-clusters-fill',
+                                    type: 'fill',
+                                    source: 'counties',
+                                    paint: {
+                                        'fill-color': [
+                                            'match',
+                                            ['get', 'lisa_class'],
+                                            'LL', '#01579b',  // Blue for Low-Low
+                                            'HL', '#f06292',  // Pink for High-Low
+                                            'LH', '#00bcd4',  // Light Blue for Low-High
+                                            'HH', '#d81b60',  // Red for High-High
+                                            'transparent'
+                                        ],
+                                        'fill-opacity': [
+                                            'case',
+                                            ['has', 'lisa_class'],
+                                            0.2, 
+                                            0
+                                        ]
+                                    }
+                                });
+                                
+                                map.current.addLayer({
+                                    id: 'county-lisa-clusters-border',
+                                    type: 'line',
+                                    source: 'counties',
+                                    paint: {
+                                        'line-color': [
+                                            'match',
+                                            ['get', 'lisa_class'],
+                                            'LL', '#01579b',
+                                            'HL', '#f06292',
+                                            'LH', '#00bcd4',
+                                            'HH', '#d81b60',
+                                            'transparent'
+                                        ],
+                                        'line-width': 2,
+                                        'line-opacity': [
+                                            'case',
+                                            ['has', 'lisa_class'],
+                                            0.8,
+                                            0
+                                        ],
+                                        'line-offset': 1,
+                                        'line-join': 'round',
+                                    }
+                                });
+                            }
+                            // Show county LISA layers
+                            toggleLayerSet(countyLisaLayers, true);
+                            toggleLayerSet(stateLisaLayers, false);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching county LISA clusters:', error));
+            } else {
+                // Show state LISA clusters at state level
+                toggleLayerSet(stateLisaLayers, true);
+                toggleLayerSet(countyLisaLayers, false);
+            }
+        } else {
+            // Hide all LISA clusters
+            toggleLayerSet(stateLisaLayers, false);
+            toggleLayerSet(countyLisaLayers, false);
+            
+            // Reset state borders when no focus
+            if (!focus.type) {
+                map.current.setPaintProperty('state-borders', 'line-opacity', 0);
+                map.current.setPaintProperty('state-borders', 'line-width', 1);
             }
         }
-    }, [showSpatialClusters, layersInitialized, toggleLayerSet, stateLisaLayers]);
+    }, [
+        showSpatialClusters,
+        showingCounties,
+        focus,
+        selectedDataset,
+        layersInitialized,
+        apiUrl,
+        toggleLayerSet,
+        stateLisaLayers,
+        countyLisaLayers,
+        layerExists,
+        sourceExists
+    ]);
 
     // UseEffect to handle focused state/county/city
     useEffect(() => {
@@ -926,8 +1001,7 @@ const ChoroplethMap = ({
             // Show state layers again
             toggleLayerSet(stateLayers, true);
             
-            // Reset state
-            setShowingCounties(false);
+            // Reset county data
             setCountyData(null);
             
             // Reset focus
@@ -939,10 +1013,8 @@ const ChoroplethMap = ({
                 highlightOnly: false
             });
             
-            // Notify parent component
-            if (onShowingCountiesChange) {
-                onShowingCountiesChange(false, null);
-            }
+            // Notify parent component only
+            onShowingCountiesChange?.(false, null);
             
             if (isMapInteractive) {
                 onAnnounce?.('Returned to national view');
@@ -1072,193 +1144,6 @@ const ChoroplethMap = ({
             }
         }
     }, [showSpatialClusters, geoData, focus]);
-
-    // Update the effect that handles LISA clusters for counties vs states
-    useEffect(() => {
-        if (!map.current || !layersInitialized) return;
-        
-        if (showSpatialClusters) {
-            // If we're showing counties, we need to fetch county-level LISA clusters
-            if (focus.type === 'county' && focus.county) {
-                // Hide state-level LISA clusters
-                toggleLayerSet(stateLisaLayers, false);
-                
-                // Fetch county-level LISA clusters
-                fetch(`${apiUrl}/api/lisa_clusters/${focus.states[0]}?dataset=${selectedDataset}&level=county`)
-                    .then(response => response.json())
-                    .then(data => {
-                        // Update county source with LISA classifications
-                        if (sourceExists('counties')) {
-                            map.current.getSource('counties').setData(data);
-                            
-                            // Add county LISA cluster layers if they don't exist
-                            if (!layerExists('county-lisa-clusters-fill')) {
-                                map.current.addLayer({
-                                    id: 'county-lisa-clusters-fill',
-                                    type: 'fill',
-                                    source: 'counties',
-                                    paint: {
-                                        'fill-color': [
-                                            'match',
-                                            ['get', 'lisa_class'],
-                                            'LL', '#01579b',  // Blue for Low-Low
-                                            'HL', '#f06292',  // Pink for High-Low
-                                            'LH', '#00bcd4',  // Light Blue for Low-High
-                                            'HH', '#d81b60',  // Red for High-High
-                                            'transparent'
-                                        ],
-                                        'fill-opacity': [
-                                            'case',
-                                            ['has', 'lisa_class'],
-                                            0.2, 
-                                            0
-                                        ]
-                                    }
-                                });
-                                
-                                map.current.addLayer({
-                                    id: 'county-lisa-clusters-border',
-                                    type: 'line',
-                                    source: 'counties',
-                                    paint: {
-                                        'line-color': [
-                                            'match',
-                                            ['get', 'lisa_class'],
-                                            'LL', '#01579b',
-                                            'HL', '#f06292',
-                                            'LH', '#00bcd4',
-                                            'HH', '#d81b60',
-                                            'transparent'
-                                        ],
-                                        'line-width': 2,
-                                        'line-opacity': [
-                                            'case',
-                                            ['has', 'lisa_class'],
-                                            0.8,
-                                            0
-                                        ],
-                                        'line-offset': 1,
-                                        'line-join': 'round',
-                                    }
-                                });
-                            } else {
-                                // Show existing county LISA layers
-                                toggleLayerSet(countyLisaLayers, true);
-                            }
-                        }
-                    })
-                    .catch(error => console.error('Error fetching county LISA clusters:', error));
-            } else {
-                // Show state LISA clusters at state level
-                toggleLayerSet(stateLisaLayers, true);
-                
-                // Hide county LISA clusters if they exist
-                toggleLayerSet(countyLisaLayers, false);
-            }
-        } else {
-            // Hide all LISA clusters
-            toggleLayerSet(stateLisaLayers, false);
-            toggleLayerSet(countyLisaLayers, false);
-        }
-    }, [
-        showSpatialClusters, 
-        showingCounties, 
-        focus, 
-        selectedDataset, 
-        layersInitialized, 
-        apiUrl, 
-        toggleLayerSet, 
-        stateLisaLayers, 
-        countyLisaLayers, 
-        layerExists, 
-        sourceExists
-    ]);
-
-    // Update effect to handle focused states/counties/cities
-    useEffect(() => {
-        if (!map.current || !layersInitialized || !geoData) return;
-        
-        // Handle city focus
-        if (focus.type === 'city' && focus.city) {
-            // Fly to the city
-            const { name, state, coordinates } = focus.city;
-            console.log('Focusing on city:', focus.city);
-
-            map.current.flyTo({
-                center: coordinates,
-                zoom: 10,
-                duration: 2000
-            });
-            // Clear county layers, turn on state layers
-            toggleLayerSet(stateLayers, true);
-            toggleLayerSet(countyLayers, false);
-
-            // Update announcement
-            if (isMapInteractive) {
-                onAnnounce?.(`Now focused on ${name}, ${state}`);
-            }
-
-            return;
-        }
-        
-        // Handle county focus
-        if (focus.type === 'county' && focus.county) {
-            // Hide state layers
-            toggleLayerSet(stateLayers, false);
-            // Make sure we have a valid state in the states array
-            const stateName = focus.states && focus.states.length > 0 ? focus.states[0] : null;
-            const countyName = focus.county;
-            
-            toggleLayerSet(countyLayers, true);
-            
-            // Check if we already have county data for this state
-            const hasCountyData = countyData && sourceExists('counties');
-            
-            if (hasCountyData) {
-                // We already have county data, just highlight the focused county
-                const highlighted = focusCountyOnMap(countyName);
-                
-                if (highlighted && isMapInteractive) {
-                    onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
-                }
-            } else {
-                // We need to display county data first
-                // This will fetch the data and set up the layers
-                displayingCountyData(stateName).then(() => {
-                    // After county data is loaded, highlight the county
-                    setTimeout(() => {
-                        focusCountyOnMap(countyName);
-                        if (isMapInteractive) {
-                            onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
-                        }
-                    }, 500); // Small delay to ensure layers are ready
-                });
-            }
-        }
-        
-        // Handle state focus
-        else if (focus.type === 'state' || focus.type === 'compare') {
-            // Use the enhanced focusStateOnMap function
-            focusStateOnMap(focus.states);
-        }
-    }, [
-        focus, 
-        layersInitialized, 
-        geoData, 
-        countyData, 
-        datasets, 
-        selectedDataset, 
-        toggleLayerVisibility, 
-        toggleLayerSet,
-        sourceExists, 
-        countyLayers,
-        focusCountyOnMap,
-        focusStateOnMap,
-        displayingCountyData,
-        isMapInteractive,
-        onAnnounce,
-        stateLayers
-    ]);
 
     // Keyboard navigation
     useEffect(() => {
@@ -1401,7 +1286,6 @@ const ChoroplethMap = ({
                 e.preventDefault();
                 if (!showingCounties) {
                     displayingCountyData(focus.states[0]);
-                    setShowingCounties(true);
                     if (isMapInteractive) {
                         onAnnounce?.(`Showing counties in ${focus.states[0]}. Press Tab to focus on a county.`);
                     }
@@ -1413,7 +1297,6 @@ const ChoroplethMap = ({
                 e.preventDefault();
                 if (showingCounties) {
                     onShowingCountiesChange(false);
-                    setShowingCounties(false);
                     setCountyData(null);
                     
                     if (focus.type === 'county') {
@@ -1428,6 +1311,9 @@ const ChoroplethMap = ({
                     
                     // Clean up county layers
                     if (map.current) {
+
+                        // Remove existing layers and sources
+                        removeLayersSafely(countyLisaLayers);
                         removeLayersSafely(countyLayers);
                         removeSourceSafely('counties');
 
@@ -1474,7 +1360,7 @@ const ChoroplethMap = ({
         countyLayers,
         removeLayersSafely,
         removeSourceSafely,
-        resetToStateView  // Add resetToStateView to dependencies
+        resetToStateView
     ]);
 
     // Handle map interaction focus
