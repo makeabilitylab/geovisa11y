@@ -25,6 +25,7 @@ const Chatbot = ({
     apiUrl, 
     isInputFocused, 
     onInputClick, 
+    showingCounties,
     isTaskPage = false,
     isTask2Page = false
 }) => {
@@ -385,15 +386,7 @@ const Chatbot = ({
                 mapViewport
             );
 
-            // console.log('Sending input to analyze:', {
-            //     input,
-            //     previous_answer: previousAnswer,
-            //     current_focus: currentFocus,
-            //     raw_state: currentFocusedState,
-            //     raw_county: currentFocusedCounty,
-            //     conversation_history: messageHistory,
-            //     question_id: questionId
-            // });
+  
             
             // console.log('Conversation history:', messageHistory);
 
@@ -406,8 +399,10 @@ const Chatbot = ({
                 conversation_history: messageHistory,
                 question_id: questionId,
                 raw_county: focus?.county || null,
-                raw_state: focus?.states?.[0] || null
+                raw_state: focus?.states?.[0] || null,
+                showing_counties: showingCounties
             };
+            console.log('Request data:', requestData);
 
             const response = await fetch(`${apiUrl}/api/analyze-input`, {
                 method: 'POST',
@@ -495,7 +490,7 @@ const Chatbot = ({
                 setPreviousAnswer(data.result); // Store the answer for context
                 setConversationHistory(prev => [...prev, input, data.result]); // Update conversation history
                 setLastBotMessage(data.result); // Add this line to track last bot message
-                if (data.question_type === 'get_pattern') {
+                if (data.question_type === 'get_pattern' ||  data.question_type === 'urban_rural_comparison') {
                     onPatternQuestion(true);
                 } else {
                     // Turn off spatial clusters for non-pattern questions

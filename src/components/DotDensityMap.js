@@ -15,6 +15,7 @@ const DotDensityMap = ({
     apiUrl, 
     isMapInteractive, 
     onMapClick, 
+    showingCounties = false,
     onShowingCountiesChange,
     onAnnounce
 }) => {
@@ -25,15 +26,13 @@ const DotDensityMap = ({
     const [geoData, setGeoData] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [layersInitialized, setLayersInitialized] = useState(false);
-    
-    const [showingCounties, setShowingCounties] = useState(false);
 
     const [countyData, setCountyData] = useState(null);
     
     const [dotDensityData, setDotDensityData] = useState(null);
     
     const [showPredominantFuelLegend, setShowPredominantFuelLegend] = useState(false);
-
+    const [showRuralLegend, setShowRuralLegend] = useState(false);
     const datasets = {
         'gas': {
             name: 'Gas Heating Usage',
@@ -122,7 +121,11 @@ const DotDensityMap = ({
 
         // Remove existing layers and source if they exist
         removeLayersSafely(countyLayers);
+        removeLayersSafely(countyPatternLayers);
         removeSourceSafely('counties');
+
+        //remove state highlight
+        removeLayersSafely(['state-highlight']);
 
         // Add new source for counties
         map.current.addSource('counties', {
@@ -151,6 +154,25 @@ const DotDensityMap = ({
             paint: {
                 'fill-color': '#f0f0f0',  // Light grey
                 'fill-opacity': 0.4  
+            }
+        });
+
+        // Add rural/non-rural choropleth layer (initially hidden)
+        map.current.addLayer({
+            id: 'county-choropleth',
+            type: 'fill',
+            source: 'counties',
+            paint: {
+                'fill-color': [
+                    'match',
+                    ['get', 'rural'],
+                    'Rural', '#ffee58',    
+                    'Not rural', '#ff8a65',
+                    '#CCCCCC'               // Grey for unknown
+                ],
+            },
+            layout: {
+                'visibility': 'none'  // Hidden by default
             }
         });
         
@@ -273,14 +295,9 @@ const DotDensityMap = ({
             // Step 4: Zoom to county level
             zoomToCountyLevel(data);
             
-            // Update state
-            setShowingCounties(true);
-            
             // Notify parent component about county view
-            if (onShowingCountiesChange) {
-                onShowingCountiesChange(true, stateName);
-            }
-            
+            onShowingCountiesChange?.(true, stateName);
+
             return true;
         } catch (error) {
             console.error('Error displaying county layers:', error);
@@ -750,7 +767,6 @@ const DotDensityMap = ({
             toggleLayerSet(stateLayers, true);
             
             // Reset state
-            setShowingCounties(false);
             setCountyData(null);
             
             // Reset focus
@@ -762,10 +778,8 @@ const DotDensityMap = ({
                 highlightOnly: false
             });
             
-            // Notify parent component
-            if (onShowingCountiesChange) {
-                onShowingCountiesChange(false, null);
-            }
+             // Notify parent component only
+             onShowingCountiesChange?.(false, null);
             
             if (isMapInteractive) {
                 onAnnounce?.('Returned to national view');
@@ -818,52 +832,89 @@ const DotDensityMap = ({
     }, [focus, onFocusChange]);
 
 
-
-    // Handle spatial clusters visualization
     useEffect(() => {
         if (!map.current || !geoData) return;
-
-        // Show predominant fuel choropleth when showing patterns
+    
+        // Show patterns based on current view
         if (showSpatialClusters) {
-            // Add or update predominant fuel layer
-            if (!map.current.getLayer('predominant-fuel')) {
-                map.current.addLayer({
-                    id: 'predominant-fuel',
-                    type: 'fill',
-                    source: 'population',
-                    paint: {
-                        'fill-color': [
-                            'match',
-                            ['get', 'main_fuel'],
-                            'gas','#7e57c2' , 
-                            'electricity','#26a69a',
-                            'oil','#f57f17',
-                            '#cccccc'   
-                        ],
-                        'fill-opacity': 0.2
-                    }
-                }, 'state-dot-density-layer'); // Place below dot density layer so dots are visible on top
-            } else {
-                map.current.setLayoutProperty('predominant-fuel', 'visibility', 'visible');
+            // For county level view
+            if (showingCounties) {
+                console.log('Showing rural/non-rural choropleth');
+                
+                // Show county level pattern layer
+                toggleLayerVisibility('county-choropleth', true);
+
+                            if (map.current.getLayer('state-highlight')) {
+                map.current.removeLayer('state-highlight');
+                console.log('Removed state-highlight layer');
             }
-            
-            // Add a legend for predominant fuel
-            setShowPredominantFuelLegend(true);
-        } else {
-            // Hide predominant fuel layer when not showing patterns
+
+
+                //hide state level pattern layer
+                toggleLayerVisibility('state-choropleth', false);
+                
+                // Show rural legend, hide fuel legend
+                setShowRuralLegend(true);
+                setShowPredominantFuelLegend(false);
+            }
+            // For state level view
+            else {
+                console.log('Showing predominant fuel choropleth');
+                
+                // Hide county choropleth if it exists
+                if (map.current.getLayer('county-choropleth')) {
+                    map.current.setLayoutProperty('county-choropleth', 'visibility', 'none');
+                }
+                
+                // Show predominant fuel layer
+                if (!map.current.getLayer('predominant-fuel')) {
+                    map.current.addLayer({
+                        id: 'predominant-fuel',
+                        type: 'fill',
+                        source: 'population',
+                        paint: {
+                            'fill-color': [
+                                'match',
+                                ['get', 'main_fuel'],
+                                'gas','#7e57c2', 
+                                'electricity','#26a69a',
+                                'oil','#f57f17',
+                                '#cccccc'   
+                            ],
+                            'fill-opacity': 0.2
+                        }
+                    }, 'state-dot-density-layer');
+                } else {
+                    map.current.setLayoutProperty('predominant-fuel', 'visibility', 'visible');
+                }
+                
+                // Show fuel legend, hide rural legend
+                setShowPredominantFuelLegend(true);
+                setShowRuralLegend(false);
+            }
+        } 
+        // When patterns are off, hide all pattern layers
+        else {
+            // Hide predominant fuel layer
             if (map.current.getLayer('predominant-fuel')) {
                 map.current.setLayoutProperty('predominant-fuel', 'visibility', 'none');
             }
+    
+            // Hide county level pattern layer
+            if (map.current.getLayer('county-choropleth')) {
+                map.current.setLayoutProperty('county-choropleth', 'visibility', 'none');
+            }
             
-            // Show dot density layer (this should already be visible)
+            // Show dot density layer
             if (map.current.getLayer('state-dot-density-layer')) {
                 map.current.setLayoutProperty('state-dot-density-layer', 'visibility', 'visible');
             }
             
-            // Hide the legend
+            // Hide all legends
             setShowPredominantFuelLegend(false);
+            setShowRuralLegend(false);
         }
-    }, [showSpatialClusters, geoData, focus]);
+    }, [showSpatialClusters, geoData, focus, showingCounties]);
 
     // Dot density data generation
     useEffect(() => {
@@ -1103,7 +1154,7 @@ const DotDensityMap = ({
                 e.preventDefault();
                 if (!showingCounties) {
                     displayingCountyData(focus.states[0]);
-                    setShowingCounties(true);
+                    console.log("AHHH", showingCounties)
                     if (isMapInteractive) {
                         onAnnounce?.(`Showing counties in ${focus.states[0]}. Press Tab to focus on a county.`);
                     }
@@ -1115,7 +1166,6 @@ const DotDensityMap = ({
                 e.preventDefault();
                 if (showingCounties) {
                     onShowingCountiesChange(false);
-                    setShowingCounties(false);
                     setCountyData(null);
                     
                     if (focus.type === 'county') {
@@ -1343,6 +1393,35 @@ const DotDensityMap = ({
                         <div className="flex items-center">
                             <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#f57f17' }}></div>
                             <span className="text-xs">Oil</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Rural/Non-Rural Legend - Show only when showing counties */}
+            {showRuralLegend && (
+                <div className="absolute bottom-10 left-4 bg-white p-3 rounded-md shadow-md z-10">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-sm font-bold">County Type</h3>
+                        <button 
+                            onClick={() => {
+                                setShowRuralLegend(false);
+                                // Also turn off the spatial clusters when closing the legend
+                                onSpatialClustersToggle(false);
+                            }}
+                            className="text-gray-500 hover:text-gray-700"
+                            aria-label="Close legend"
+                        >
+                            ×
+                        </button>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center">
+                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#ffee58' }}></div>
+                            <span className="text-xs">Rural Counties</span>
+                        </div>
+                        <div className="flex items-center">
+                            <div className="w-4 h-4 mr-2" style={{ backgroundColor: '#ff8a65' }}></div>
+                            <span className="text-xs">Urban Counties</span>
                         </div>
                     </div>
                 </div>

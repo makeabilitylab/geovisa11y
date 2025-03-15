@@ -301,7 +301,8 @@ def answer_question(question, current_dataset, current_focus=None):
                             'county': county_info['county'],
                             'state': county_info['state'],
                             'dataset': current_dataset,
-                            'question_type': 'retrieve'
+                            'question_type': 'retrieve',
+                            'showing_counties': current_focus.get('showingCounties', False)
                         }
             except Exception as e:
                 print(f"Error handling county question: {str(e)}")
@@ -313,11 +314,12 @@ def answer_question(question, current_dataset, current_focus=None):
         state_filter = None
         county_view = False
         if current_focus:
+            print(f"DEBUG - Full current_focus received: {current_focus}")
             if isinstance(current_focus, dict):
                 if current_focus.get('state'):
                     state_filter = current_focus.get('state')
                 # Check if we're in county view - either by having a county or by having showingCounties flag
-                if current_focus.get('county') or current_focus.get('showingCounties'):
+                if current_focus.get('county') or current_focus.get('showing_counties'):
                     county_view = True
             elif isinstance(current_focus, str):
                 state_filter = current_focus
@@ -350,7 +352,7 @@ def answer_question(question, current_dataset, current_focus=None):
                     }
             
             # For other datasets, combine Moran's I and LISA analysis
-            moran_result = get_moran_i(current_dataset, state_filter)
+            moran_result = get_moran_i(current_dataset, state_filter if county_view else None)
             
             # If there's no pattern, just return that without the description
             if moran_result['pattern'] == 'random':
@@ -361,8 +363,8 @@ def answer_question(question, current_dataset, current_focus=None):
                 }
             
             # Otherwise, add the pattern description
-            lisa_result = get_lisa_clusters(current_dataset, state_filter)
-            pattern_description = get_gpt_spatial_pattern_summary(lisa_result, current_dataset, state_filter)
+            lisa_result = get_lisa_clusters(current_dataset, state_filter if county_view else None)
+            pattern_description = get_gpt_spatial_pattern_summary(lisa_result, current_dataset, state_filter if county_view else None)
             
             return {
                 'result': f"{moran_result['description']} {pattern_description}",
@@ -374,22 +376,38 @@ def answer_question(question, current_dataset, current_focus=None):
             # Extract state from the question or use the current focused state
             states = semantic_service.extract_states(question)
             state_name = states[0] if states else None
+
+            #Determine if we're in county view
+            county_view = False
+            if isinstance(current_focus, dict):
+                if current_focus.get('county') or current_focus.get('showing_counties'):
+                    county_view = True
             
             # If no state was mentioned in the question but there's a focused state,
             # use the focused state from the frontend
-            if not state_name and isinstance(current_focus, dict) and current_focus.get('state'):
-                state_name = current_focus.get('state')
+            if not state_name and isinstance(current_focus, dict):
+                if current_focus.get('state'):
+                    state_name = current_focus.get('state')
+                elif current_focus.get('states') and len(current_focus.get('states')) > 0:
+                    state_name = current_focus.get('states')[0]
             elif not state_name and isinstance(current_focus, str) and current_focus:
                 state_name = current_focus
             
-            # Handle urban vs rural comparison for heating fuels
-            result = compare_urban_rural_heating_fuels(state_name)
-            return {
-                'result': result,
-                'dataset': current_dataset,
-                'question_type': 'urban_rural_comparison',
-                'state': state_name
-            }
+            if county_view and state_name:
+                # Handle urban vs rural comparison for heating fuels
+                result = compare_urban_rural_heating_fuels(state_name)
+                return {
+                    'result': result,
+                    'dataset': current_dataset,
+                    'question_type': 'urban_rural_comparison',
+                    'state': state_name
+                }
+            else:
+                return {
+                    'result': "Urban vs rural comparisons are only available when viewing counties. Please zoom in to a state first.",
+                    'dataset': current_dataset,
+                    'question_type': 'clarification_needed'
+                }
 
         if question_type == 'retrieve':
             # Check if this is a county question
