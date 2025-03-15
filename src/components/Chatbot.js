@@ -497,6 +497,9 @@ const Chatbot = ({
                 setLastBotMessage(data.result); // Add this line to track last bot message
                 if (data.question_type === 'get_pattern') {
                     onPatternQuestion(true);
+                } else {
+                    // Turn off spatial clusters for non-pattern questions
+                    onPatternQuestion(false);
                 }
 
                 // Handle state/county focusing for relevant question types
