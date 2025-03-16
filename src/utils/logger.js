@@ -47,17 +47,28 @@ const logToMongoDB = async (logData) => {
 };
 
 // Log when a question is asked
-const logQuestionData = async (input, previousAnswer, currentFocus, currentFocusedState, currentFocusedCounty, conversationHistory, dataset, mapViewport) => {
+const logQuestionData = async (
+  question,                 // input from Chatbot.js
+  previousAnswer,           // previousAnswer from Chatbot.js
+  focusType,                // focus.type from Chatbot.js
+  focusStates,              // focus.states from Chatbot.js
+  focusCounty,              // focus.county from Chatbot.js
+  focusCity,                // focus.city from Chatbot.js
+  conversationHistory,      // messageHistory from Chatbot.js
+  dataset,                  // dataset from Chatbot.js
+  mapViewport               // mapViewport from Chatbot.js
+) => {
   const questionId = generateQuestionId();
   
   const logData = {
     log_type: 'question',
     question_id: questionId,
-    question_text: input,
+    question_text: question,
     previous_answer: previousAnswer,
-    current_focus: currentFocus,
-    raw_state: currentFocusedState,
-    raw_county: currentFocusedCounty,
+    current_focus: focusType,
+    focus_states: focusStates,
+    raw_county: focusCounty,
+    focus_city: focusCity,
     conversation_history: conversationHistory,
     current_dataset: dataset,
     map_viewport: mapViewport

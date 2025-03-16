@@ -45,7 +45,11 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
                     <X size={20} weight="bold" />
                 </IconButton>
             </DialogHeader>
-            <DialogBody className="h-[40vh] overflow-y-auto pr-4">
+            <DialogBody 
+            className="h-[40vh] overflow-y-auto pr-4"
+            role="region"
+            aria-live="polite"
+            >
                 <div className="space-y-4">
                     <section>
                         <Typography variant="h6" color="blue-gray" className="mb-2 text-sm">

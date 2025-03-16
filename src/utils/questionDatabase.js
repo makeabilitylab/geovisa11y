@@ -51,8 +51,11 @@ export const questionDatabase = {
         "How does [STATE1] compare to its neighboring states?",
         "What's the average population density?",
         "Are there clusters of states with similar density?",
-        "Which states have density over 200 people per square mile?",
-        "What's the density difference between [STATE2] and [STATE3]?",
-        "Can you describe the pattern of population density nationwide?"
+        "Which states have density over 300 people per square mile?",
+        "What's the population density difference between [STATE2] and [STATE3]?",
+        "Can you describe the pattern of population density nationwide?",
+        "What is the range of population density for all states?",
+        "What's the top 3 states with the highest population density?",
+        "Which state has a similar population density to [STATE1]?"
     ]
 }; 

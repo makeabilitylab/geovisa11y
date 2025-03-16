@@ -847,8 +847,8 @@ def find_similar(state, dataset):
         
         ref_value = ref_result[0]
         
-        # Then find states within 10% of this value
-        margin = ref_value * 0.1
+        # Then find states within 20% of this value
+        margin = ref_value * 0.2
         query = f"""
             SELECT state_name, {dataset} as value
             FROM state
@@ -1012,7 +1012,7 @@ def get_lisa_clusters(dataset, state_filter=None):
         # Get geometries and data for the specified dataset
         query = f"""
             SELECT 
-                {'county_nam as name' if state_filter else 'state_name as name'}, 
+                {'county_nam as name' if state_filter else '"state_name" as "name"'},   
                 {dataset} as value,
                 ST_AsText(geom) as geometry,
                 c_lat, c_lon
