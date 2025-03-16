@@ -105,6 +105,7 @@ def save_backend_log():
         # Add timestamp
         log_data['timestamp'] = datetime.datetime.utcnow()
         log_data['source'] = 'backend'
+        log_data['session_id'] = request.json.get('session_id')
         
         # Insert into MongoDB
         result = logs_collection.insert_one(log_data)

@@ -21,11 +21,9 @@ semantic_service = SemanticService()
 
 # Set up logging
 logging.basicConfig(
-    level=logging.WARNING,  # Change from INFO to WARNING to reduce output
+    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        # Remove file handler that's causing permission issues
-        # logging.FileHandler("app_logs.log"),
         logging.StreamHandler()
     ]
 )
@@ -85,6 +83,7 @@ def log_backend_processing(question_id, processing_data):
         processing_data['timestamp'] = datetime.datetime.utcnow()
         processing_data['source'] = 'backend'
         processing_data['log_type'] = 'processing'
+        processing_data['session_id'] = request.json.get('session_id')
         
         # Insert into MongoDB
         result = logs_collection.insert_one(processing_data)
@@ -426,33 +425,6 @@ def analyze_input():
             'question_id': question_id
         }), 500
 
-# def extract_county_info(input_text):
-#     """Extract county and state information from input text"""
-#     county_patterns = [
-#         r'in\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',
-#         r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',
-#         r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*)([A-Za-z\s]+)',
-#         r'([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)'  # Added more flexible pattern
-#     ]
-
-#     # Clean up the input first
-#     clean_input = input_text.replace("What's", "").replace("what's", "").strip()
-#     clean_input = re.sub(r'^the\s+|^of\s+', '', clean_input)
-#     clean_input = clean_input.strip()
-
-#     # Try to extract from patterns
-#     for pattern in county_patterns:
-#         match = re.search(pattern, clean_input, re.IGNORECASE)
-#         if match:
-#             return (match.group(1).strip().replace(" County", ""), match.group(2).strip())
-
-#     # Check if the input was resolved from "here"
-#     if "County" in clean_input:
-#         parts = clean_input.split("County,")
-#         if len(parts) == 2:
-#             return (parts[0].strip(), parts[1].strip())
-
-#     return None
 
 @api.route('/test', methods=['GET'])
 def test():
