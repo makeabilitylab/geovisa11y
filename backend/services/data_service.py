@@ -513,7 +513,7 @@ def answer_question(question, current_dataset, current_focus=None):
             }
             
         elif question_type == 'find_outliers':
-            result = get_lisa_clusters(current_dataset, current_focus)
+            result = get_lisa_clusters(current_dataset, state_filter if county_view else None)
             outliers = find_outliers(result, current_dataset)
             return {
                 'result': outliers,
