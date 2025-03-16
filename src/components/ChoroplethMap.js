@@ -554,6 +554,12 @@ const ChoroplethMap = ({
                     zoom: 4
                 });
 
+                // disable map rotation using right click + drag
+                map.current.dragRotate.disable();
+
+                // disable map rotation using touch rotation gesture
+                map.current.touchZoomRotate.disableRotation();
+
                 // Set up layers once when style loads
                 map.current.once('style.load', () => {
                     console.log('Style loaded, initializing layers...');
@@ -1512,7 +1518,7 @@ const ChoroplethMap = ({
                                             }}
                                             className="mr-2 text-blue-500 focus:ring-blue-500"
                                         />
-                                        <span className="text-sm">Lacking Broadband Access</span>
+                                        <span className="text-sm">Lacking Broadband or Computer Access</span>
                                     </label>
                                 </>
                             ) : (

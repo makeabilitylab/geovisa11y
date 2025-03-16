@@ -28,6 +28,12 @@ export const initializeChoroLayers = (map, mapContainer, popup, datasets, select
         // Make all map controls accessible
         makeAllMapControlsAccessible(mapContainer);
 
+        // disable map rotation using right click + drag
+        map.dragRotate.disable();
+
+        // disable map rotation using touch rotation gesture
+        map.touchZoomRotate.disableRotation();
+
         // Initialize popup
         if (!popup.current) {
             popup.current = new mapboxgl.Popup({
@@ -202,6 +208,12 @@ export const initializeDotDensityLayers = (map, mapContainer, popup, fetchData) 
         
         // Make all map controls accessible
         makeAllMapControlsAccessible(mapContainer);
+
+        // disable map rotation using right click + drag
+        map.dragRotate.disable();
+
+        // disable map rotation using touch rotation gesture
+        map.touchZoomRotate.disableRotation();
 
         // Initialize popup
         if (!popup.current) {

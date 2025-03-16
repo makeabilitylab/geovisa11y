@@ -30,6 +30,7 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
             aria-labelledby="help-dialog-title"
             role="region"
             aria-live="polite"
+            tabIndex="0"
         >
             <DialogHeader id="help-dialog-title" className="border-b border-gray-200 flex justify-between items-center">
                 <Typography variant="h6" color="blue-gray">
