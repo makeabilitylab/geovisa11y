@@ -386,11 +386,9 @@ const Chatbot = ({
                 mapViewport
             );
 
+            console.log('Conversation history:', messageHistory);
   
-            
-            // console.log('Conversation history:', messageHistory);
-
-            // Prepare the request data
+            // Prepare the request data with clear property names to avoid confusion
             const requestData = {
                 input: input,
                 current_dataset: dataset,
