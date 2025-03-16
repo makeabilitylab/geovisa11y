@@ -1159,21 +1159,20 @@ const ChoroplethMap = ({
             // Handle initial focus
             if (e.key === 'Tab') {
                 e.preventDefault();
-                if (!focus.type) {
-                    onFocusChange({
-                        type: 'state',
-                        states: ['Kansas'],
-                        county: null,
-                        city: null,
-                        highlightOnly: false
-                    });
-                    if (isMapInteractive) { 
-                        onAnnounce?.(`Now focused on Kansas state`);
-                        focusStateOnMap('Kansas');
-                    }
-                } else if (focus.type === 'city') {
+                
+                // Debug the current focus state
+                console.log('Current focus state:', focus);
+                
+                // Check if we have a city focus, regardless of focus.type
+                if (focus.city) {
                     // When focused on a city, Tab should focus on the containing state
-                    if (focus.city && focus.city.state) {
+                    console.log('City focus detected:', focus.city);
+                    
+                    // Make sure we have the state property and it's not empty
+                    if (focus.city.state) {
+                        console.log('Focusing on city state:', focus.city.state);
+                        
+                        // Update focus to the city's state
                         onFocusChange({
                             type: 'state',
                             states: [focus.city.state],
@@ -1181,10 +1180,27 @@ const ChoroplethMap = ({
                             city: null,
                             highlightOnly: false
                         });
+                        
                         if (isMapInteractive) {
                             onAnnounce?.(`Now focused on ${focus.city.state} state`);
                             focusStateOnMap(focus.city.state);
                         }
+                    } else {
+                        console.error('City state information is missing:', focus.city);
+                    }
+                } else if (!focus.type) {
+                    // Default focus when no focus exists
+                    onFocusChange({
+                        type: 'state',
+                        states: ['Kansas'],
+                        county: null,
+                        city: null,
+                        highlightOnly: false
+                    });
+                    
+                    if (isMapInteractive) { 
+                        onAnnounce?.(`Now focused on Kansas state`);
+                        focusStateOnMap('Kansas');
                     }
                 } else if (showingCounties && !focus.county) {
                     const firstCounty = countyData?.features[0]?.properties.county_name;
@@ -1194,6 +1210,7 @@ const ChoroplethMap = ({
                             type: 'county',
                             county: firstCounty
                         });
+                        
                         if (isMapInteractive) {
                             onAnnounce?.(`Now focused on ${firstCounty} county`);
                             focusCountyOnMap(firstCounty);
