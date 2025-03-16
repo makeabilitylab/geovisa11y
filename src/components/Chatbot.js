@@ -75,7 +75,15 @@ const Chatbot = ({
                 case 'pct_tot_co':
                     return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
                 case 'pct_no_bb_':
-                    return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband in each state. Darker shades indicate higher percentages.";
+                    return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband or computer in each state. Darker shades indicate higher percentages.";
+                default:
+                    return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
+            }
+        
+        } else if (isTask2Page) {
+            switch(dataset) {
+                case 'gas_heating':
+                    return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
                 default:
                     return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
             }
@@ -617,6 +625,11 @@ const Chatbot = ({
                 return [
                     "What's a choropleth map?",
                     "Is there a relationship between population density and the percentage of people lacking broadband or computer access?"
+                ];
+            case 'gas':
+                return [
+                    "What's a dot density map?",
+                    "Is there a relationship between climate and the number of households using heating fuel?"
                 ];
             default: // ppl_densit
                 return [
