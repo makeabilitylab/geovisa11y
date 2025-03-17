@@ -35,6 +35,8 @@ const ChoroplethMap = ({
     const [layersInitialized, setLayersInitialized] = useState(false);
 
     const [countyData, setCountyData] = useState(null);
+    // Add local state to track counties visibility
+    const [localCountiesVisible, setLocalCountiesVisible] = useState(showingCounties);
 
     const datasets = isTaskPage ? {
         'pct_tot_co': {
@@ -70,9 +72,9 @@ const ChoroplethMap = ({
 
     // Define layer groups
     const stateLayers = useMemo(() => ['state-choropleth', 'state-borders'], []);
-    const stateLisaLayers = useMemo(() => ['state-lisa-clusters-fill', 'state-lisa-clusters-border'], []);
+    const stateLisaLayers = useMemo(() => ['state-lisa-clusters-border'], []);
     const countyLayers = useMemo(() => ['county-choropleth', 'county-borders', 'county-highlight'], []);
-    const countyLisaLayers = useMemo(() => ['county-lisa-clusters-fill', 'county-lisa-clusters-border'], []);
+    const countyLisaLayers = useMemo(() => ['county-lisa-clusters-border'], []);
 
     // Add this useEffect to handle keyboard shortcuts for dataset switching
     useEffect(() => {
@@ -501,6 +503,10 @@ const ChoroplethMap = ({
         try {
 
             onShowingCountiesChange(true, stateName);
+            setLocalCountiesVisible(true);
+            
+            console.log('[COUNTY DEBUG] After onShowingCountiesChange, showingCounties should be true, localCountiesVisible:', true);
+            
             // Step 1: Fetch county data
             const data = await fetchCountyData(stateName);
             if (!data) return false;
@@ -659,53 +665,33 @@ const ChoroplethMap = ({
                             map.current.getSource('counties').setData(data);
                             
                             // Add county LISA cluster layers if they don't exist
-                            if (!layerExists('county-lisa-clusters-fill')) {
-                                map.current.addLayer({
-                                    id: 'county-lisa-clusters-fill',
-                                    type: 'fill',
-                                    source: 'counties',
-                                    paint: {
-                                        'fill-color': [
-                                            'match',
-                                            ['get', 'lisa_class'],
-                                            'LL', '#01579b',  // Blue for Low-Low
-                                            'HL', '#f06292',  // Pink for High-Low
-                                            'LH', '#00bcd4',  // Light Blue for Low-High
-                                            'HH', '#d81b60',  // Red for High-High
-                                            'transparent'
-                                        ],
-                                        'fill-opacity': [
-                                            'case',
-                                            ['has', 'lisa_class'],
-                                            0.2, 
-                                            0
-                                        ]
-                                    }
-                                });
-                                
+                            if (!layerExists('county-lisa-clusters-border')) {
                                 map.current.addLayer({
                                     id: 'county-lisa-clusters-border',
                                     type: 'line',
                                     source: 'counties',
+                                    layout: {
+                                        'line-join': 'round',
+                                        'line-cap': 'round'
+                                    },
                                     paint: {
                                         'line-color': [
                                             'match',
                                             ['get', 'lisa_class'],
                                             'LL', '#01579b',
-                                            'HL', '#f06292',
-                                            'LH', '#00bcd4',
-                                            'HH', '#d81b60',
+                                            'HL', '#7e57c2',
+                                            'LH', '#00acc1',
+                                            'HH', '#e91e63',
                                             'transparent'
                                         ],
-                                        'line-width': 2,
+                                        'line-width': 4,
                                         'line-opacity': [
                                             'case',
                                             ['has', 'lisa_class'],
-                                            0.8,
+                                            1,
                                             0
                                         ],
                                         'line-offset': 1,
-                                        'line-join': 'round',
                                     }
                                 });
                             }
@@ -790,11 +776,13 @@ const ChoroplethMap = ({
             toggleLayerSet(countyLayers, true);
             
             // Check if we already have county data for this state
-            const hasCountyData = countyData && sourceExists('counties');
+            const hasCountyData = countyData !== null;
+            console.log('[COUNTY DEBUG] Has county data:', hasCountyData, 'countyData features:', countyData?.features?.length);
             
             if (hasCountyData) {
                 // We already have county data, just highlight the focused county
                 const highlighted = focusCountyOnMap(countyName);
+                console.log('[COUNTY DEBUG] County highlighted:', highlighted);
                 
                 if (highlighted && isMapInteractive) {
                     onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
@@ -835,7 +823,9 @@ const ChoroplethMap = ({
         displayingCountyData,
         isMapInteractive,
         onAnnounce,
-        stateLayers
+        stateLayers,
+        localCountiesVisible,  // Update dependency
+        showingCounties     
     ]);
 
     const removeLisaLayer = () => {
@@ -1019,8 +1009,9 @@ const ChoroplethMap = ({
                 highlightOnly: false
             });
             
-            // Notify parent component only
+            // Notify parent component and update local state
             onShowingCountiesChange?.(false, null);
+            setLocalCountiesVisible(false);
             
             if (isMapInteractive) {
                 onAnnounce?.('Returned to national view');
@@ -1130,19 +1121,16 @@ const ChoroplethMap = ({
         setSelectedDataset(dataset);
     }, [dataset]);
 
-    // Add this useEffect to handle showSpatialClusters changes
+    //useEffect to handle showSpatialClusters changes
     useEffect(() => {
         if (!map.current || !geoData) return;
 
         if (showSpatialClusters) {
             // Show LISA clusters
-            map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'visible');
-            map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'visible');
+            toggleLayerSet(stateLisaLayers, true);
         } else {
             // Hide LISA clusters
-            map.current.setLayoutProperty('state-lisa-clusters-fill', 'visibility', 'none');
-            map.current.setLayoutProperty('state-lisa-clusters-border', 'visibility', 'none');
-            
+            toggleLayerSet(stateLisaLayers, false);
             // Reset state borders
             if (!focus.type) {
                 map.current.setPaintProperty('state-borders', 'line-opacity', 0);
@@ -1202,7 +1190,11 @@ const ChoroplethMap = ({
                         onAnnounce?.(`Now focused on Kansas state`);
                         focusStateOnMap('Kansas');
                     }
-                } else if (showingCounties && !focus.county) {
+                } else if (localCountiesVisible && !focus.county && countyData) {
+                    console.log('[COUNTY DEBUG] Should focus on first county. countyData:', 
+                        countyData ? `Found ${countyData.features.length} counties` : 'No county data',
+                        'localCountiesVisible:', localCountiesVisible);
+                    
                     const firstCounty = countyData?.features[0]?.properties.county_name;
                     if (firstCounty) {
                         onFocusChange({
@@ -1307,7 +1299,7 @@ const ChoroplethMap = ({
             // Handle zoom in to counties
             if ((e.key === '=' || e.key === '+') && focus.states[0]) {
                 e.preventDefault();
-                if (!showingCounties) {
+                if (!localCountiesVisible) {
                     displayingCountyData(focus.states[0]);
                     if (isMapInteractive) {
                         onAnnounce?.(`Showing counties in ${focus.states[0]}. Press Tab to focus on a county.`);
@@ -1318,8 +1310,9 @@ const ChoroplethMap = ({
             // Handle zoom out from counties or states
             if (e.key === '-') {
                 e.preventDefault();
-                if (showingCounties) {
+                if (localCountiesVisible) {
                     onShowingCountiesChange(false);
+                    setLocalCountiesVisible(false);
                     setCountyData(null);
                     
                     if (focus.type === 'county') {
@@ -1369,6 +1362,7 @@ const ChoroplethMap = ({
         isMapInteractive,
         focus,
         showingCounties,
+        localCountiesVisible,  // Update dependency
         countyData,
         findAdjacentStates,
         findAdjacentCounties,
@@ -1383,7 +1377,8 @@ const ChoroplethMap = ({
         countyLayers,
         removeLayersSafely,
         removeSourceSafely,
-        resetToStateView
+        resetToStateView,
+        sourceExists  
     ]);
 
     // Handle map interaction focus
@@ -1452,7 +1447,21 @@ const ChoroplethMap = ({
         }
     }, [map.current]);
 
+    // Add effect to sync showingCounties prop with local state
+    useEffect(() => {
+        setLocalCountiesVisible(showingCounties);
+    }, [showingCounties]);
 
+    // Add effect to update parent when county data is loaded
+    useEffect(() => {
+        if (countyData && countyData.features && countyData.features.length > 0) {
+            console.log('[COUNTY DEBUG] County data loaded, ensuring localCountiesVisible is true');
+            setLocalCountiesVisible(true);
+            if (!showingCounties) {
+                onShowingCountiesChange?.(true, focus.states[0]);
+            }
+        }
+    }, [countyData, showingCounties, onShowingCountiesChange, focus.states]);
 
     return (
         <div className="relative h-full ">
@@ -1590,19 +1599,19 @@ const ChoroplethMap = ({
                     </div>
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2 border-2 border-[#d81b60] bg-[#d81b60] bg-opacity-20"></div>
+                            <div className="w-4 h-4 mr-2 border-2 border-[#e91e63]"></div>
                             <span className="text-xs">High-High Cluster</span>
                         </div>
                         <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2 border-2 border-[#01579b] bg-[#01579b] bg-opacity-20"></div>
+                            <div className="w-4 h-4 mr-2 border-2 border-[#01579b]"></div>
                             <span className="text-xs">Low-Low Cluster</span>
                         </div>
                         <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2 border-2 border-[#f06292] bg-[#f06292] bg-opacity-20"></div>
+                            <div className="w-4 h-4 mr-2 border-2 border-[#7e57c2]"></div>
                             <span className="text-xs">High-Low Outlier</span>
                         </div>
                         <div className="flex items-center">
-                            <div className="w-4 h-4 mr-2 border-2 border-[#00bcd4] bg-[#00bcd4] bg-opacity-20"></div>
+                            <div className="w-4 h-4 mr-2 border-2 border-[#00acc1]"></div>
                             <span className="text-xs">Low-High Outlier</span>
                         </div>
                     </div>

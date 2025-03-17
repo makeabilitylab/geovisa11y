@@ -69,33 +69,6 @@ export const initializeChoroLayers = (map, mapContainer, popup, datasets, select
                 'fill-opacity': 0.75
             }
         });
-
-        // Add LISA clusters layer next
-        map.addLayer({
-            id: 'state-lisa-clusters-fill',
-            type: 'fill',
-            source: 'states',
-            layout: {
-                'visibility': 'none'
-            },
-            paint: {
-                'fill-color': [
-                    'match',
-                    ['get', 'lisa_class'],
-                    'LL', '#01579b',  // Blue for Low-Low
-                    'HL', '#f06292',  // Pink for High-Low
-                    'LH', '#00bcd4',  // Light Blue for Low-High
-                    'HH', '#d81b60',  // Red for High-High
-                    'transparent'
-                ],
-                'fill-opacity': [
-                    'case',
-                    ['has', 'lisa_class'],
-                    0.2, 
-                    0
-                ]
-            }
-        });
         
         // Add LISA cluster outlines
         map.addLayer({
@@ -103,27 +76,28 @@ export const initializeChoroLayers = (map, mapContainer, popup, datasets, select
             type: 'line',
             source: 'states',
             layout: {
-                'visibility': 'none'
+                'visibility': 'none',
+                'line-join': 'round',
+                'line-cap': 'round'
             },
             paint: {
                 'line-color': [
                     'match',
                     ['get', 'lisa_class'],
                     'LL', '#01579b',
-                    'HL', '#f06292',
-                    'LH', '#00bcd4',
-                    'HH', '#d81b60',
+                    'HL', '#7e57c2',
+                    'LH', '#00acc1',
+                    'HH', '#e91e63',
                     'transparent'
                 ],
-                'line-width': 2,
+                'line-width': 3,
                 'line-opacity': [
                     'case',
                     ['has', 'lisa_class'],
-                    0.8,
+                    1,
                     0
                 ],
                 'line-offset': 1,
-                'line-join': 'round',
             }
         });
 
