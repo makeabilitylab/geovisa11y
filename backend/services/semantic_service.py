@@ -343,6 +343,80 @@ class SemanticService:
         Returns: (is_ambiguous: bool, ambiguity_type: str, context_needed: dict)
         """
         try:
+            # First do a simple keyword check to catch obvious cases
+            # This helps ensure we don't miss clear ambiguities that the model might overlook
+            lower_question = question.lower()
+            location_keywords = ['here', 'this state', 'that state', 'this county', 'that county', 'it', 'its']
+            subject_keywords = ['what about', 'how about']
+            
+            has_location_reference = any(keyword in lower_question for keyword in location_keywords)
+            has_subject_reference = any(keyword in lower_question for keyword in subject_keywords)
+            
+            # If we have an obvious ambiguity, handle it directly without calling the model
+            if has_location_reference or has_subject_reference:
+                # Normalize current_focus for the context
+                if isinstance(current_focus, dict) and current_focus.get('county'):
+                    county_name = current_focus['county']
+                    state_name = current_focus.get('state')
+                    
+                    # Handle array input for state
+                    if not state_name and current_focus.get('states') and len(current_focus['states']) > 0:
+                        state_name = current_focus['states'][0]
+                    elif isinstance(state_name, list) and len(state_name) > 0:
+                        state_name = state_name[0]
+                    
+                    location = f"{county_name} County, {state_name}"
+                    context_type = "county"
+                    location_components = {
+                        "county": county_name,
+                        "state": state_name
+                    }
+                elif isinstance(current_focus, dict) and current_focus.get('city'):
+                    city_info = current_focus['city']
+                    state_name = current_focus.get('state')
+                    
+                    # Handle array input for state
+                    if not state_name and current_focus.get('states') and len(current_focus['states']) > 0:
+                        state_name = current_focus['states'][0]
+                    
+                    city_name = city_info.get('name') if isinstance(city_info, dict) else city_info
+                    
+                    location = f"{city_name}, {state_name}"
+                    context_type = "city"
+                    location_components = {
+                        "city": city_name,
+                        "state": state_name
+                    }
+                else:
+                    # Handle the new focus structure where states is an array
+                    if isinstance(current_focus, dict) and current_focus.get('states') and len(current_focus['states']) > 0:
+                        location = current_focus['states'][0]
+                    else:
+                        location = current_focus.get('state') if isinstance(current_focus, dict) else current_focus
+                    
+                    context_type = "state"
+                    location_components = {
+                        "state": location
+                    }
+                
+                ambiguity_type = None
+                if has_location_reference and has_subject_reference:
+                    ambiguity_type = "both"
+                elif has_location_reference:
+                    ambiguity_type = "location_reference"
+                else:
+                    ambiguity_type = "subject_reference"
+                
+                context_needed = {
+                    'location': location,
+                    'type': context_type,
+                    'components': location_components,
+                    'subject': None
+                }
+                
+                return True, ambiguity_type, context_needed
+            
+            # If no obvious ambiguity is found, proceed with the model-based check
             system_prompt = """You are an expert at analyzing geographic questions for ambiguity.
             Analyze if the question contains any ambiguous "references" that require context to resolve.
             
