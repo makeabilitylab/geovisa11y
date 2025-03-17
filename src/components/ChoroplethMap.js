@@ -299,7 +299,7 @@ const ChoroplethMap = ({
                 map.current.fitBounds(bounds, {
                     padding: 100,
                     duration: 1000,
-                    maxZoom: showingCounties ? 7 : (states.length > 1 ? 7 : 5) // Adjust zoom based on counties view
+                    maxZoom: localCountiesVisible? 7 : (states.length > 1 ? 7 : 5) // Adjust zoom based on counties view
                 });
                 
                 // Create a case-insensitive filter for all focused states
@@ -648,90 +648,7 @@ const ChoroplethMap = ({
         }
     }, [selectedDataset, geoData, layersInitialized]);
 
-    // Combined effect to handle LISA clusters for both states and counties
-    useEffect(() => {
-        if (!map.current || !layersInitialized) return;
-        
-        if (showSpatialClusters) {
-            if (showingCounties) {
-                // // Hide state-level LISA clusters
-                // toggleLayerSet(stateLisaLayers, false);
-                
-                // Fetch county-level LISA clusters
-                fetch(`${apiUrl}/api/lisa_clusters/${focus.states[0]}?dataset=${selectedDataset}&level=county`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (sourceExists('counties')) {
-                            map.current.getSource('counties').setData(data);
-                            
-                            // Add county LISA cluster layers if they don't exist
-                            if (!layerExists('county-lisa-clusters-border')) {
-                                map.current.addLayer({
-                                    id: 'county-lisa-clusters-border',
-                                    type: 'line',
-                                    source: 'counties',
-                                    layout: {
-                                        'line-join': 'round',
-                                        'line-cap': 'round'
-                                    },
-                                    paint: {
-                                        'line-color': [
-                                            'match',
-                                            ['get', 'lisa_class'],
-                                            'LL', '#01579b',
-                                            'HL', '#7e57c2',
-                                            'LH', '#00acc1',
-                                            'HH', '#e91e63',
-                                            'transparent'
-                                        ],
-                                        'line-width': 4,
-                                        'line-opacity': [
-                                            'case',
-                                            ['has', 'lisa_class'],
-                                            1,
-                                            0
-                                        ],
-                                        'line-offset': 1,
-                                    }
-                                });
-                            }
-                            // Show county LISA layers
-                            toggleLayerSet(countyLisaLayers, true);
-                            toggleLayerSet(stateLisaLayers, false);
-                        }
-                    })
-                    .catch(error => console.error('Error fetching county LISA clusters:', error));
-            } else {
-                // Show state LISA clusters at state level
-                toggleLayerSet(stateLisaLayers, true);
-                toggleLayerSet(countyLisaLayers, false);
-            }
-        } else {
-            // Hide all LISA clusters
-            toggleLayerSet(stateLisaLayers, false);
-            toggleLayerSet(countyLisaLayers, false);
-            
-            // Reset state borders when no focus
-            if (!focus.type) {
-                map.current.setPaintProperty('state-borders', 'line-opacity', 0);
-                map.current.setPaintProperty('state-borders', 'line-width', 1);
-            }
-        }
-    }, [
-        showSpatialClusters,
-        showingCounties,
-        focus,
-        selectedDataset,
-        layersInitialized,
-        apiUrl,
-        toggleLayerSet,
-        stateLisaLayers,
-        countyLisaLayers,
-        layerExists,
-        sourceExists
-    ]);
-
-    // UseEffect to handle focused state/county/city
+    // useEffect to handle focused state/county/city
     useEffect(() => {
         if (!map.current || !layersInitialized || !geoData) return;
         
@@ -826,6 +743,95 @@ const ChoroplethMap = ({
         stateLayers,
         localCountiesVisible,  // Update dependency
         showingCounties     
+    ]);
+
+    // useEffect to handle LISA clusters for both states and counties
+    useEffect(() => {
+        if (!map.current || !layersInitialized) return;
+        
+        if (showSpatialClusters) {
+            // County level LISA clusters
+            if (localCountiesVisible) {                
+                // Fetch county-level LISA clusters
+                fetch(`${apiUrl}/api/lisa_clusters/${focus.states[0]}?dataset=${selectedDataset}&level=county`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (sourceExists('counties')) {
+                            map.current.getSource('counties').setData(data);
+                            
+                            // Add county LISA cluster layers if they don't exist
+                            if (!layerExists('county-lisa-clusters-border')) {
+                                map.current.addLayer({
+                                    id: 'county-lisa-clusters-border',
+                                    type: 'line',
+                                    source: 'counties',
+                                    layout: {
+                                        'line-join': 'round',
+                                        'line-cap': 'round'
+                                    },
+                                    paint: {
+                                        'line-color': [
+                                            'match',
+                                            ['get', 'lisa_class'],
+                                            'LL', '#01579b',
+                                            'HL', '#7e57c2',
+                                            'LH', '#00acc1',
+                                            'HH', '#e91e63',
+                                            'transparent'
+                                        ],
+                                        'line-width': 4,
+                                        'line-opacity': [
+                                            'case',
+                                            ['has', 'lisa_class'],
+                                            1,
+                                            0
+                                        ],
+                                        'line-offset': 1,
+                                    }
+                                });
+                            }
+                            // Show county LISA layers
+                            toggleLayerSet(countyLisaLayers, true);
+                            toggleLayerSet(stateLisaLayers, false);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching county LISA clusters:', error));
+            } else {
+                // State level LISA clusters
+                // 1. reset zoom
+                map.current.flyTo({
+                    center: [-96, 37.8],
+                    zoom: 4,
+                    duration: 2000
+                });
+                // 2. show state LISA clusters
+                toggleLayerSet(stateLisaLayers, true);
+                toggleLayerSet(countyLisaLayers, false);
+
+            }
+        } else {
+            // Otherwise hide all LISA clusters
+            toggleLayerSet(stateLisaLayers, false);
+            toggleLayerSet(countyLisaLayers, false);
+            
+            // Reset state borders when no focus
+            if (!focus.type) {
+                map.current.setPaintProperty('state-borders', 'line-opacity', 0);
+                map.current.setPaintProperty('state-borders', 'line-width', 1);
+            }
+        }
+    }, [
+        showSpatialClusters,
+        showingCounties,
+        focus,
+        selectedDataset,
+        layersInitialized,
+        apiUrl,
+        toggleLayerSet,
+        stateLisaLayers,
+        countyLisaLayers,
+        layerExists,
+        sourceExists
     ]);
 
     const removeLisaLayer = () => {
@@ -1120,24 +1126,6 @@ const ChoroplethMap = ({
     useEffect(() => {
         setSelectedDataset(dataset);
     }, [dataset]);
-
-    //useEffect to handle showSpatialClusters changes
-    useEffect(() => {
-        if (!map.current || !geoData) return;
-
-        if (showSpatialClusters) {
-            // Show LISA clusters
-            toggleLayerSet(stateLisaLayers, true);
-        } else {
-            // Hide LISA clusters
-            toggleLayerSet(stateLisaLayers, false);
-            // Reset state borders
-            if (!focus.type) {
-                map.current.setPaintProperty('state-borders', 'line-opacity', 0);
-                map.current.setPaintProperty('state-borders', 'line-width', 1);
-            }
-        }
-    }, [showSpatialClusters, geoData, focus]);
 
     // Keyboard navigation
     useEffect(() => {
