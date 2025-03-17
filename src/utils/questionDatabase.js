@@ -47,7 +47,7 @@ export const questionDatabase = {
         "Is there a pattern in this map?",
         "Which state has the lowest population density?",
         "Which state has higher population density, [STATE2] or [STATE3]?",
-        "Which regions are the most densely populated?",
+        "Which regions are the most densely populated in the US?",
         "How does [STATE1] compare to its neighboring states?",
         "What's the average population density?",
         "Are there clusters of states with similar density?",
