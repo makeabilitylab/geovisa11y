@@ -41,22 +41,21 @@ const ChoroplethMap = ({
     const datasets = isTaskPage ? {
         'pct_tot_co': {
             name: 'Underserved Population',
-            breaks: [75, 80, 85, 90, 95],
-            colors: ["#f9ddda", "#f2b9c4", "#e597b9", "#ce78b3", "#ad5fad", "#834ba0"]
+            breaks: [0, 75, 80, 85, 90],
+            colors: ["#f3e0f7", "#e4c7f1", "#b998dd", "#826dba", "#63589f"]
 
         },
         'pct_no_bb_': {
             name: 'Lacking Broadband Access',
-            breaks: [5, 7.5, 10, 12.5, 15,],
-            colors: ["#f7feae", "#b7e6a5", "#7ccba2", "#46aea0", "#089099", "#00718b"]
+            breaks: [0, 7.5, 10, 12.5, 15,],
+            colors: ["#d1eeea", "#85c4c9", "#68abb8", "#4f90a6","#2a5674"]
 
         }
     } : {
         'ppl_densit': {
             name: 'Population Density',
-            breaks: [10, 50, 100, 200, 500, 1000],
+            breaks: [0,108.6, 215.3, 424.3, 634.5, 1058.4, 10970.5],
             colors: ["#fef6b5", "#ffdd9a", "#ffc285", "#ffa679", "#fa8a76", "#f16d7a", "#e15383"]
-
         }
     };
 
@@ -633,16 +632,25 @@ const ChoroplethMap = ({
     useEffect(() => {
         if (map.current && layersInitialized && geoData) {
             const dataset = datasets[selectedDataset];
+            // const expression = [
+            //     'interpolate',
+            //     ['linear'],
+            //     ['coalesce', ['get', 'value'], 0],
+            //     ...dataset.breaks.flatMap((break_, i) => [
+            //         break_,
+            //         dataset.colors[i]
+            //     ])
+            // ];
             const expression = [
-                'interpolate',
-                ['linear'],
-                ['coalesce', ['get', 'value'], 0],
+                'step',
+                ['coalesce', ['get', 'value'], 0], // Ensure missing values default to 0
+                dataset.colors[0], // Default color for values below the first break
                 ...dataset.breaks.flatMap((break_, i) => [
                     break_,
                     dataset.colors[i]
                 ])
             ];
-            
+    
             map.current.setPaintProperty('state-choropleth', 'fill-color', expression);
             map.current.setPaintProperty('state-choropleth', 'fill-opacity', 0.75);
         }
@@ -1565,7 +1573,9 @@ const ChoroplethMap = ({
                                     style={{ backgroundColor: datasets[selectedDataset].colors[i] }}
                                 />
                                 <span className="text-xs">
-                                    {value}{i === datasets[selectedDataset].breaks.length - 1 ? '+' : ''}
+                                    {i === 0 ? `< ${datasets[selectedDataset].breaks[1]}` :
+                                     i === datasets[selectedDataset].breaks.length - 1 ? `> ${value}` :
+                                     `${value}-${(datasets[selectedDataset].breaks[i + 1] - 0.1).toFixed(1)}`}
                                     {selectedDataset === 'ppl_densit' || selectedDataset === 'gas' ? '' : '%'}
                                 </span>
                             </div>
