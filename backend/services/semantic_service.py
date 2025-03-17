@@ -64,7 +64,8 @@ class SemanticService:
             11. correlate - Relationship analysis (e.g., "Is there a relationship between X and Y?")
             12. describe_shape - Shape description (e.g., "Can you describe the shape of X?")
             13. urban_rural_comparison - Comparing urban vs rural areas (e.g., "Is there a difference between urban and rural counties regarding their predominant heating fuels?")
-            14. others - Conceptual/invalid questions (e.g., "What is X?" or invalid queries)
+            14. compare_neighbors - Comparing neighbors (e.g., "How does it compare to its neighbors?")
+            15. others - Conceptual/invalid questions (e.g., "What is X?" or invalid queries)
 
             Respond with ONLY the category name, nothing else."""
 
@@ -253,7 +254,6 @@ class SemanticService:
                 Available datasets:
                 {metrics_list}
 
-                
                 IMPORTANT RULES:
                 1. For questions about population density, return 'ppl_densit'
                 2. For questions about gas heating COUNTS or NUMBERS, return 'gas'
@@ -262,18 +262,25 @@ class SemanticService:
                 5. For questions about PERCENTAGES or PROPORTIONS of households using gas heating, return 'pct_gas'
                 6. For questions about PERCENTAGES or PROPORTIONS of households using electric/electricity heating, return 'pct_electr'
                 7. For questions about PERCENTAGES or PROPORTIONS of households using oil heating, return 'pct_oil'
-                8. For questions about underserved populations, return 'pct_tot_co'
+                8. For questions about underserved populations or underserved population percentages, return 'pct_tot_co'
                 9. For questions about people lacking broadband or computer access, return 'pct_no_bb_'
                 
-                CRITICAL DISTINCTION:
+                CRITICAL DISTINCTIONS:
                 - If the question asks about "how many households" use a heating type, use the COUNT datasets (gas, electricit, oil)
                 - If the question asks about "what percentage" or "what proportion" of households use a heating type, use the PERCENTAGE datasets (pct_gas, pct_electr, pct_oil)
+                - If the question asks about comparing with neighbors, use the dataset that matches the metric being compared
+                - Questions about "underserved population" or "underserved populations" should use 'pct_tot_co'
                 
                 Return the dataset code in parentheses that best matches the question, or 'none' if the question:
                 1. Asks about a DIFFERENT metric than any available dataset
                 2. Asks conceptual questions about geography or metrics
                 
                 IMPORTANT: Return ONLY the dataset code or 'none' as a single word.
+
+                Examples:
+                "How does Texas's underserved population compare to its neighbors?" -> "pct_tot_co"
+                "How does the percentage of underserved population in Texas compare to its neighboring states?" -> "pct_tot_co"
+                "What's the population density compared to neighboring states?" -> "ppl_densit"
                 """
 
                 user_prompt = f"Question: {question}"

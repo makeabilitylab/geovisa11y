@@ -530,6 +530,33 @@ def answer_question(question, current_dataset, current_focus=None):
         elif question_type == 'others':
             return None
 
+        elif question_type == 'compare_neighbors':
+            states = semantic_service.extract_states(question)
+            state = None
+            
+            # If state is explicitly mentioned in question
+            if states:
+                state = states[0]
+            # Otherwise use the current focus
+            elif current_focus:
+                if isinstance(current_focus, dict):
+                    state = current_focus.get('state')
+                    # Handle array input for state
+                    if not state and current_focus.get('states') and len(current_focus['states']) > 0:
+                        state = current_focus['states'][0]
+                else:
+                    state = current_focus
+            
+            if state:
+                result = compare_with_neighbors(state, current_dataset)
+                return {
+                    'result': result['result'],
+                    'state': result['state'],
+                    'dataset': current_dataset,
+                    'question_type': 'compare_neighbors'
+                }
+            return None
+
         return None
 
     except Exception as e:
@@ -1209,6 +1236,7 @@ def find_outliers(lisa_results, dataset):
         print(f"Error formatting outliers: {str(e)}")
         return None
 
+#11_compare_urban_rural_heating_fuels
 def compare_urban_rural_heating_fuels(state_name=None):
     """Compare urban and rural counties' predominant heating fuel types within a specific state"""
     try:
@@ -1286,3 +1314,83 @@ def compare_urban_rural_heating_fuels(state_name=None):
         state_phrase = f" in {state_display}" if state_name else ""
         return f"I couldn't analyze the difference between urban and rural counties{state_phrase} due to a technical issue."
 
+#12_compare_neighbors
+def compare_with_neighbors(state, dataset):
+    """Compare a state's value with its neighbors' values"""
+    try:
+        # First get the value and neighbors for the reference state
+        query = f"""
+            SELECT state_name,
+                   COALESCE({dataset}, 0) as value,
+                   neighbors_
+            FROM state
+            WHERE LOWER(state_name) = LOWER(?)
+        """
+        
+        ref_result = con.execute(query, [state]).fetchone()
+        if not ref_result:
+            return {
+                'result': f"Could not find state: {state.title()}",
+                'state': state.title()
+            }
+        
+        state_name, state_value, neighbors = ref_result
+        
+        # Parse neighbors from the array string
+        neighbors = parse_neighbors(neighbors)
+        valid_neighbors = [n for n in neighbors if n]  # Filter out None values
+        
+        if not valid_neighbors:
+            return {
+                'result': f"{state_name} has no neighboring states in our database.",
+                'state': state_name
+            }
+            
+        # Get values for all neighbors
+        placeholders = ','.join(['?' for _ in valid_neighbors])
+        neighbor_query = f"""
+            SELECT state_name,
+                   COALESCE({dataset}, 0) as value
+            FROM state
+            WHERE state_name IN ({placeholders})
+            ORDER BY value DESC
+        """
+        
+        neighbor_results = con.execute(neighbor_query, valid_neighbors).fetchall()
+        
+        # Get metric information for formatting
+        metric_info = get_metric_info(dataset)
+        metric_name = metric_info['name']
+        
+        # Format the state's value
+        state_value_formatted = metric_info['format_value'](state_value)
+        
+        # Calculate average of neighbors
+        neighbor_values = [r[1] for r in neighbor_results]
+        neighbor_avg = sum(neighbor_values) / len(neighbor_values)
+        
+        # Determine if state is higher or lower than average
+        comparison_to_avg = "higher than" if state_value > neighbor_avg else "lower than"
+        
+        # Format neighbor values with properly capitalized state names
+        neighbor_details = [f"{r[0].title()} ({metric_info['format_value'](r[1])})" for r in neighbor_results]
+        
+        # Create natural language response with properly capitalized state name
+        response = f"{state_name.title()} has {state_value_formatted} {metric_info['name']}, which is {comparison_to_avg} the average of its neighbors. "
+        
+        # Add neighbor details
+        if len(neighbor_details) > 1:
+            response += f"Its neighbors range from {neighbor_details[0]} to {neighbor_details[-1]}, "
+        response += f"with neighboring states being {', '.join(neighbor_details[:-1])} and {neighbor_details[-1]}."
+        
+        return {
+            'result': response,
+            'state': state_name.title()
+        }
+        
+    except Exception as e:
+        print(f"Error comparing with neighbors: {str(e)}")
+        return {
+            'result': f"Error comparing {state.title()} with its neighbors",
+            'state': state.title()
+        }
