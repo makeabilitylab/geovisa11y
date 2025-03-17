@@ -52,15 +52,32 @@ export const initializeChoroLayers = (map, mapContainer, popup, datasets, select
         });
 
         // Add population density layer first (bottom layer)
+        // map.addLayer({
+        //     id: 'state-choropleth',
+        //     type: 'fill',
+        //     source: 'states',
+        //     paint: {
+        //         'fill-color': [
+        //             'interpolate',
+        //             ['linear'],
+        //             ['get', 'value'],
+        //             ...datasets[selectedDataset].breaks.flatMap((break_, i) => [
+        //                 break_,
+        //                 datasets[selectedDataset].colors[i]
+        //             ])
+        //         ],
+        //         'fill-opacity': 0.75
+        //     }
+        // });
         map.addLayer({
             id: 'state-choropleth',
             type: 'fill',
             source: 'states',
             paint: {
                 'fill-color': [
-                    'interpolate',
-                    ['linear'],
-                    ['get', 'value'],
+                    'step',
+                    ['get', 'value'], // The variable to classify
+                    datasets[selectedDataset].colors[0], // Default color (for values < first break)
                     ...datasets[selectedDataset].breaks.flatMap((break_, i) => [
                         break_,
                         datasets[selectedDataset].colors[i]

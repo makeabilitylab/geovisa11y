@@ -886,6 +886,9 @@ def find_similar(state, dataset):
 def get_moran_i(dataset, state_filter=None):
     """Analyze global spatial pattern using Moran's I, optionally filtered by state"""
     try:
+        # Set random seed for reproducibility
+        np.random.seed(123)
+        
         # Determine which table to use based on state_filter
         table_name = 'county' if state_filter else 'state'
         
@@ -957,8 +960,8 @@ def get_moran_i(dataset, state_filter=None):
             w = libpysal.weights.util.attach_islands(w, knn)
             w.transform = 'r'
         
-        # Calculate global Moran's I
-        moran = Moran(gdf['value'], w)
+        # Calculate global Moran's I with fixed number of permutations
+        moran = Moran(gdf['value'], w, permutations=999)
         print(f"Moran's I: {moran.I}")
         print(f"Moran's p-value: {moran.p_sim}")
         
@@ -999,8 +1002,11 @@ def get_moran_i(dataset, state_filter=None):
 
 #09_describe_pattern
 def get_lisa_clusters(dataset, state_filter=None):
-    """Analyze spatial patterns using Local Moran's I and return cluster classifications, optionally filtered by state"""
+    """Analyze spatial patterns using Local Moran's I and return cluster classifications"""
     try:
+        # Set random seed for reproducibility
+        np.random.seed(123)
+        
         # Determine which table to use based on state_filter
         table_name = 'county' if state_filter else 'state'
         
@@ -1074,7 +1080,7 @@ def get_lisa_clusters(dataset, state_filter=None):
             w = libpysal.weights.util.attach_islands(w, knn)
             w.transform = 'r'
         
-        # Calculate local Moran's I
+        # Calculate local Moran's I with fixed number of permutations
         moran = Moran_Local(gdf['value'], w, permutations=999)
         
         # Add LISA statistics to the dataframe
