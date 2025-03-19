@@ -33,7 +33,7 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
             tabIndex="0"
         >
             <DialogHeader id="help-dialog-title" className="border-b border-gray-200 flex justify-between items-center">
-                <Typography variant="h6" color="blue-gray">
+                <Typography variant="h6" color="blue-gray" as="h2">
                     MappieTalkie Help Guide
                 </Typography>
                 <IconButton
@@ -53,7 +53,7 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
             >
                 <div className="space-y-4">
                     <section>
-                        <Typography variant="h6" color="blue-gray" className="mb-2 text-sm">
+                        <Typography variant="h6" color="blue-gray" className="mb-2 text-sm" as="h3">
                             Keyboard Shortcuts
                         </Typography>
                         <ul className="list-disc pl-5 space-y-2 text-sm">
@@ -69,7 +69,7 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
                     </section>
 
                     <section>
-                        <Typography variant="h6" color="blue-gray" className="mb-2 text-sm">
+                        <Typography variant="h6" color="blue-gray" className="mb-2 text-sm" as="h3">
                             Quick Navigation Commands
                         </Typography>
                         <ul className="list-disc pl-5 space-y-2 text-sm">
@@ -86,12 +86,13 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
                     </section>
 
                     <section>
-                        <Typography variant="h6" color="blue-gray" className="mb-2 text-sm">
+                        <Typography variant="h6" color="blue-gray" className="mb-2 text-sm" as="h3">
                             Tips
                         </Typography>
                         <ul className="list-disc pl-5 space-y-2 text-sm">
                             <li>Type "What else can you do?" to see all available features</li>
                             <li>Ask about patterns or trends to get deeper insights</li>
+                            <li>This is an AI-based system, so it may make mistakes.</li>
                         </ul>
                     </section>
                 </div>
