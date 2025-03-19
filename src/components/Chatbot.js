@@ -285,31 +285,6 @@ const Chatbot = ({
         }
     };
 
-    // const speakResponse = async (text) => {
-    //     try {
-    //         setIsSpeechLoading(true);
-    //         const openai = new OpenAI({
-    //             apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-    //             dangerouslyAllowBrowser: true
-    //         });
-    //         const speechResponse = await openai.audio.speech.create({
-    //             model: 'tts-1',
-    //             voice: 'alloy',
-    //             input: text,
-    //         });
-
-    //         const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
-    //         const audioUrl = URL.createObjectURL(audioBlob);
-            
-    //         audioRef.current.src = audioUrl;
-    //         await audioRef.current.play();
-    //     } catch (error) {
-    //         console.error('Error generating speech:', error);
-    //     } finally {
-    //         setIsSpeechLoading(false);  // Reset speech loading state
-    //     }
-    // };
-
     // Add state for tracking previous answer
     const [previousAnswer, setPreviousAnswer] = useState(null);
     const [conversationHistory, setConversationHistory] = useState([]);
@@ -581,37 +556,7 @@ const Chatbot = ({
         if (e.key === 'Enter') {
             handleSubmit(e);
         }
-        // Prevent spacebar from triggering in the input field
-        if (e.code === 'Space') {
-            e.stopPropagation();
-        }
     };
-
-    // Add spacebar handler for recording as a separate effect
-    useEffect(() => {
-        const handleSpacebarRecord = (e) => {
-            if (e.code === 'Space' && !isRecording && !e.repeat && !isInputFocused) {
-                e.preventDefault();
-                startRecording();
-            }
-        };
-
-        const handleSpacebarStop = (e) => {
-            if (e.code === 'Space' && isRecording && !isInputFocused) {
-                e.preventDefault();
-                stopRecording();
-            }
-        };
-
-        window.addEventListener('keydown', handleSpacebarRecord);
-        window.addEventListener('keyup', handleSpacebarStop);
-
-        return () => {
-            window.removeEventListener('keydown', handleSpacebarRecord);
-            window.removeEventListener('keyup', handleSpacebarStop);
-        };
-    }, [isRecording, isInputFocused]);
-
 
     // Function to get general knowledge questions based on dataset
     const getGeneralQuestions = () => {
@@ -733,12 +678,6 @@ const Chatbot = ({
         onFocusChange(safeFocus);
     };
 
-    // When checking focus type, add null checks
-    const checkFocusType = (focus) => {
-        if (!focus) return false;
-        return focus.type === 'state' || focus.type === 'county';
-    };
-
     // Example usage in your component
     useEffect(() => {
         if (!focus) {
@@ -809,7 +748,7 @@ const Chatbot = ({
                 aria-label="Welcome to MappieTalkie"
                 className="mb-4"
             > 
-                <Typography variant="h6" color="blue-gray" className="mb-2">
+                <Typography variant="h6" color="blue-gray" className="mb-2" as="h1">
                     Welcome to MappieTalkie
                 </Typography>
 
