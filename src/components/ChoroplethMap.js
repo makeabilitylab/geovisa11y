@@ -632,15 +632,6 @@ const ChoroplethMap = ({
     useEffect(() => {
         if (map.current && layersInitialized && geoData) {
             const dataset = datasets[selectedDataset];
-            // const expression = [
-            //     'interpolate',
-            //     ['linear'],
-            //     ['coalesce', ['get', 'value'], 0],
-            //     ...dataset.breaks.flatMap((break_, i) => [
-            //         break_,
-            //         dataset.colors[i]
-            //     ])
-            // ];
             const expression = [
                 'step',
                 ['coalesce', ['get', 'value'], 0], // Ensure missing values default to 0
@@ -1458,6 +1449,13 @@ const ChoroplethMap = ({
             }
         }
     }, [countyData, showingCounties, onShowingCountiesChange, focus.states]);
+
+    //useEffect to clean  up displaying county data when the focus.states changes
+    useEffect(() => {
+        if (focus.states[0]) {
+            displayingCountyData(focus.states[0]);
+        }
+    }, [focus.states]);
 
     return (
         <div className="relative h-full ">
