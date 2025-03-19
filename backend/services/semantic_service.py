@@ -281,6 +281,7 @@ class SemanticService:
                 "How does Texas's underserved population compare to its neighbors?" -> "pct_tot_co"
                 "How does the percentage of underserved population in Texas compare to its neighboring states?" -> "pct_tot_co"
                 "What's the population density compared to neighboring states?" -> "ppl_densit"
+                "Which state has the lowest population density?" -> "ppl_densit"
                 """
 
                 user_prompt = f"Question: {question}"
