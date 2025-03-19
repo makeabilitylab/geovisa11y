@@ -4,6 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { logMapInteraction } from '../utils/logger';
 import { initializeChoroLayers } from '../utils/mapInitializer';
 import { useMapLayers } from '../utils/mapUtils';
+import { X } from "@phosphor-icons/react";
 
 const ChoroplethMap = ({
     focus = { type: null, states: [], county: null, city: null, highlightOnly: false },
@@ -180,7 +181,7 @@ const ChoroplethMap = ({
         const data = await response.json();
         setCountyData(data);
 
-        console.log('County data received:', data);
+        // console.log('County data received:', data);
 
         return data;
     } catch (error) {
@@ -312,16 +313,6 @@ const ChoroplethMap = ({
                 toggleLayerVisibility('state-choropleth', true);
                 toggleLayerVisibility('state-borders', true);
                 
-                // Highlight only the desired states
-                map.current.setPaintProperty('state-borders', 'line-opacity', [
-                    'case',
-                    stateFilter,
-                    1,
-                    0
-                ]);
-                map.current.setPaintProperty('state-borders', 'line-color', '#000');
-                map.current.setPaintProperty('state-borders', 'line-width', 2);
-                
                 // Announce the change if requested
                 if (announceChange && isMapInteractive) {
                     if (states.length > 1) {
@@ -377,7 +368,7 @@ const ChoroplethMap = ({
                         ])
                     ],
                     'fill-opacity': 0.7
-                }
+                } //add state highlight layer here so it's on top of the choropleth
             });
             
             // Add county borders on top of everything
@@ -504,8 +495,6 @@ const ChoroplethMap = ({
             onShowingCountiesChange(true, stateName);
             setLocalCountiesVisible(true);
             
-            console.log('[COUNTY DEBUG] After onShowingCountiesChange, showingCounties should be true, localCountiesVisible:', true);
-            
             // Step 1: Fetch county data
             const data = await fetchCountyData(stateName);
             if (!data) return false;
@@ -542,7 +531,7 @@ const ChoroplethMap = ({
     useEffect(() => {
         if (mapContainer.current && !map.current) {
             try {
-                console.log('Map initialization starting...');
+                // console.log('Map initialization starting...');
                 
                 const mapboxToken = window.ENV?.REACT_APP_MAPBOX_TOKEN || process.env.REACT_APP_MAPBOX_TOKEN;
                 
@@ -567,7 +556,7 @@ const ChoroplethMap = ({
 
                 // Set up layers once when style loads
                 map.current.once('style.load', () => {
-                    console.log('Style loaded, initializing layers...');
+                    // console.log('Style loaded, initializing layers...');
                     initializeLayers();
                     setLayersInitialized(true);
                 });
@@ -599,9 +588,6 @@ const ChoroplethMap = ({
                 zoom: 4,
                 duration: 2000
             });
-            
-            // Clear state highlights
-            map.current.setPaintProperty('state-borders', 'line-opacity', 0);
             
             // Clear county map layers/sources
             removeLayersSafely(countyLayers.concat(countyLisaLayers));
@@ -693,12 +679,12 @@ const ChoroplethMap = ({
             
             // Check if we already have county data for this state
             const hasCountyData = countyData !== null;
-            console.log('[COUNTY DEBUG] Has county data:', hasCountyData, 'countyData features:', countyData?.features?.length);
+            // console.log('[COUNTY DEBUG] Has county data:', hasCountyData, 'countyData features:', countyData?.features?.length);
             
             if (hasCountyData) {
                 // We already have county data, just highlight the focused county
                 const highlighted = focusCountyOnMap(countyName);
-                console.log('[COUNTY DEBUG] County highlighted:', highlighted);
+                // console.log('[COUNTY DEBUG] County highlighted:', highlighted);
                 
                 if (highlighted && isMapInteractive) {
                     onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
@@ -813,11 +799,6 @@ const ChoroplethMap = ({
             toggleLayerSet(stateLisaLayers, false);
             toggleLayerSet(countyLisaLayers, false);
             
-            // Reset state borders when no focus
-            if (!focus.type) {
-                map.current.setPaintProperty('state-borders', 'line-opacity', 0);
-                map.current.setPaintProperty('state-borders', 'line-width', 1);
-            }
         }
     }, [
         showSpatialClusters,
@@ -1024,30 +1005,41 @@ const ChoroplethMap = ({
         }
     }, [map, removeLayersSafely, removeSourceSafely, toggleLayerSet, stateLayers, onShowingCountiesChange, onFocusChange, isMapInteractive, onAnnounce, countyLayers]);
 
-    // Add effect to update the focused state highlight
+    // Update the effect that handles state highlighting
     useEffect(() => {
-        if (map.current && layersInitialized && focus?.type) {
-            // Create a filter for the current focused state
-            const focusFilter = ['==', 
-                ['get', 'state_name'], 
-                focus.states?.[0] || ''
-            ];
+        if (map.current && layersInitialized) {
+            // Remove existing highlight layer if it exists
+            if (map.current.getLayer('state-highlight')) {
+                map.current.removeLayer('state-highlight');
+            }
 
-            // Update the state borders layer to highlight only the focused state
-            map.current.setPaintProperty('state-borders', 'line-opacity', [
-                'case',
-                focusFilter,
-                1,
-                0
-            ]);
-            map.current.setPaintProperty('state-borders', 'line-color', '#3b4252');
-            map.current.setPaintProperty('state-borders', 'line-width', 2);
-            map.current.setLayoutProperty('state-borders', 'line-cap', 'round');
-        } else if (map.current && layersInitialized) {
-            // Reset the highlight when no state is focused
-            map.current.setPaintProperty('state-borders', 'line-opacity', 0);
-            map.current.setPaintProperty('state-borders', 'line-color', '#ccc');
-            map.current.setLayoutProperty('state-borders', 'line-cap', 'butt');
+            // Only add highlight layer if there's a focus
+            if (focus?.type) {
+                // Add a new highlight layer that sits on top
+                map.current.addLayer({
+                    id: 'state-highlight',
+                    type: 'line',
+                    source: 'states',
+                    layout: {
+                        'line-join': 'round',
+                        'line-cap': 'round'
+                    },
+                    paint: {
+                        'line-color': '#3b4252',
+                        'line-width': 3,
+                        'line-opacity': [
+                            'case',
+                            ['==', ['get', 'state_name'], focus.states?.[0] || ''],
+                            1,
+                            0
+                        ]
+                    },
+                    layout: {
+                        'line-cap': 'round',
+                        'line-join': 'round'
+                    }
+                });
+            }
         }
     }, [focus, layersInitialized]);
 
@@ -1178,9 +1170,9 @@ const ChoroplethMap = ({
                         focusStateOnMap('Kansas');
                     }
                 } else if (localCountiesVisible && !focus.county && countyData) {
-                    console.log('[COUNTY DEBUG] Should focus on first county. countyData:', 
-                        countyData ? `Found ${countyData.features.length} counties` : 'No county data',
-                        'localCountiesVisible:', localCountiesVisible);
+                    // console.log('[COUNTY DEBUG] Should focus on first county. countyData:', 
+                    //     countyData ? `Found ${countyData.features.length} counties` : 'No county data',
+                    //     'localCountiesVisible:', localCountiesVisible);
                     
                     const firstCounty = countyData?.features[0]?.properties.county_name;
                     if (firstCounty) {
@@ -1442,7 +1434,7 @@ const ChoroplethMap = ({
     // Add effect to update parent when county data is loaded
     useEffect(() => {
         if (countyData && countyData.features && countyData.features.length > 0) {
-            console.log('[COUNTY DEBUG] County data loaded, ensuring localCountiesVisible is true');
+            // console.log('[COUNTY DEBUG] County data loaded, ensuring localCountiesVisible is true');
             setLocalCountiesVisible(true);
             if (!showingCounties) {
                 onShowingCountiesChange?.(true, focus.states[0]);
@@ -1452,7 +1444,7 @@ const ChoroplethMap = ({
 
     //useEffect to clean  up displaying county data when the focus.states changes
     useEffect(() => {
-        if (focus.states[0]) {
+        if (focus.states[0] && localCountiesVisible) {
             displayingCountyData(focus.states[0]);
         }
     }, [focus.states]);
@@ -1588,9 +1580,15 @@ const ChoroplethMap = ({
                         <h3 className="text-sm font-bold">Hot and Cold Spots</h3>
                         <button
                             onClick={handleCloseLisaClusters}
-                            className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+                            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 ml-6"
+                            aria-label="Close hot and cold spots overlay"
+                            title="Close"
                         >
-                            ×
+                            <X 
+                                className="text-gray-500 hover:text-gray-700" 
+                                size={22} 
+                                weight="bold"
+                            />
                         </button>
                     </div>
                     <div className="flex flex-col gap-1">

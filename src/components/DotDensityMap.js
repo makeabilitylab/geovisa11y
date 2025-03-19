@@ -5,6 +5,7 @@ import { logMapInteraction } from '../utils/logger';
 import { generateMultiAttributeDotDensity } from '../utils/DotDensityGenerator';
 import { initializeDotDensityLayers } from '../utils/mapInitializer';
 import { useMapLayers } from '../utils/mapUtils';
+import { X } from "@phosphor-icons/react";
 
 const DotDensityMap = ({ 
     focus = { type: null, states: [], county: null, city: null, highlightOnly: false },
@@ -1398,10 +1399,15 @@ const DotDensityMap = ({
                                 // Also turn off the spatial clusters when closing the legend
                                 onSpatialClustersToggle(false);
                             }}
-                            className="text-gray-500 hover:text-gray-700"
-                            aria-label="Close legend"
+                            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 ml-6"
+                            aria-label="Close predominant fuel legend"
+                            title="Close"
                         >
-                            ×
+                            <X 
+                                className="text-gray-500 hover:text-gray-700" 
+                                size={22} 
+                                weight="bold"
+                            />
                         </button>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -1431,10 +1437,15 @@ const DotDensityMap = ({
                                 // Also turn off the spatial clusters when closing the legend
                                 onSpatialClustersToggle(false);
                             }}
-                            className="text-gray-500 hover:text-gray-700"
-                            aria-label="Close legend"
+                            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 ml-6"
+                            aria-label="Close county type legend"
+                            title="Close"
                         >
-                            ×
+                            <X 
+                                className="text-gray-500 hover:text-gray-700" 
+                                size={22} 
+                                weight="bold"
+                            />
                         </button>
                     </div>
                     <div className="flex flex-col gap-2">

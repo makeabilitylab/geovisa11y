@@ -86,6 +86,22 @@ export const initializeChoroLayers = (map, mapContainer, popup, datasets, select
                 'fill-opacity': 0.75
             }
         });
+
+        // Add state borders layer last (top layer)
+        map.addLayer({
+            id: 'state-borders',
+            type: 'line',
+            source: 'states',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': '#fa8a76',
+                'line-width': 1.5,
+                'line-opacity': 0.5,
+            },
+        });
         
         // Add LISA cluster outlines
         map.addLayer({
@@ -118,19 +134,7 @@ export const initializeChoroLayers = (map, mapContainer, popup, datasets, select
             }
         });
 
-        // Add state borders layer last (top layer)
-        map.addLayer({
-            id: 'state-borders',
-            type: 'line',
-            source: 'states',
-            paint: {
-                'line-color': '#000',
-                'line-width': 1,
-                'line-opacity': 0.7,
-            },
-            // Ensure this layer is always on top
-            maxzoom: 24
-        });
+
 
         // Add mousemove handler for popup
         map.on('mousemove', 'state-choropleth', (e) => {
