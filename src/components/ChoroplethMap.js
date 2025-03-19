@@ -313,6 +313,32 @@ const ChoroplethMap = ({
                 toggleLayerVisibility('state-choropleth', true);
                 toggleLayerVisibility('state-borders', true);
                 
+                // Remove existing highlight layer if it exists
+                if (map.current.getLayer('state-highlight')) {
+                    map.current.removeLayer('state-highlight');
+                }
+
+                // Add new highlight layer for multiple states
+                map.current.addLayer({
+                    id: 'state-highlight',
+                    type: 'line',
+                    source: 'states',
+                    paint: {
+                        'line-color': '#3b4252',
+                        'line-width': 3,
+                        'line-opacity': [
+                            'case',
+                            stateFilter,
+                            1,
+                            0
+                        ]
+                    },
+                    layout: {
+                        'line-cap': 'round',
+                        'line-join': 'round'
+                    }
+                });
+                
                 // Announce the change if requested
                 if (announceChange && isMapInteractive) {
                     if (states.length > 1) {
@@ -1004,44 +1030,6 @@ const ChoroplethMap = ({
             }
         }
     }, [map, removeLayersSafely, removeSourceSafely, toggleLayerSet, stateLayers, onShowingCountiesChange, onFocusChange, isMapInteractive, onAnnounce, countyLayers]);
-
-    // Update the effect that handles state highlighting
-    useEffect(() => {
-        if (map.current && layersInitialized) {
-            // Remove existing highlight layer if it exists
-            if (map.current.getLayer('state-highlight')) {
-                map.current.removeLayer('state-highlight');
-            }
-
-            // Only add highlight layer if there's a focus
-            if (focus?.type === 'state') {
-                // Add a new highlight layer that sits on top
-                map.current.addLayer({
-                    id: 'state-highlight',
-                    type: 'line',
-                    source: 'states',
-                    layout: {
-                        'line-join': 'round',
-                        'line-cap': 'round'
-                    },
-                    paint: {
-                        'line-color': '#3b4252',
-                        'line-width': 3,
-                        'line-opacity': [
-                            'case',
-                            ['==', ['get', 'state_name'], focus.states?.[0] || ''],
-                            1,
-                            0
-                        ]
-                    },
-                    layout: {
-                        'line-cap': 'round',
-                        'line-join': 'round'
-                    }
-                });
-            }
-        }
-    }, [focus, layersInitialized]);
 
     // Add effect to clear county focus when state changes
     useEffect(() => {
