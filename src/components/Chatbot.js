@@ -90,7 +90,7 @@ const Chatbot = ({
         } else {
             switch(dataset) {
                 default: // ppl_densit
-                    return "This is an interactive choropleth map of the United States showing population density, optimized for screen reader users.";
+                    return "This is an interactive choropleth map of the United States showing population density in each state. Darker shades indicate higher percentages.";
             }
         }
     };
@@ -833,11 +833,14 @@ const Chatbot = ({
                         >
                         What else can you do?
                     </span>
-                    {" to hear a list of all available features."}
+                    {" to see/hear a list of all available features."}
                     <br />
                     {"Press "}
                     <kbd className="ml-1 px-1 py-0.5 border border-blue-900 text-blue-900 rounded">Ctrl+H</kbd>
-                    {" to see all keyboard shortcuts and navigation commands."}
+                    {" to see/hear all keyboard shortcuts and navigation commands."}
+                    <br />
+                    <br />
+                    {"I'm an AI-based system, so I may make mistakes."}
                 </Typography>
             </div>
 
