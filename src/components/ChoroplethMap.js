@@ -1014,7 +1014,7 @@ const ChoroplethMap = ({
             }
 
             // Only add highlight layer if there's a focus
-            if (focus?.type) {
+            if (focus?.type === 'state') {
                 // Add a new highlight layer that sits on top
                 map.current.addLayer({
                     id: 'state-highlight',
@@ -1444,7 +1444,7 @@ const ChoroplethMap = ({
 
     //useEffect to clean  up displaying county data when the focus.states changes
     useEffect(() => {
-        if (focus.states[0] && localCountiesVisible) {
+        if (focus.type === 'state' && focus.states[0] && localCountiesVisible) {
             displayingCountyData(focus.states[0]);
         }
     }, [focus.states]);
