@@ -70,7 +70,7 @@ function TaskPage() {
           `Chat interaction enabled. Map focused on ${focus.states[0]}.`
         );
       } else {
-        setAnnouncement('Chat interaction enabled. Type a question to ask MappieTalkie.');
+        setAnnouncement('Chat interaction enabled. Type a question to ask MapOutLoud.');
       }
     } else if (interactionFocus === 'map') {
        // If we have a noNeighbor property, announce that first and return early
