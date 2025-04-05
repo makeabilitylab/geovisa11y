@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
-import { ArrowRight, Microphone, MicrophoneSlash, ArrowsClockwise } from "@phosphor-icons/react";
+import { ArrowRight, ArrowsClockwise } from "@phosphor-icons/react";
 import {
     CardBody,
     Typography,
@@ -9,12 +9,11 @@ import {
 } from '@material-tailwind/react';
 import { 
     logQuestionData, 
-    logProcessingData, 
     logAnswerData, 
-    generateQuestionId 
 } from '../utils/logger';
 import HelpPopup from './HelpPopup';
 import { questionDatabase } from '../utils/questionDatabase';
+import RecordButton from './RecordButton';
 
 
 const Chatbot = ({ 
@@ -736,7 +735,7 @@ const Chatbot = ({
         <CardBody 
             className="flex flex-col h-full p-2 overflow-y-auto max-h-screen min-w-[300px]"
             role="region"
-            aria-label="MappieTalkie chat interface"
+            aria-label="MapOutLoud chat interface"
             style={{ maxHeight: '100vh' }}
         >
             <div 
@@ -745,11 +744,11 @@ const Chatbot = ({
                 aria-live="polite" 
                 role="region"
                 tabIndex="0"
-                aria-label="Welcome to MappieTalkie"
+                aria-label="Welcome to MapOutLoud"
                 className="mb-4"
             > 
                 <Typography variant="h6" color="blue-gray" className="mb-2" as="h1">
-                    Welcome to MappieTalkie
+                    Welcome to MapOutLoud
                 </Typography>
 
                 <Typography variant="small" color="gray" className="mb-2 text-xs">
@@ -865,7 +864,7 @@ const Chatbot = ({
                             key={index}
                             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
                             role={msg.sender === 'user' ? 'note' : 'article'}
-                            aria-label={`${msg.sender === 'user' ? 'You' : 'MappieTalkie'} said`}
+                            aria-label={`${msg.sender === 'user' ? 'You' : 'MapOutLoud'} said`}
                         >
                             <div
                                 className={`py-2 px-4 rounded-md max-w-[80%] font-['Roboto'] ${
@@ -917,7 +916,7 @@ const Chatbot = ({
                     <div ref={wrapperRef}>
                             <Input
                                 type="text"
-                                label="Ask MappieTalkie"
+                                label="Ask MapOutLoud"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
@@ -944,20 +943,11 @@ const Chatbot = ({
                             />
                     </div>
                 </div>
-                <Button 
-                    onClick={isRecording ? stopRecording : startRecording}
-                    className={`${
-                        isRecording ? 'bg-red-500' : 'bg-teal-500'
-                    } text-white p-2.5 aspect-square`}
-                    size="sm"
-                    aria-label={isRecording ? "Stop recording voice input" : "Start recording voice input"}
-                    aria-pressed={isRecording}
-                >
-                    {isRecording ? 
-                        <MicrophoneSlash size={20} weight="bold" /> : 
-                        <Microphone size={20} weight="bold" />
-                    }
-                </Button>
+                <RecordButton 
+                    isRecording={isRecording}
+                    onStartRecording={startRecording}
+                    onStopRecording={stopRecording}
+                />
                 <Button 
                     onClick={handleSubmit}
                     className={`bg-teal-500 text-white p-2.5 aspect-square ${!isInputFocused ? 'opacity-50 cursor-not-allowed' : ''}`}

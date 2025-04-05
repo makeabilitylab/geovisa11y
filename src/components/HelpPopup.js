@@ -34,7 +34,7 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
         >
             <DialogHeader id="help-dialog-title" className="border-b border-gray-200 flex justify-between items-center">
                 <Typography variant="h6" color="blue-gray" as="h2">
-                    MappieTalkie Help Guide
+                    MapOutLoud Help Guide
                 </Typography>
                 <IconButton
                     variant="text"

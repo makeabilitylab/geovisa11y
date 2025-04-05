@@ -43,10 +43,10 @@ export const questionDatabase = {
     ],
     ppl_densit: [
         "What's the population density of [STATE1]?",
-        "Which state has the highest population density?",
+        "Which state has higher population density, [STATE2] or [STATE3]?",
         "Is there a pattern in this map?",
         "Which state has the lowest population density?",
-        "Which state has higher population density, [STATE2] or [STATE3]?",
+        "Which state has the highest population density?",
         "Which regions are the most densely populated in the US?",
         "How does [STATE1] compare to its neighboring states?",
         "What's the average population density?",
