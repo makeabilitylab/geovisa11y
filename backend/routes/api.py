@@ -21,11 +21,9 @@ semantic_service = SemanticService()
 
 # Set up logging
 logging.basicConfig(
-    level=logging.WARNING,  # Change from INFO to WARNING to reduce output
+    level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        # Remove file handler that's causing permission issues
-        # logging.FileHandler("app_logs.log"),
         logging.StreamHandler()
     ]
 )
@@ -45,7 +43,6 @@ def get_openai_response(question):
                     When explaining concepts like population density, walking to work percentage, or public transit usage:
                     - Provide clear, concise definitions
                     - Use simple examples when helpful
-                    - Explain why the metric is important
                     - Keep responses focused and under 50 words
                     """
                 },
@@ -54,7 +51,7 @@ def get_openai_response(question):
                     "content": question
                 }
             ],
-            temperature=0.7,
+            temperature=0,
             max_tokens=150
         )
         
@@ -86,6 +83,7 @@ def log_backend_processing(question_id, processing_data):
         processing_data['timestamp'] = datetime.datetime.utcnow()
         processing_data['source'] = 'backend'
         processing_data['log_type'] = 'processing'
+        processing_data['session_id'] = request.json.get('session_id')
         
         # Insert into MongoDB
         result = logs_collection.insert_one(processing_data)
@@ -123,12 +121,13 @@ def analyze_input():
         conversation_history = data.get('conversation_history', [])
         raw_county = data.get('raw_county')
         raw_state = data.get('raw_state')
+        showing_counties = data.get('showing_counties', False)
         
         # Debug the incoming data
         print(f"Processing input: {user_input} for dataset: {current_dataset}")
         print(f"Current focus: {current_focus}")
         print(f"Raw county: {raw_county}, Raw state: {raw_state}")
-        
+        print(f"Showing counties: {showing_counties}")
         # Fix for county context - if we have raw_county and raw_state but current_focus is just the state
         if raw_county and raw_state and (not isinstance(current_focus, dict) or not current_focus.get('county')):
             # Create a proper county context
@@ -136,9 +135,17 @@ def analyze_input():
             current_focus = {
                 'county': raw_county,
                 'state': state_name,
-                'full': f"{raw_county} County, {state_name}"
+                'full': f"{raw_county} County, {state_name}",
+                'showing_counties': showing_counties
             }
             print(f"Updated current_focus to include county: {current_focus}")
+        
+        # Handle the new focus structure where state is in the states array
+        if isinstance(current_focus, dict) and current_focus.get('states') and len(current_focus['states']) > 0 and not current_focus.get('state'):
+            current_focus['state'] = current_focus['states'][0]
+            if 'showing_counties' not in current_focus:
+                current_focus['showing_counties'] = showing_counties
+            print(f"Updated current_focus with state from states array: {current_focus}")
         
         print(f"Conversation history: {conversation_history}")
         logger.info(f"Processing input: {user_input} for dataset: {current_dataset}")
@@ -318,41 +325,41 @@ def analyze_input():
 
         print(f"Dataset to use: {dataset_to_use}")
         
-        # 6. Handle county-specific questions
-        county_info = extract_county_info(user_input)
+        # # 6. Handle county-specific questions
+        # county_info = extract_county_info(user_input)
         
-        # Log county extraction
-        log_backend_processing(question_id, {
-            'step': 'county_extraction',
-            'county_info': county_info
-        })
+        # # Log county extraction
+        # log_backend_processing(question_id, {
+        #     'step': 'county_extraction',
+        #     'county_info': county_info
+        # })
         
-        if county_info:
-            county_name, state_name = county_info
-            result = retrieve_value(county_name, dataset_to_use, is_county=True)
-            if result:
-                processing_time = time.time() - start_time
+        # if county_info:
+        #     county_name, state_name = county_info
+        #     result = retrieve_value(county_name, dataset_to_use, is_county=True)
+        #     if result:
+        #         processing_time = time.time() - start_time
                 
-                # Log the final result
-                log_backend_processing(question_id, {
-                    'step': 'final_result',
-                    'result_type': 'county_question',
-                    'county_name': county_name,
-                    'state_name': state_name,
-                    'dataset_used': dataset_to_use,
-                    'processing_time_ms': processing_time * 1000
-                })
+        #         # Log the final result
+        #         log_backend_processing(question_id, {
+        #             'step': 'final_result',
+        #             'result_type': 'county_question',
+        #             'county_name': county_name,
+        #             'state_name': state_name,
+        #             'dataset_used': dataset_to_use,
+        #             'processing_time_ms': processing_time * 1000
+        #         })
                 
-                return jsonify({
-                    'result': result['result'],
-                    'question_type': 'retrieve',
-                    'county': county_name,
-                    'state': state_name,
-                    'dataset': dataset_to_use,  # Include the dataset used
-                    'dataset_changed': dataset_to_use != current_dataset,  # Flag if dataset changed TBD
-                    'processing_time_ms': processing_time * 1000,
-                    'question_id': question_id
-                }), 200
+        #         return jsonify({
+        #             'result': result['result'],
+        #             'question_type': 'retrieve',
+        #             'county': county_name,
+        #             'state': state_name,
+        #             'dataset': dataset_to_use,  # Include the dataset used
+        #             'dataset_changed': dataset_to_use != current_dataset,  # Flag if dataset changed TBD
+        #             'processing_time_ms': processing_time * 1000,
+        #             'question_id': question_id
+        #         }), 200
 
         # 7. Handle all other questions
         analysis = answer_question(user_input, dataset_to_use, current_focus)
@@ -418,33 +425,6 @@ def analyze_input():
             'question_id': question_id
         }), 500
 
-def extract_county_info(input_text):
-    """Extract county and state information from input text"""
-    county_patterns = [
-        r'in\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',
-        r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)',
-        r'(?:of|in)\s+([A-Za-z\s]+?)\s+County(?:\s*,\s*)([A-Za-z\s]+)',
-        r'([A-Za-z\s]+?)\s+County(?:\s*,\s*|\s+in\s+)([A-Za-z\s]+)'  # Added more flexible pattern
-    ]
-
-    # Clean up the input first
-    clean_input = input_text.replace("What's", "").replace("what's", "").strip()
-    clean_input = re.sub(r'^the\s+|^of\s+', '', clean_input)
-    clean_input = clean_input.strip()
-
-    # Try to extract from patterns
-    for pattern in county_patterns:
-        match = re.search(pattern, clean_input, re.IGNORECASE)
-        if match:
-            return (match.group(1).strip().replace(" County", ""), match.group(2).strip())
-
-    # Check if the input was resolved from "here"
-    if "County" in clean_input:
-        parts = clean_input.split("County,")
-        if len(parts) == 2:
-            return (parts[0].strip(), parts[1].strip())
-
-    return None
 
 @api.route('/test', methods=['GET'])
 def test():
@@ -510,6 +490,11 @@ def check_ambiguity():
         raw_state = data.get('raw_state')
         conversation_history = data.get('conversation_history', [])
 
+        # Handle the new focus structure where state is in the states array
+        if isinstance(current_focus, dict) and current_focus.get('states') and len(current_focus['states']) > 0 and not current_focus.get('state'):
+            current_focus['state'] = current_focus['states'][0]
+            print(f"Updated current_focus with state from states array: {current_focus}")
+
         # Handle the context based on county and state information
         if raw_county and raw_state:
             # When we have both county and state
@@ -518,10 +503,11 @@ def check_ambiguity():
         else:
             # Fall back to the current_focus handling
             if isinstance(current_focus, dict):
-                if current_focus.get('county') and current_focus.get('state'):
-                    context = f"{current_focus['county']} County, {current_focus['state']}"
+                if current_focus.get('county') and (current_focus.get('state') or (current_focus.get('states') and len(current_focus['states']) > 0)):
+                    state_name = current_focus.get('state') or current_focus['states'][0]
+                    context = f"{current_focus['county']} County, {state_name}"
                 else:
-                    context = current_focus.get('state') or current_focus.get('full')
+                    context = current_focus.get('state') or (current_focus['states'][0] if current_focus.get('states') and len(current_focus['states']) > 0 else None) or current_focus.get('full')
             else:
                 context = current_focus
 

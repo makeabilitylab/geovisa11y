@@ -19,6 +19,7 @@
     "react-router-dom": "^6.30.0",
     "react-scripts": "5.0.1",
     "tailwindcss": "^3.4.1",
+    "turf": "^3.0.14",
     "uuid": "^11.1.0"
   },
   "scripts": {
