@@ -42,17 +42,17 @@ METRIC_MAPPING = {
         'prefix': 'of'
     },
     'gas': {
-        'name': 'households with gas heating',
+        'name': 'with gas heating',
         'unit': 'households',
         'is_percentage': False
     },
     'electricit': {
-        'name': 'households with electricity heating',
+        'name': 'with electricity heating',
         'unit': 'households',
         'is_percentage': False
     },
     'oil': {
-        'name': 'households with oil heating',
+        'name': 'with oil heating',
         'unit': 'households',
         'is_percentage': False
     },
@@ -285,21 +285,46 @@ def check_location_exists(location):
 def answer_question(question, current_dataset, current_focus=None):
     """Answer any question for any dataset based on query type"""
     try:
-        # Get the question type first
+        # First try to extract county information if this might be a county question
+        if 'County' in question or 'county' in question:
+            try:
+                counties = semantic_service.extract_counties(question, current_focus)
+                if counties:
+                    county_info = counties[0]  # Take the first county if multiple are found
+                    print(f"Debug - Using county: {county_info['county']}, state: {county_info['state']}")
+                    
+                    result = retrieve_value(county_info['county'], current_dataset, 
+                                         is_county=True, state=county_info['state'])
+                    if result:
+                        return {
+                            'result': result['result'],
+                            'county': county_info['county'],
+                            'state': county_info['state'],
+                            'dataset': current_dataset,
+                            'question_type': 'retrieve',
+                            'showing_counties': current_focus.get('showingCounties', False)
+                        }
+            except Exception as e:
+                print(f"Error handling county question: {str(e)}")
+
+        # Get the question type for non-county questions or if county lookup failed
         question_type = semantic_service.identify_question_type(question, current_dataset)
         
         # Extract state filter from current_focus if available
         state_filter = None
         county_view = False
         if current_focus:
+            print(f"DEBUG - Full current_focus received: {current_focus}")
             if isinstance(current_focus, dict):
                 if current_focus.get('state'):
                     state_filter = current_focus.get('state')
                 # Check if we're in county view - either by having a county or by having showingCounties flag
-                if current_focus.get('county') or current_focus.get('showingCounties'):
+                if current_focus.get('county') or current_focus.get('showing_counties'):
                     county_view = True
             elif isinstance(current_focus, str):
                 state_filter = current_focus
+            elif isinstance(current_focus, list):  # Handle case where current_focus is a list
+                state_filter = current_focus[0] if current_focus else None
         
         print(f"DEBUG - State filter extracted: {state_filter}, County view: {county_view}")
         
@@ -327,7 +352,7 @@ def answer_question(question, current_dataset, current_focus=None):
                     }
             
             # For other datasets, combine Moran's I and LISA analysis
-            moran_result = get_moran_i(current_dataset, state_filter)
+            moran_result = get_moran_i(current_dataset, state_filter if county_view else None)
             
             # If there's no pattern, just return that without the description
             if moran_result['pattern'] == 'random':
@@ -338,8 +363,8 @@ def answer_question(question, current_dataset, current_focus=None):
                 }
             
             # Otherwise, add the pattern description
-            lisa_result = get_lisa_clusters(current_dataset, state_filter)
-            pattern_description = get_gpt_spatial_pattern_summary(lisa_result, current_dataset, state_filter)
+            lisa_result = get_lisa_clusters(current_dataset, state_filter if county_view else None)
+            pattern_description = get_gpt_spatial_pattern_summary(lisa_result, current_dataset, state_filter if county_view else None)
             
             return {
                 'result': f"{moran_result['description']} {pattern_description}",
@@ -351,40 +376,63 @@ def answer_question(question, current_dataset, current_focus=None):
             # Extract state from the question or use the current focused state
             states = semantic_service.extract_states(question)
             state_name = states[0] if states else None
+
+            #Determine if we're in county view
+            county_view = False
+            if isinstance(current_focus, dict):
+                if current_focus.get('county') or current_focus.get('showing_counties'):
+                    county_view = True
             
             # If no state was mentioned in the question but there's a focused state,
             # use the focused state from the frontend
-            if not state_name and isinstance(current_focus, dict) and current_focus.get('state'):
-                state_name = current_focus.get('state')
+            if not state_name and isinstance(current_focus, dict):
+                if current_focus.get('state'):
+                    state_name = current_focus.get('state')
+                elif current_focus.get('states') and len(current_focus.get('states')) > 0:
+                    state_name = current_focus.get('states')[0]
             elif not state_name and isinstance(current_focus, str) and current_focus:
                 state_name = current_focus
             
-            # Handle urban vs rural comparison for heating fuels
-            result = compare_urban_rural_heating_fuels(state_name)
-            return {
-                'result': result,
-                'dataset': current_dataset,
-                'question_type': 'urban_rural_comparison',
-                'state': state_name
-            }
+            if county_view and state_name:
+                # Handle urban vs rural comparison for heating fuels
+                result = compare_urban_rural_heating_fuels(state_name)
+                return {
+                    'result': result,
+                    'dataset': current_dataset,
+                    'question_type': 'urban_rural_comparison',
+                    'state': state_name
+                }
+            else:
+                return {
+                    'result': "Urban vs rural comparisons are only available when viewing counties. Please zoom in to a state first.",
+                    'dataset': current_dataset,
+                    'question_type': 'clarification_needed'
+                }
 
         if question_type == 'retrieve':
             # Check if this is a county question
             if 'County' in question:
-                # Extract county and state names from the question
-                parts = question.split('County,')
-                if len(parts) == 2:
-                    county_name = parts[0].strip().split()[-1]  # Get last word before "County"
-                    state_name = parts[1].strip().strip('[]\'\"')  # Clean up state name
-                    result = retrieve_value(county_name, current_dataset, is_county=True)
-                    if result:
-                        return {
-                            'result': result['result'],
-                            'county': county_name,
-                            'state': state_name,
-                            'dataset': current_dataset,
-                            'question_type': 'retrieve'
-                        }
+                try:
+                    # Extract county information using the new method
+                    counties = semantic_service.extract_counties(question, current_focus)
+                    if counties:
+                        county_info = counties[0]  # Take the first county if multiple are found
+                        print(f"Debug - Using county: {county_info['county']}, state: {county_info['state']}")
+                        
+                        result = retrieve_value(county_info['county'], current_dataset, 
+                                             is_county=True, state=county_info['state'])
+                        if result:
+                            return {
+                                'result': result['result'],
+                                'county': county_info['county'],
+                                'state': county_info['state'],
+                                'dataset': current_dataset,
+                                'question_type': 'retrieve'
+                            }
+                    
+                    print("Debug - County parsing failed, falling back to state-level")
+                except Exception as e:
+                    print(f"Error parsing county question: {str(e)}")
             
             # Handle state-level questions
             states = semantic_service.extract_states(question)
@@ -411,10 +459,11 @@ def answer_question(question, current_dataset, current_focus=None):
             }
             
         elif question_type == 'find_extremum':
-            result = get_extrema(question, current_dataset)
+            result = get_extrema(question, current_dataset, state_filter)
             return {
                 'result': result['result'],
                 'state': result['state'],
+                'county': result['county'],
                 'dataset': current_dataset,
                 'question_type': 'find_extremum'
             }
@@ -464,7 +513,7 @@ def answer_question(question, current_dataset, current_focus=None):
             }
             
         elif question_type == 'find_outliers':
-            result = get_lisa_clusters(current_dataset, current_focus)
+            result = get_lisa_clusters(current_dataset, state_filter if county_view else None)
             outliers = find_outliers(result, current_dataset)
             return {
                 'result': outliers,
@@ -481,6 +530,33 @@ def answer_question(question, current_dataset, current_focus=None):
         elif question_type == 'others':
             return None
 
+        elif question_type == 'compare_neighbors':
+            states = semantic_service.extract_states(question)
+            state = None
+            
+            # If state is explicitly mentioned in question
+            if states:
+                state = states[0]
+            # Otherwise use the current focus
+            elif current_focus:
+                if isinstance(current_focus, dict):
+                    state = current_focus.get('state')
+                    # Handle array input for state
+                    if not state and current_focus.get('states') and len(current_focus['states']) > 0:
+                        state = current_focus['states'][0]
+                else:
+                    state = current_focus
+            
+            if state:
+                result = compare_with_neighbors(state, current_dataset)
+                return {
+                    'result': result['result'],
+                    'state': result['state'],
+                    'dataset': current_dataset,
+                    'question_type': 'compare_neighbors'
+                }
+            return None
+
         return None
 
     except Exception as e:
@@ -493,16 +569,21 @@ def answer_question(question, current_dataset, current_focus=None):
 #######################################
 
 #00_retrieve
-def retrieve_value(state_or_county_name, dataset, is_county=False):
+def retrieve_value(state_or_county_name, dataset, is_county=False, state=None):
     """Get the exact value for a state/county and dataset"""
     try:
-        if is_county:
+        if is_county and state:  # Only proceed with county lookup if we have both county and state
             query = f"""
                 SELECT county_nam as county_name, state_name,
                        COALESCE({dataset}, 0) as value
                 FROM county
                 WHERE LOWER(county_nam) LIKE LOWER(?) || '%'
+                AND LOWER(state_name) = LOWER(?)
             """
+            print(f"Debug - County query params: {state_or_county_name}, {state}")  # Debug line
+            result = con.execute(query, [state_or_county_name, state]).fetchone()
+            if result:
+                print(f"Debug - County query result: {result}")  # Debug line
         else:
             query = f"""
                 SELECT state_name,
@@ -510,8 +591,8 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
                 FROM state
                 WHERE LOWER(state_name) = LOWER(?)
             """
-        
-        result = con.execute(query, [state_or_county_name]).fetchone()
+            result = con.execute(query, [state_or_county_name]).fetchone()
+            
         if not result:
             return None
             
@@ -534,13 +615,13 @@ def retrieve_value(state_or_county_name, dataset, is_county=False):
             return {
                 'result': f"{location_phrase} has {formatted_value}.",
                 'county': county if is_county else None,
-                'state': state if is_county else result[0]
+                'state': state
             }
         else:
             return {
                 'result': f"{location_phrase} has {formatted_value} {description}.",
                 'county': county if is_county else None,
-                'state': state if is_county else result[0]
+                'state': state
             }
             
     except Exception as e:
@@ -585,15 +666,37 @@ def compare_states(state1, state2, dataset):
         return None
 
 #02_find_extremum
-def get_extrema(question, dataset):
-    """Get highest or lowest value based on question"""
+def get_extrema(question, dataset, state_filter=None):
+    """Get highest or lowest value based on question, optionally filtered by state"""
     try:
         is_highest = any(word in question.lower() for word in ["highest", "most", "largest", "greatest"])
         
+        # Handle state_filter if it's a list
+        if isinstance(state_filter, list):
+            state_filter = state_filter[0] if state_filter else None
+        
+        # Check if this is a county-level question
+        is_county_question = 'county' in question.lower()
+        
+        # Determine which table to use based on whether it's a county question
+        table_name = 'county' if is_county_question else 'state'
+        name_column = 'county_nam' if is_county_question else 'state_name'
+        state_column = 'state_name' if is_county_question else 'state_name'
+        
+        # Build WHERE clause
+        where_clause = f"WHERE {dataset} IS NOT NULL"
+        if state_filter and is_county_question:
+            where_clause += f" AND LOWER(state_name) = LOWER('{state_filter}')"
+        elif state_filter and not is_county_question:
+            # For state-level questions, we're asking about all states even when focused on one
+            pass
+        
         query = f"""
-            SELECT state_name, 
+            SELECT {name_column} as name, 
+                {state_column} as state_name,
                 COALESCE({dataset}, 0) as value
-            FROM state
+            FROM {table_name}
+            {where_clause}
             ORDER BY value {'DESC' if is_highest else 'ASC'}
             LIMIT 1
         """
@@ -604,14 +707,21 @@ def get_extrema(question, dataset):
             
         metric_info = get_metric_info(dataset)
         
-        unit = 'people per square mile' if dataset == 'ppl_densit' else '%'
+        # Format the location description
+        location_desc = f"{result[0]} County in {result[1]}" if is_county_question else result[0]
         
-        # Remove space before % symbol
-        value_str = f"{result[1]:.2f}{unit}" if unit == '%' else f"{result[1]:.2f} {unit}"
+        value_str = metric_info['format_value'](result[2])
+        
+        # Improved sentence structure
+        if metric_info['unit'] == 'households':
+            response = f"{location_desc} has the {'highest' if is_highest else 'lowest'} number of households {metric_info['name']}, with {value_str}."
+        else:
+            response = f"{location_desc} has the {'highest' if is_highest else 'lowest'} {metric_info['name']}, with {value_str}."
         
         return {
-            'result': f"{result[0]} has the {'highest' if is_highest else 'lowest'} {metric_info['name']} of {value_str}.",
-            'state': result[0]  # Include the state name in response
+            'result': response,
+            'state': result[1],  # Always return the state name
+            'county': result[0] if is_county_question else None  # Return county name if it's a county question
         }
     except Exception as e:
         print(f"Error getting extrema: {str(e)}")
@@ -688,7 +798,9 @@ def sort(question, dataset):
     try:
         # Extract number of results from question
         system_prompt = """Extract the number of results requested.
-        Return just the number, or '50' if not specified."""
+        Return just the number, or '49' if not specified.
+        Example: "Which four states have the highest population density?" -> "4"
+        """
         
         openai.api_key = DevelopmentConfig.OPENAI_API_KEY
         response = openai.chat.completions.create(
@@ -762,8 +874,8 @@ def find_similar(state, dataset):
         
         ref_value = ref_result[0]
         
-        # Then find states within 10% of this value
-        margin = ref_value * 0.1
+        # Then find states within 20% of this value
+        margin = ref_value * 0.2
         query = f"""
             SELECT state_name, {dataset} as value
             FROM state
@@ -801,6 +913,9 @@ def find_similar(state, dataset):
 def get_moran_i(dataset, state_filter=None):
     """Analyze global spatial pattern using Moran's I, optionally filtered by state"""
     try:
+        # Set random seed for reproducibility
+        np.random.seed(123)
+        
         # Determine which table to use based on state_filter
         table_name = 'county' if state_filter else 'state'
         
@@ -872,8 +987,8 @@ def get_moran_i(dataset, state_filter=None):
             w = libpysal.weights.util.attach_islands(w, knn)
             w.transform = 'r'
         
-        # Calculate global Moran's I
-        moran = Moran(gdf['value'], w)
+        # Calculate global Moran's I with fixed number of permutations
+        moran = Moran(gdf['value'], w, permutations=999)
         print(f"Moran's I: {moran.I}")
         print(f"Moran's p-value: {moran.p_sim}")
         
@@ -914,8 +1029,11 @@ def get_moran_i(dataset, state_filter=None):
 
 #09_describe_pattern
 def get_lisa_clusters(dataset, state_filter=None):
-    """Analyze spatial patterns using Local Moran's I and return cluster classifications, optionally filtered by state"""
+    """Analyze spatial patterns using Local Moran's I and return cluster classifications"""
     try:
+        # Set random seed for reproducibility
+        np.random.seed(123)
+        
         # Determine which table to use based on state_filter
         table_name = 'county' if state_filter else 'state'
         
@@ -927,7 +1045,7 @@ def get_lisa_clusters(dataset, state_filter=None):
         # Get geometries and data for the specified dataset
         query = f"""
             SELECT 
-                {'county_nam as name' if state_filter else 'state_name as name'}, 
+                {'county_nam as name' if state_filter else '"state_name" as "name"'},   
                 {dataset} as value,
                 ST_AsText(geom) as geometry,
                 c_lat, c_lon
@@ -989,7 +1107,7 @@ def get_lisa_clusters(dataset, state_filter=None):
             w = libpysal.weights.util.attach_islands(w, knn)
             w.transform = 'r'
         
-        # Calculate local Moran's I
+        # Calculate local Moran's I with fixed number of permutations
         moran = Moran_Local(gdf['value'], w, permutations=999)
         
         # Add LISA statistics to the dataframe
@@ -1118,6 +1236,7 @@ def find_outliers(lisa_results, dataset):
         print(f"Error formatting outliers: {str(e)}")
         return None
 
+#11_compare_urban_rural_heating_fuels
 def compare_urban_rural_heating_fuels(state_name=None):
     """Compare urban and rural counties' predominant heating fuel types within a specific state"""
     try:
@@ -1195,3 +1314,83 @@ def compare_urban_rural_heating_fuels(state_name=None):
         state_phrase = f" in {state_display}" if state_name else ""
         return f"I couldn't analyze the difference between urban and rural counties{state_phrase} due to a technical issue."
 
+#12_compare_neighbors
+def compare_with_neighbors(state, dataset):
+    """Compare a state's value with its neighbors' values"""
+    try:
+        # First get the value and neighbors for the reference state
+        query = f"""
+            SELECT state_name,
+                   COALESCE({dataset}, 0) as value,
+                   neighbors_
+            FROM state
+            WHERE LOWER(state_name) = LOWER(?)
+        """
+        
+        ref_result = con.execute(query, [state]).fetchone()
+        if not ref_result:
+            return {
+                'result': f"Could not find state: {state.title()}",
+                'state': state.title()
+            }
+        
+        state_name, state_value, neighbors = ref_result
+        
+        # Parse neighbors from the array string
+        neighbors = parse_neighbors(neighbors)
+        valid_neighbors = [n for n in neighbors if n]  # Filter out None values
+        
+        if not valid_neighbors:
+            return {
+                'result': f"{state_name} has no neighboring states in our database.",
+                'state': state_name
+            }
+            
+        # Get values for all neighbors
+        placeholders = ','.join(['?' for _ in valid_neighbors])
+        neighbor_query = f"""
+            SELECT state_name,
+                   COALESCE({dataset}, 0) as value
+            FROM state
+            WHERE state_name IN ({placeholders})
+            ORDER BY value DESC
+        """
+        
+        neighbor_results = con.execute(neighbor_query, valid_neighbors).fetchall()
+        
+        # Get metric information for formatting
+        metric_info = get_metric_info(dataset)
+        metric_name = metric_info['name']
+        
+        # Format the state's value
+        state_value_formatted = metric_info['format_value'](state_value)
+        
+        # Calculate average of neighbors
+        neighbor_values = [r[1] for r in neighbor_results]
+        neighbor_avg = sum(neighbor_values) / len(neighbor_values)
+        
+        # Determine if state is higher or lower than average
+        comparison_to_avg = "higher than" if state_value > neighbor_avg else "lower than"
+        
+        # Format neighbor values with properly capitalized state names
+        neighbor_details = [f"{r[0].title()} ({metric_info['format_value'](r[1])})" for r in neighbor_results]
+        
+        # Create natural language response with properly capitalized state name
+        response = f"{state_name.title()} has {state_value_formatted} {metric_info['name']}, which is {comparison_to_avg} the average of its neighbors. "
+        
+        # Add neighbor details
+        if len(neighbor_details) > 1:
+            response += f"Its neighbors range from {neighbor_details[0]} to {neighbor_details[-1]}, "
+        response += f"with neighboring states being {', '.join(neighbor_details[:-1])} and {neighbor_details[-1]}."
+        
+        return {
+            'result': response,
+            'state': state_name.title()
+        }
+        
+    except Exception as e:
+        print(f"Error comparing with neighbors: {str(e)}")
+        return {
+            'result': f"Error comparing {state.title()} with its neighbors",
+            'state': state.title()
+        }

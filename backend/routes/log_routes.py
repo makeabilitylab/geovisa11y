@@ -48,6 +48,21 @@ try:
 except Exception as e:
     logger.error(f"Error connecting to MongoDB Atlas: {e}")
 
+
+def get_client_ip(request):
+    """
+    Handles various proxy setups by checking headers in order of reliability
+    """ 
+    if request.headers.getlist("X-Forwarded-For"):
+        return request.headers.getlist("X-Forwarded-For")[0].split(',')[0].strip()
+    
+    elif request.headers.get("X-Real-IP"):
+        return request.headers.get("X-Real-IP")
+    
+    else:
+        return request.remote_addr
+    
+
 @log_bp.route('/logs', methods=['POST', 'OPTIONS'])
 def log_data():
     # Handle preflight OPTIONS request
@@ -64,7 +79,7 @@ def log_data():
             data['timestamp'] = datetime.datetime.utcnow()
             
         # Add IP address
-        data['ip_address'] = request.remote_addr
+        data['ip_address'] = get_client_ip(request) #request.remote_addr
         
         # Add source
         data['source'] = 'frontend'
@@ -90,6 +105,7 @@ def save_backend_log():
         # Add timestamp
         log_data['timestamp'] = datetime.datetime.utcnow()
         log_data['source'] = 'backend'
+        log_data['session_id'] = request.json.get('session_id')
         
         # Insert into MongoDB
         result = logs_collection.insert_one(log_data)

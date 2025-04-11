@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
-import { ArrowRight, Microphone, MicrophoneSlash } from "@phosphor-icons/react";
+import { ArrowRight, ArrowsClockwise } from "@phosphor-icons/react";
 import {
     CardBody,
     Typography,
@@ -9,16 +9,30 @@ import {
 } from '@material-tailwind/react';
 import { 
     logQuestionData, 
-    logProcessingData, 
     logAnswerData, 
-    generateQuestionId 
 } from '../utils/logger';
+import HelpPopup from './HelpPopup';
+import { questionDatabase } from '../utils/questionDatabase';
+import RecordButton from './RecordButton';
 
 
-const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, currentFocusedState, currentFocusedCounty, apiUrl, isInputFocused, onInputClick, onCityFocus, isTaskPage = false, isTask2Page = false, showingCounties = false, countyViewState = null }) => {
+const Chatbot = ({ 
+    dataset, 
+    focus = { type: null, states: [], county: null, city: null, highlightOnly: false },
+    onFocusChange,
+    onPatternQuestion, 
+    apiUrl, 
+    isInputFocused, 
+    onInputClick, 
+    showingCounties,
+    isTaskPage = false,
+    isTask2Page = false
+}) => {
+    
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [exampleQuestions, setExampleQuestions] = useState([]);
     // const [isSpeechLoading, setIsSpeechLoading] = useState(false);
     const chatContainerRef = useRef(null);
     const [isRecording, setIsRecording] = useState(false);
@@ -30,6 +44,10 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     const wrapperRef = useRef(null);
     const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
     const [stateAnnouncement, setStateAnnouncement] = useState('');
+    const [lastBotMessage, setLastBotMessage] = useState('');
+    const [announceCounter, setAnnounceCounter] = useState(0);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
+    const [currentQuestionSet, setCurrentQuestionSet] = useState(0);
 
     // List of US states
     const states = [
@@ -56,14 +74,22 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 case 'pct_tot_co':
                     return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
                 case 'pct_no_bb_':
-                    return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband in each state. Darker shades indicate higher percentages.";
+                    return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband or computer in each state. Darker shades indicate higher percentages.";
+                default:
+                    return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
+            }
+        
+        } else if (isTask2Page) {
+            switch(dataset) {
+                case 'gas_heating':
+                    return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
                 default:
                     return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
             }
         } else {
             switch(dataset) {
                 default: // ppl_densit
-                    return "This is an interactive choropleth map of the United States showing population density, optimized for screen reader users.";
+                    return "This is an interactive choropleth map of the United States showing population density in each state. Darker shades indicate higher percentages.";
             }
         }
     };
@@ -71,56 +97,42 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     // Function to get example questions based on dataset
     const getExampleQuestions = () => {
         const [state1, state2, state3] = getRandomStates(3);
-        const extrema = Math.random() < 0.5 ? 'highest' : 'lowest';
+        let questions = [];
         
+        // Get the appropriate question set based on dataset
         if (isTask2Page) {
-            // Task2-specific questions
-            return [
-                `How many households use gas heating in ${state1}?`,
-                // `Which state has more households using gas heating, ${state2} or ${state3}?`,
-                `Which state has the ${extrema} number of households using gas heating?`,
-                // "What's the average number of households using gas heating?",
-                "Is there a pattern in this map?",
-                // "Can you describe the pattern?"
-            ];
+            questions = questionDatabase.gas_heating;
         } else if (isTaskPage) {
-            // Task1-specific questions
-            if (dataset === 'pct_tot_co') {
-                return [
-                    `What's the percentage of underserved population in ${state1}?`,
-                    // `Which state has a higher percentage of underserved population, ${state2} or ${state3}?`,
-                    `Which state has the ${extrema} percentage of underserved population?`,
-                    // "What's the average percentage of underserved population?",
-                    "Is there a pattern in this map?",
-                    // "Can you describe the pattern?"
-                ];
-            } else { // pct_no_bb_
-                return [
-                    `What percentage of people lack broadband or computer access in ${state1}?`,
-                    // `Which state has a higher percentage lacking broadband or computer access, ${state2} or ${state3}?`,
-                    `Which state has the ${extrema} percentage of peoplelacking broadband or computer access?`,
-                    // "What's the average percentage of people lacking broadband or computer access?",
-                    "Is there a pattern in this map?",
-                    // "Can you describe the pattern?"
-                ];
-            }
+            questions = dataset === 'pct_tot_co' 
+                ? questionDatabase.pct_tot_co 
+                : questionDatabase.pct_no_bb_;
         } else {
-                return [
-                    `What's the population density of ${state1}?`,
-                    `Which state has the ${extrema} population density?`,
-                    "Is there a pattern in this map?",
-                ];
-            
+            questions = questionDatabase.ppl_densit;
         }
+
+        // Get 3 questions based on current set
+        const startIdx = (currentQuestionSet * 3) % questions.length;
+        const selectedQuestions = questions.slice(startIdx, startIdx + 3);
+
+        // Replace state placeholders with random states
+        return selectedQuestions.map(q => 
+            q.replace(/\[STATE1\]/g, state1)
+             .replace(/\[STATE2\]/g, state2)
+             .replace(/\[STATE3\]/g, state3)
+        );
     };
 
-    // Get fresh example questions whenever dataset changes
-    const [exampleQuestions, setExampleQuestions] = useState([]);
-    
+    // Function to rotate question set
+    const rotateQuestions = () => {
+        setCurrentQuestionSet(prev => prev + 1);
+        setExampleQuestions(getExampleQuestions());
+    };
+
+    // Get fresh example questions whenever dataset or currentQuestionSet changes
     useEffect(() => {
         setExampleQuestions(getExampleQuestions());
-        //setUseSpeech(false);  // Reset speech mode when dataset changes
-    }, [dataset]);
+        setGeneralQuestions(getGeneralQuestions());
+    }, [dataset, currentQuestionSet]);
 
     // Scroll to bottom of chat container when messages are updated
     useEffect(() => {
@@ -272,31 +284,6 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         }
     };
 
-    // const speakResponse = async (text) => {
-    //     try {
-    //         setIsSpeechLoading(true);
-    //         const openai = new OpenAI({
-    //             apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-    //             dangerouslyAllowBrowser: true
-    //         });
-    //         const speechResponse = await openai.audio.speech.create({
-    //             model: 'tts-1',
-    //             voice: 'alloy',
-    //             input: text,
-    //         });
-
-    //         const audioBlob = new Blob([await speechResponse.arrayBuffer()], { type: 'audio/mpeg' });
-    //         const audioUrl = URL.createObjectURL(audioBlob);
-            
-    //         audioRef.current.src = audioUrl;
-    //         await audioRef.current.play();
-    //     } catch (error) {
-    //         console.error('Error generating speech:', error);
-    //     } finally {
-    //         setIsSpeechLoading(false);  // Reset speech loading state
-    //     }
-    // };
-
     // Add state for tracking previous answer
     const [previousAnswer, setPreviousAnswer] = useState(null);
     const [conversationHistory, setConversationHistory] = useState([]);
@@ -326,29 +313,37 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             }
 
             // Create focus object that includes state, county, and showingCounties flag
-            const currentFocus = currentFocusedCity 
-                ? {
-                    city: currentFocusedCity.name,
-                    state: currentFocusedCity.state,
-                    coordinates: currentFocusedCity.coordinates,
-                    full: `${currentFocusedCity.name}, ${currentFocusedCity.state}`,
-                    showingCounties: showingCounties
-                  }
-                : currentFocusedCounty 
-                ? {
-                    county: currentFocusedCounty,
-                    state: currentFocusedState,
-                    full: `${currentFocusedCounty} County, ${currentFocusedState}`,
-                    showingCounties: showingCounties
-                  }
-                : {
-                    state: currentFocusedState || countyViewState, // Use countyViewState as fallback
-                    full: currentFocusedState || countyViewState,
-                    showingCounties: showingCounties
-                  };
+            const currentFocus = !focus ? { type: null, full: 'No focus' } :
+                focus.type === 'city' && focus.city
+                    ? {
+                        type: 'city',
+                        city: focus.city.name,
+                        state: focus.city.state,
+                        coordinates: focus.city.coordinates,
+                        full: `${focus.city.name}, ${focus.city.state}`
+                      }
+                    : focus.type === 'county' && focus.county
+                    ? {
+                        type: 'county',
+                        county: focus.county,
+                        state: focus.states?.[0] || '',
+                        full: `${focus.county} County, ${focus.states?.[0] || ''}`
+                      }
+                    : focus.type === 'state' || focus.type === 'compare'
+                    ? {
+                        type: focus.type,
+                        states: focus.states || [],
+                        full: focus.states?.length > 1 
+                          ? focus.states.join(', ') 
+                          : focus.states?.[0] || ''
+                      }
+                    : {
+                        type: null,
+                        full: 'No focus'
+                      };
 
             // Log the current focus for debugging
-            // console.log("Sending current focus to backend:", currentFocus);
+            console.log("Sending current focus to backend:", currentFocus);
 
             // Build conversation history from messages
             const messageHistory = messages.map(msg => msg.text);
@@ -364,37 +359,30 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             const questionId = await logQuestionData(
                 input, 
                 previousAnswer, 
-                currentFocus, 
-                currentFocusedState, 
-                currentFocusedCounty, 
+                focus.type,
+                focus.states,
+                focus.county,
+                focus.city,
                 messageHistory,
                 dataset,
                 mapViewport
             );
 
-            // console.log('Sending input to analyze:', {
-            //     input,
-            //     previous_answer: previousAnswer,
-            //     current_focus: currentFocus,
-            //     raw_state: currentFocusedState,
-            //     raw_county: currentFocusedCounty,
-            //     conversation_history: messageHistory,
-            //     question_id: questionId
-            // });
-            
-            // console.log('Conversation history:', messageHistory);
-
-            // Prepare the request data
+            console.log('Conversation history:', messageHistory);
+  
+            // Prepare the request data with clear property names to avoid confusion
             const requestData = {
                 input: input,
                 current_dataset: dataset,
-                current_focus: currentFocus, 
+                current_focus: focus || { type: null, states: [], county: null, city: null, highlightOnly: false }, 
                 previous_answer: previousAnswer,
                 conversation_history: messageHistory,
                 question_id: questionId,
-                raw_county: currentFocusedCounty,
-                raw_state: currentFocusedState
+                raw_county: focus?.county || null,
+                raw_state: focus?.states?.[0] || null,
+                showing_counties: showingCounties
             };
+            console.log('Request data:', requestData);
 
             const response = await fetch(`${apiUrl}/api/analyze-input`, {
                 method: 'POST',
@@ -438,14 +426,37 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                         text: `Focusing on ${data.city_name}, ${data.state}.`, 
                         sender: 'bot' 
                     }]);
-                    onCityFocus({
-                        name: data.city_name,
-                        state: data.state,
-                        coordinates: data.coordinates
+                    onFocusChange({
+                        type: 'city',
+                        city: {
+                            name: data.city_name,
+                            state: data.state,
+                            coordinates: data.coordinates
+                        },
+                        highlightOnly: false
                     });
                     return;
+                } else if (data.action_type === 'focus_county') {
+                    // Handle county focus
+                    onFocusChange({
+                        type: 'county',
+                        county: data.county_name,
+                        states: [data.state],
+                        highlightOnly: false
+                    });
+                    setMessages(prev => [...prev, { 
+                        text: `Focusing on ${data.county_name}, ${data.state}.`, 
+                        sender: 'bot' 
+                    }]);
+                    return;
                 } else if (data.action_type === 'focus' && data.state) {
-                    onStateFocus(data.state);
+                    onFocusChange({
+                        type: 'state',
+                        states: [data.state],
+                        county: null,
+                        city: null,
+                        highlightOnly: false
+                    });
                     setMessages(prev => [...prev, { 
                         text: `Focusing on ${data.state}.`, 
                         sender: 'bot' 
@@ -458,23 +469,60 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             if (data.result) {
                 setPreviousAnswer(data.result); // Store the answer for context
                 setConversationHistory(prev => [...prev, input, data.result]); // Update conversation history
-
-
-                if (data.question_type === 'get_pattern') {
+                setLastBotMessage(data.result); // Add this line to track last bot message
+                if (data.question_type === 'get_pattern' ||  data.question_type === 'urban_rural_comparison') {
                     onPatternQuestion(true);
+                } else {
+                    // Turn off spatial clusters for non-pattern questions
+                    onPatternQuestion(false);
                 }
 
                 // Handle state/county focusing for relevant question types
                 if (data.question_type === 'retrieve') {
                     if (data.county) {
-                        // Don't update focus for county-level responses
+                        console.log("Setting county focus:", data.county, data.state);
+                        onFocusChange({
+                            type: 'county',
+                            county: data.county,
+                            states: [data.state], // Use states array instead of state
+                            highlightOnly: false
+                        });
                     } else if (data.state) {
-                        onStateQuestion([data.state]);
+                        onFocusChange({
+                            type: 'state',
+                            states: [data.state],
+                            county: null,
+                            city: null,
+                            highlightOnly: false
+                        });
                     }
                 } else if (data.states && data.question_type === 'compare') {
-                    onStateQuestion(data.states);
+                    onFocusChange({
+                        type: 'state',
+                        states: data.states,
+                        county: null,
+                        city: null,
+                        highlightOnly: true
+                    });
                 } else if (data.question_type === 'find_extremum') {
-                    onStateQuestion([data.state]);
+                    if (data.county) {
+                        // If we have county data, focus on the county
+                        onFocusChange({
+                            type: 'county',
+                            county: data.county,
+                            states: [data.state], // Use states array instead of state
+                            highlightOnly: false
+                        });
+                    } else {
+                        // Otherwise just focus on the state
+                        onFocusChange({
+                            type: 'state',
+                            states: [data.state],
+                            county: null,
+                            city: null,
+                            highlightOnly: false
+                        });
+                    }
                 }
 
                 setMessages(prev => [...prev, { text: data.result, sender: 'bot' }]);
@@ -507,37 +555,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
         if (e.key === 'Enter') {
             handleSubmit(e);
         }
-        // Prevent spacebar from triggering in the input field
-        if (e.code === 'Space') {
-            e.stopPropagation();
-        }
     };
-
-    // Add spacebar handler for recording as a separate effect
-    useEffect(() => {
-        const handleSpacebarRecord = (e) => {
-            if (e.code === 'Space' && !isRecording && !e.repeat && !isInputFocused) {
-                e.preventDefault();
-                startRecording();
-            }
-        };
-
-        const handleSpacebarStop = (e) => {
-            if (e.code === 'Space' && isRecording && !isInputFocused) {
-                e.preventDefault();
-                stopRecording();
-            }
-        };
-
-        window.addEventListener('keydown', handleSpacebarRecord);
-        window.addEventListener('keyup', handleSpacebarStop);
-
-        return () => {
-            window.removeEventListener('keydown', handleSpacebarRecord);
-            window.removeEventListener('keyup', handleSpacebarStop);
-        };
-    }, [isRecording, isInputFocused]);
-
 
     // Function to get general knowledge questions based on dataset
     const getGeneralQuestions = () => {
@@ -545,15 +563,18 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
             case 'pct_tot_co':
                 return [
                     "What's a choropleth map?",
-                    "Is there a relationship between population density and the percentage of underserved population?"
+                    "Is there a relationship between income and the percentage of underserved population?"
                 ];
             case 'pct_no_bb_':
                 return [
                     "What's a choropleth map?",
                     "Is there a relationship between population density and the percentage of people lacking broadband or computer access?"
                 ];
-
-            //TODO: Add general questions for other datasets
+            case 'gas':
+                return [
+                    "What's a dot density map?",
+                    "Is there a relationship between climate and the number of households using heating fuel?"
+                ];
             default: // ppl_densit
                 return [
                     "What's a choropleth map?",
@@ -604,11 +625,8 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
 
     // Add useEffect to monitor focused state changes
     useEffect(() => {
-        console.log('Focus state updated:', {
-            currentFocusedState,
-            currentFocusedCounty
-        });
-    }, [currentFocusedState, currentFocusedCounty]);
+        console.log('Focus state updated:', focus.type, focus.states, focus.county, focus.city);
+    }, [focus]);
 
     useEffect(() => {
         // Focus the welcome section on component mount
@@ -631,61 +649,93 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
     // Add ref for the welcome section
     const welcomeRef = useRef(null);
     
-    // Add effect for Ctrl+H hotkey
+    // Add effect for Ctrl+H hotkey to show help popup
     useEffect(() => {
         const handleHelpHotkey = (e) => {
-            // Handle Ctrl+H to focus on welcome section
             if (e.ctrlKey && e.key.toLowerCase() === 'h') {
                 e.preventDefault();
-                
-                // Create a clone of the welcome content
-                if (welcomeRef.current) {
-                    // First, focus on the welcome section
-                    welcomeRef.current.focus();
-                    
-                    // Clone the welcome content for announcement
-                    const welcomeContent = welcomeRef.current.cloneNode(true);
-                    
-                    // Extract text content from the welcome section
-                    const textContent = welcomeRef.current.textContent;
-                    
-                    // Set the announcement with the full text content
-                    setStateAnnouncement("Help information: " + textContent);
-                    
-                    // Optional: Scroll to top of chat container
-                    if (chatContainerRef.current) {
-                        chatContainerRef.current.scrollTop = 0;
-                    }
-                    
-                    // Force the screen reader to re-read by temporarily removing and re-adding the content
-                    const parent = welcomeRef.current.parentNode;
-                    const nextSibling = welcomeRef.current.nextSibling;
-                    
-                    // Remove from DOM briefly
-                    parent.removeChild(welcomeRef.current);
-                    
-                    // Re-add to DOM after a short delay
-                    setTimeout(() => {
-                        if (nextSibling) {
-                            parent.insertBefore(welcomeRef.current, nextSibling);
-                        } else {
-                            parent.appendChild(welcomeRef.current);
-                        }
-                        welcomeRef.current.focus();
-                    }, 50);
-                }
+                setIsHelpOpen(!isHelpOpen);
             }
         };
         
         window.addEventListener('keydown', handleHelpHotkey);
         return () => window.removeEventListener('keydown', handleHelpHotkey);
+    }, [isHelpOpen]);
+
+    // Add null checks when accessing focus properties
+    const handleFocusChange = (newFocus = { type: null, states: [], county: null, city: null, highlightOnly: false }) => {
+        // Ensure newFocus has all required properties
+        const safeFocus = {
+            type: newFocus?.type || null,
+            states: newFocus?.states || [],
+            county: newFocus?.county || null,
+            city: newFocus?.city || null,
+            highlightOnly: newFocus?.highlightOnly || false
+        };
+        
+        // Update focus state with safe values
+        onFocusChange(safeFocus);
+    };
+
+    // Example usage in your component
+    useEffect(() => {
+        if (!focus) {
+            // Initialize with default values if focus is undefined
+            handleFocusChange();
+            return;
+        }
+
+        try {
+            // Your existing focus-dependent code here
+            if (focus?.type === 'state') {
+                // Handle state focus
+            } else if (focus?.type === 'county') {
+                // Handle county focus
+            }
+        } catch (error) {
+            console.error('Error handling focus:', error);
+            // Reset to default state if there's an error
+            handleFocusChange();
+        }
+    }, [focus]);
+
+    // Add effect for Ctrl+L hotkey to announce last message
+    useEffect(() => {
+        const handleLastMessageHotkey = (e) => {
+            if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+                e.preventDefault();
+                if (lastBotMessage) {
+                    // Increment counter to make each announcement unique
+                    setAnnounceCounter(prev => prev + 1);
+                    setStateAnnouncement(`Previous response ${announceCounter}: ${lastBotMessage}`);
+                } else {
+                    setStateAnnouncement('No previous chat messages to announce.');
+                }
+            }
+        };
+        
+        window.addEventListener('keydown', handleLastMessageHotkey);
+        return () => window.removeEventListener('keydown', handleLastMessageHotkey);
+    }, [lastBotMessage, announceCounter]);
+
+    // Add effect for Ctrl+I hotkey to refresh questions
+    useEffect(() => {
+        const handleRefreshHotkey = (e) => {
+            if (e.ctrlKey && e.key.toLowerCase() === 'i') {
+                e.preventDefault(); // Prevent the default find action
+                rotateQuestions();
+            }
+        };
+        
+        window.addEventListener('keydown', handleRefreshHotkey);
+        return () => window.removeEventListener('keydown', handleRefreshHotkey);
     }, []);
 
     return (
         <CardBody 
             className="flex flex-col h-full p-2 overflow-y-auto max-h-screen min-w-[300px]"
             role="region"
-            aria-label="MappieTalkie chat interface"
+            aria-label="MapOutLoud chat interface"
             style={{ maxHeight: '100vh' }}
         >
             <div 
@@ -694,21 +744,20 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                 aria-live="polite" 
                 role="region"
                 tabIndex="0"
-                aria-label="Welcome to MappieTalkie"
+                aria-label="Welcome to MapOutLoud"
+                className="mb-4"
             > 
-                <Typography variant="h6" color="blue-gray" className="mb-2">
-                    Welcome to MappieTalkie
+                <Typography variant="h6" color="blue-gray" className="mb-2" as="h1">
+                    Welcome to MapOutLoud
                 </Typography>
 
-                {/* Map Description and Example Questions Intro */}
-                <Typography variant="small" color="gray" className="mb-4 text-xs">
-                    <span className="italic">{getMapDescription()}</span>
-                    {' You can ask me questions about the map visualization:'}
+                <Typography variant="small" color="gray" className="mb-2 text-xs">
+                    <span>{getMapDescription()}</span>
+                    <span>{'You can ask me questions about the map visualization:'}</span>
                 </Typography>
 
-                {/* Dataset-specific Questions Section */}
-                <div className="mb-2">
-                    <div className="flex flex-wrap gap-2">
+                <div className="mb-4">
+                    <div className="flex flex-wrap gap-2 mb-2">
                         {exampleQuestions.map((question, index) => (
                             <span
                                 key={index}
@@ -726,119 +775,34 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                             </span>
                         ))}
                     </div>
+                    <div className="flex justify-start">
+                        <span
+                            onClick={rotateQuestions}
+                            className="px-3 py-1 bg-blue-gray-50 hover:bg-blue-gray-100 rounded-full text-xs text-blue-gray-900 transition-colors cursor-pointer flex items-center gap-1 w-fit"
+                            role="button"
+                            tabIndex="0"
+                            onKeyPress={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                    rotateQuestions();
+                                }
+                            }}
+                            aria-label="Refresh question suggestions (Ctrl+I)"
+                        >
+                            <ArrowsClockwise size={12} />
+                            <span>More suggestions</span>
+                            <kbd className="ml-1 px-1 py-0.5 border border-blue-gray-900 text-blue-gray-900 rounded text-[10px]">Ctrl+I</kbd>
+                        </span>
+                    </div>
                 </div>
 
-                {/* Navigation Instructions */}
-                <Typography variant="small" color="gray" className="mb-2 text-xs">
-                    <span className="font-bold">Keyboard Shortcuts:</span>
-                    <ul className="space-y-2">
-                        <li>Press Ctrl + M to toggle between map and chat interaction.</li>
-                        <li>When interacting with the map, use arrow keys to navigate between states.</li>
-                        <li>Press + to zoom in to county level within a state. Press - to zoom back out to state level.</li>
-                        <li>When using the chat mode, tab to start voice input.</li>
-                    </ul>
-                </Typography>
-                    
-                {/* Quick Commands:*/}
-                <Typography variant="small" color="gray" className="mb-2 text-xs">
-                    <span className="font-bold">Quick Commands:</span>
-                    <ul className="mb-2 space-y-3">
-                        <li>
-                            {"Simply type or say "}
-                            <span
-                                onClick={() => handleExampleClick("Go to Washington")}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
-                                role="text"
-                                tabIndex="0"
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick("Go to Florida!");
-                                    }
-                                }}
-                            >
-                                Go to Washington</span>
-                            {" to focus on Washington or any other state."}
-                        </li>
-                        <li>
-                            {"When focused on a state or county, you can ask specific questions like: "}
-                            <span
-                                onClick={() => handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?`)}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
-                                role="text"
-                                tabIndex="0"
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick(`What's the ${dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?`);
-                                    }
-                                }}
-                            >
-                                What's the {dataset === 'pct_tot_co' ? 'percentage of underserved population' : dataset === 'pct_no_bb_' ? 'percentage lacking broadband access' : 'population density'} here?
-                            </span>
-                            {" or "}
-                            <span
-                                onClick={() => handleExampleClick("How does this compare to neighboring states?")}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
-                                role="text"
-                                tabIndex="0"
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick("How does this compare to neighboring states?");
-                                    }
-                                }}
-                            >
-                                How does this compare to neighboring states?
-                            </span>
-                        </li>
-                        <li>
-                            {"For general information, try asking: "}
-                            <span
-                                onClick={() => handleExampleClick("What is a choropleth map?")}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
-                                role="text"
-                                tabIndex="0"
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick("What is a choropleth map?");
-                                    }
-                                }}
-                            >
-                                What is a choropleth map?
-                            </span>
-                        </li>
-                        <li>
-                            {"Ask "}
-                            <span
-                                onClick={() => handleExampleClick("What else can you do?")}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer inline-block"
-                                role="text"
-                                tabIndex="0"
-                                onKeyPress={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        handleExampleClick("What else can you do?");
-                                    }
-                                }}
-                            >
-                                What else can you do?
-                            </span>
-                            {" to hear a list of all the things I can do."}
-                        </li>
-                        <li>
-                            {"Press Ctrl+H anytime to hear this information again."}
-                        </li>
-                    </ul>
-                </Typography>
-
-                {/* General Knowledge Questions Section */}
-                {/* <div className="mb-4">
-                    <Typography variant="small" color="gray" className="mb-2 text-xs">
-                        Or ask me about:
-                    </Typography>
-                    <div className="flex flex-wrap gap-2">
+                <Typography variant="small" color="gray" className="mb-4 text-xs">
+                    Or you can ask me questions outside of the dataset:
+                    <div className="flex flex-wrap gap-2 mt-2">
                         {generalQuestions.map((question, index) => (
                             <span
                                 key={index}
                                 onClick={() => handleExampleClick(question)}
-                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer"
+                                className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer font-normal"
                                 role="text"
                                 tabIndex="0"
                                 onKeyPress={(e) => {
@@ -851,12 +815,41 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                             </span>
                         ))}
                     </div>
-                    <Typography variant="small" color="gray" className="mt-2 text-xs">
-                        Press Ctrl+M to toggle map interaction. Press Ctrl+/ to focus on text input.
-                        {!isInputFocused && " Press and hold the spacebar to speak."}
-                    </Typography>
-                </div> */}
+                </Typography>
+
+                <Typography variant="small" color="gray" className="text-xs">
+                    {"Ask "}
+                        <span
+                        onClick={() => handleExampleClick("What else can you do?")}
+                        className="mb-2 px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded-full text-xs text-blue-900 transition-colors text-left cursor-pointer inline-block font-normal"
+                        role="text"
+                        tabIndex="0"
+                        onKeyPress={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                        handleExampleClick("What else can you do?");
+                                }
+                        }}
+                        >
+                        What else can you do?
+                    </span>
+                    {" to see/hear a list of all available features."}
+                    <br />
+                    {"Press "}
+                    <kbd className="ml-1 px-1 py-0.5 border border-blue-900 text-blue-900 rounded">Ctrl+H</kbd>
+                    {" to see/hear all keyboard shortcuts and navigation commands."}
+                    <br />
+                    <br />
+                    {"I'm an AI-based system, so I may make mistakes."}
+                </Typography>
             </div>
+
+            {/* Help Popup */}
+            <HelpPopup 
+                open={isHelpOpen}
+                handleOpen={() => setIsHelpOpen(!isHelpOpen)}
+                dataset={dataset}
+            />
+
             <div 
                 ref={chatContainerRef}
                 className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md"
@@ -871,7 +864,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                             key={index}
                             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
                             role={msg.sender === 'user' ? 'note' : 'article'}
-                            aria-label={`${msg.sender === 'user' ? 'You' : 'MappieTalkie'} said`}
+                            aria-label={`${msg.sender === 'user' ? 'You' : 'MapOutLoud'} said`}
                         >
                             <div
                                 className={`py-2 px-4 rounded-md max-w-[80%] font-['Roboto'] ${
@@ -923,7 +916,7 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                     <div ref={wrapperRef}>
                             <Input
                                 type="text"
-                                label="Ask MappieTalkie"
+                                label="Ask MapOutLoud"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
@@ -950,20 +943,11 @@ const Chatbot = ({ dataset, onPatternQuestion, onStateQuestion, onStateFocus, cu
                             />
                     </div>
                 </div>
-                <Button 
-                    onClick={isRecording ? stopRecording : startRecording}
-                    className={`${
-                        isRecording ? 'bg-red-500' : 'bg-teal-500'
-                    } text-white p-2.5 aspect-square`}
-                    size="sm"
-                    aria-label={isRecording ? "Stop recording voice input" : "Start recording voice input"}
-                    aria-pressed={isRecording}
-                >
-                    {isRecording ? 
-                        <MicrophoneSlash size={20} weight="bold" /> : 
-                        <Microphone size={20} weight="bold" />
-                    }
-                </Button>
+                <RecordButton 
+                    isRecording={isRecording}
+                    onStartRecording={startRecording}
+                    onStopRecording={stopRecording}
+                />
                 <Button 
                     onClick={handleSubmit}
                     className={`bg-teal-500 text-white p-2.5 aspect-square ${!isInputFocused ? 'opacity-50 cursor-not-allowed' : ''}`}
