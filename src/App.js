@@ -17,7 +17,7 @@ function App() {
 
   // console.log('App initialization:', {
   //   nodeEnv: process.env.NODE_ENV,
-  //   apiUrl: process.env.NODE_ENV === 'production' 
+  //   apiUrl: process.env.NODE_ENV === 'production'
   //       ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
   //       : 'http://localhost:5000'
   // });
@@ -31,10 +31,10 @@ function App() {
   };
 
   const [focus, setFocus] = useState({
-    type: null,     
-    states: [],        
-    county: null,      
-    city: null,        
+    type: null,
+    states: [],
+    county: null,
+    city: null,
     highlightOnly: false
   });
 
@@ -98,13 +98,13 @@ useEffect(() => {
       setAnnouncement(
         `Map interaction enabled. Focused on ${focus.county} county in ${focus.states[0]}.`
       );
-    } 
+    }
     // If we have a single state
     else if (focus?.states?.length > 0) {
       setAnnouncement(
         `Map interaction enabled. Focused on ${focus.states[0]} state.`
       );
-    } 
+    }
     // No specific focus
     else {
       setAnnouncement('Map interaction enabled. Press Tab to move onto the map.');
@@ -136,7 +136,7 @@ useEffect(() => {
           showingCounties={showingCounties}
           onShowingCountiesChange={handleShowingCountiesChange}
         />
-        <div 
+        <div
         role="status"
         aria-live="assertive"
         aria-atomic="true"
