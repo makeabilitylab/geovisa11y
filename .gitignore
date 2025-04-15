@@ -205,3 +205,5 @@ yarn-error.log*
 backend/notebooks/writing-to-state-db.ipynb
 backend/notebooks/writing-to-state-db.ipynb
 backend/notebooks/writing-to-state-db.ipynb
+
+/src/.env.production
