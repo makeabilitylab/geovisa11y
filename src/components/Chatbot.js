@@ -42,7 +42,6 @@ const Chatbot = ({
     // const [useSpeech, setUseSpeech] = useState(false);
     const inputRef = useRef(null);
     const wrapperRef = useRef(null);
-    const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
     const [stateAnnouncement, setStateAnnouncement] = useState('');
     const [lastBotMessage, setLastBotMessage] = useState('');
     const [announceCounter, setAnnounceCounter] = useState(0);
@@ -132,6 +131,7 @@ const Chatbot = ({
     useEffect(() => {
         setExampleQuestions(getExampleQuestions());
         setGeneralQuestions(getGeneralQuestions());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dataset, currentQuestionSet]);
 
     // Scroll to bottom of chat container when messages are updated
@@ -286,7 +286,6 @@ const Chatbot = ({
 
     // Add state for tracking previous answer
     const [previousAnswer, setPreviousAnswer] = useState(null);
-    const [conversationHistory, setConversationHistory] = useState([]);
 
     const handleQuestionSubmit = async (input, useSpeech = false) => {
         try {
@@ -468,7 +467,6 @@ const Chatbot = ({
             // Handle question responses
             if (data.result) {
                 setPreviousAnswer(data.result); // Store the answer for context
-                setConversationHistory(prev => [...prev, input, data.result]); // Update conversation history
                 setLastBotMessage(data.result); // Add this line to track last bot message
                 if (data.question_type === 'get_pattern' ||  data.question_type === 'urban_rural_comparison') {
                     onPatternQuestion(true);
