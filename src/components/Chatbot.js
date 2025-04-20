@@ -590,11 +590,16 @@ const Chatbot = ({
     }, [dataset]);
 
     useEffect(() => {
+        // Obtaining reference to avoid a call on a null object
+        const currentAudioElement = audioRef.current;
+
         // Cleanup function to stop audio when component unmounts or dataset changes
         return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
+            if (currentAudioElement) {
+                currentAudioElement.pause();
+                currentAudioElement.currentTime = 0;
+            } else {
+                console.log("Audio cleanup: No element found to clean up."); //
             }
         };
     }, [dataset]);
