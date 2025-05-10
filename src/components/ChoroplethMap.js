@@ -9,24 +9,24 @@ import { X } from "@phosphor-icons/react";
 const ChoroplethMap = ({
     focus = { type: null, states: [], county: null, city: null, highlightOnly: false },
     onFocusChange,
-    dataset, 
-    showSpatialClusters, 
-    onSpatialClustersToggle, 
-    onDatasetChange,  
-    apiUrl, 
-    isMapInteractive, 
+    dataset,
+    showSpatialClusters,
+    onSpatialClustersToggle,
+    onDatasetChange,
+    apiUrl,
+    isMapInteractive,
     onMapClick,
     showingCounties = false,
     onShowingCountiesChange,
     isTaskPage = false,
     onAnnounce
-}) => 
+}) =>
         {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const popup = useRef(null);
     const [selectedDataset, setSelectedDataset] = useState(
-        isTaskPage ? 'pct_tot_co' : 
+        isTaskPage ? 'pct_tot_co' :
         'ppl_densit'
     );
     const [geoData, setGeoData] = useState(null);
@@ -82,14 +82,14 @@ const ChoroplethMap = ({
             // Check for Ctrl + / shortcut
             if (e.ctrlKey && e.key === '/') {
                 e.preventDefault();
-                
+
                 // Toggle between available datasets
                 if (isTaskPage) {
                     // For task page, toggle between the two datasets
                     const newDataset = selectedDataset === 'pct_tot_co' ? 'pct_no_bb_' : 'pct_tot_co';
                     setSelectedDataset(newDataset);
                     onDatasetChange(newDataset);
-                    
+
                     // Announce dataset change for accessibility
                     const datasetName = datasets[newDataset]?.name || newDataset;
                     if (isMapInteractive) {
@@ -116,9 +116,11 @@ const ChoroplethMap = ({
     }, [apiUrl]);
 
     const fetchData = async () => {
+        // Testing when fetchData gets invoked
+        console.log("Inside fetch Data...")
         setIsLoading(true);
         try {
-            
+
             const response = await fetch(`${apiUrl}/api/geojson/${selectedDataset}`, {
                 method: 'GET',
                 headers: {
@@ -130,6 +132,7 @@ const ChoroplethMap = ({
                 mode: 'cors',
             });
 
+            console.log("After fetch call!!!");
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -161,7 +164,7 @@ const ChoroplethMap = ({
         setIsLoading(true);
         // Normalize state name input
         stateName = normalizeStateName(stateName);
-        
+
         // Add the current dataset as a query parameter
         const response = await fetch(`${apiUrl}/api/counties/${stateName}?dataset=${selectedDataset}`, {
             method: 'GET',
@@ -195,11 +198,11 @@ const ChoroplethMap = ({
     // Helper function to focus the map on a county
     const focusCountyOnMap = useCallback((countyName) => {
         if (!map.current || !countyData) return false;
-        
-        const countyFeature = countyData.features.find(f => 
+
+        const countyFeature = countyData.features.find(f =>
             f.properties.county_name.toLowerCase() === countyName.toLowerCase()
         );
-        
+
         if (countyFeature && map.current.getLayer('county-borders')) {
             // Remove existing highlight layer if it exists
             if (map.current.getLayer('county-highlight')) {
@@ -222,11 +225,11 @@ const ChoroplethMap = ({
                     ]
                 }
             });
-            
+
             // Return true if county was found and highlighted
             return true;
         }
-        
+
         // Return false if county wasn't found or couldn't be highlighted
         return false;
     }, [countyData]);
@@ -234,10 +237,10 @@ const ChoroplethMap = ({
     // Focus state on map
     const focusStateOnMap = useCallback((stateNames, announceChange = true) => {
         if (!map.current || !geoData) return false;
-        
+
         // Normalize input to array
         const states = Array.isArray(stateNames) ? stateNames : [stateNames];
-        
+
         // If no states provided, reset to default view
         if (states.length === 0) {
             map.current.flyTo({
@@ -247,14 +250,14 @@ const ChoroplethMap = ({
             });
             return false;
         }
-        
+
         // Gather the features for these states
         const features = states.map(stateName => {
             return geoData.features.find(f =>
                 f.properties.state_name.toLowerCase() === stateName.toLowerCase()
             );
         }).filter(Boolean); // Remove any undefined features
-        
+
         if (features.length === 0) {
             // No matching features found
             map.current.flyTo({
@@ -264,17 +267,17 @@ const ChoroplethMap = ({
             });
             return false;
         }
-        
+
         try {
             // Calculate bounds that include all states
             const bounds = new mapboxgl.LngLatBounds();
-            
+
             features.forEach(feature => {
                 if (feature.geometry && feature.geometry.coordinates) {
                     if (feature.geometry.type === 'Polygon') {
                         // For Polygon, get the outer ring coordinates
                         feature.geometry.coordinates[0].forEach(coord => {
-                            if (Array.isArray(coord) && coord.length >= 2 && 
+                            if (Array.isArray(coord) && coord.length >= 2 &&
                                 !isNaN(coord[0]) && !isNaN(coord[1])) {
                                 bounds.extend(coord);
                             }
@@ -284,7 +287,7 @@ const ChoroplethMap = ({
                         feature.geometry.coordinates.forEach(polygon => {
                             // Get the outer ring of each polygon
                             polygon[0].forEach(coord => {
-                                if (Array.isArray(coord) && coord.length >= 2 && 
+                                if (Array.isArray(coord) && coord.length >= 2 &&
                                     !isNaN(coord[0]) && !isNaN(coord[1])) {
                                     bounds.extend(coord);
                                 }
@@ -293,7 +296,7 @@ const ChoroplethMap = ({
                     }
                 }
             });
-            
+
             // Only fit bounds if we have valid coordinates
             if (!bounds.isEmpty()) {
                 map.current.fitBounds(bounds, {
@@ -301,18 +304,18 @@ const ChoroplethMap = ({
                     duration: 1000,
                     maxZoom: localCountiesVisible? 7 : (states.length > 1 ? 7 : 5) // Adjust zoom based on counties view
                 });
-                
+
                 // Create a case-insensitive filter for all focused states
                 const stateFilter = [
                     'in',
                     ['downcase', ['get', 'state_name']],
                     ['literal', states.map(s => s.toLowerCase())]
                 ];
-                
+
                 // Show state map layers if they were hidden
                 toggleLayerVisibility('state-choropleth', true);
                 toggleLayerVisibility('state-borders', true);
-                
+
                 // Remove existing highlight layer if it exists
                 if (map.current.getLayer('state-highlight')) {
                     map.current.removeLayer('state-highlight');
@@ -338,7 +341,7 @@ const ChoroplethMap = ({
                         'line-join': 'round'
                     }
                 });
-                
+
                 // Announce the change if requested
                 if (announceChange && isMapInteractive) {
                     if (states.length > 1) {
@@ -347,7 +350,7 @@ const ChoroplethMap = ({
                         onAnnounce?.(`Now focused on ${states[0]} state`);
                     }
                 }
-                
+
                 return true;
             } else {
                 console.warn('No valid coordinates found for bounds');
@@ -366,7 +369,7 @@ const ChoroplethMap = ({
         }
 
 
-    
+
         try {
             // Remove existing layers and source if they exist
             removeLayersSafely(countyLayers);
@@ -377,7 +380,7 @@ const ChoroplethMap = ({
                 type: 'geojson',
                 data: data
             });
-            
+
             // Add county choropleth layer
             map.current.addLayer({
                 id: 'county-choropleth',
@@ -396,7 +399,7 @@ const ChoroplethMap = ({
                     'fill-opacity': 0.7
                 } //add state highlight layer here so it's on top of the choropleth
             });
-            
+
             // Add county borders on top of everything
             map.current.addLayer({
                 id: 'county-borders',
@@ -408,10 +411,10 @@ const ChoroplethMap = ({
                     'line-opacity': 0.7
                 }
             });
-            
+
             // Hide the state-level layers when showing counties
             toggleLayerSet(stateLayers, false);
-            
+
             return true;
         } catch (error) {
             console.error('Error visualizing county layers:', error);
@@ -422,19 +425,19 @@ const ChoroplethMap = ({
     // Add tooltips to county layers
     const setupCountyTooltips = () => {
         if (!map.current) return false;
-        
+
         try {
             // Add mousemove handler for county choropleth
             map.current.on('mousemove', 'county-choropleth', (e) => {
                 if (e.features.length > 0) {
                     map.current.getCanvas().style.cursor = 'pointer';
-                    
+
                     const feature = e.features[0];
                     const countyName = feature.properties.county_name;
                     const stateName = feature.properties.state_name;
 
                     let tooltipContent;
-                    
+
                     const value = feature.properties.value || 0;
 
                     // Format value based on current dataset
@@ -444,26 +447,26 @@ const ChoroplethMap = ({
                     } else {
                             formattedValue = `${value.toFixed(2)}%`;
                     }
-                            
+
                     tooltipContent = `
                         <div class="text-xs font-semibold">${countyName} County, ${stateName}</div>
                         <div class="text-xs">${formattedValue}</div>
-                    `; 
-                    
+                    `;
+
                     const coordinates = e.lngLat;
-                    
+
                     popup.current
                         .setLngLat(coordinates)
                         .setHTML(tooltipContent)
                         .addTo(map.current);
                 }
             });
-            
+
             map.current.on('mouseleave', 'county-choropleth', () => {
                 map.current.getCanvas().style.cursor = '';
                 popup.current.remove();
             });
-            
+
             return true;
         } catch (error) {
             console.error('Error setting up county tooltips:', error);
@@ -474,7 +477,7 @@ const ChoroplethMap = ({
     // Zoom to county level
     const zoomToCountyLevel = (data) => {
         if (!map.current || !data) return false;
-        
+
         try {
             // Zoom to the state's counties
             const bounds = new mapboxgl.LngLatBounds();
@@ -520,21 +523,21 @@ const ChoroplethMap = ({
 
             onShowingCountiesChange(true, stateName);
             setLocalCountiesVisible(true);
-            
+
             // Step 1: Fetch county data
             const data = await fetchCountyData(stateName);
             if (!data) return false;
-            
+
             // Step 2: Create and update map layers
             const layersCreated = visualizeCountyLayers(data);
             if (!layersCreated) return false;
-            
+
             // Step 3: Set up tooltips
             setupCountyTooltips();
-            
+
             // Step 4: Zoom to county level
             zoomToCountyLevel(data);
-            
+
             return true;
         } catch (error) {
             console.error('Error displaying county layers:', error);
@@ -544,11 +547,11 @@ const ChoroplethMap = ({
 
     const initializeLayers = () => {
         initializeChoroLayers(
-            map.current, 
-            mapContainer.current, 
-            popup, 
-            datasets, 
-            selectedDataset, 
+            map.current,
+            mapContainer.current,
+            popup,
+            datasets,
+            selectedDataset,
             fetchData
         );
     };
@@ -558,9 +561,9 @@ const ChoroplethMap = ({
         if (mapContainer.current && !map.current) {
             try {
                 // console.log('Map initialization starting...');
-                
+
                 const mapboxToken = window.ENV?.REACT_APP_MAPBOX_TOKEN || process.env.REACT_APP_MAPBOX_TOKEN;
-                
+
                 if (!mapboxToken) {
                     throw new Error('Mapbox token is missing');
                 }
@@ -602,30 +605,31 @@ const ChoroplethMap = ({
 
     // Update data when dataset changes
     useEffect(() => {
+        console.log("Inside of client user of fetchData...");
         if (map.current && map.current.loaded()) {
             // Turn off LISA layers when dataset changes
             if (showSpatialClusters) {
                 onSpatialClustersToggle(false);
             }
-            
+
             // Reset to default view
             map.current.flyTo({
                 center: [-96, 37.8],
                 zoom: 4,
                 duration: 2000
             });
-            
+
             // Clear county map layers/sources
             removeLayersSafely(countyLayers.concat(countyLisaLayers));
             removeSourceSafely('counties');
-            
+
             // Announce dataset change
             const datasetName = datasets[selectedDataset]?.name || selectedDataset;
 
             if (isMapInteractive) {
                 onAnnounce?.(`Dataset changed to ${datasetName}`);
             }
-            
+
             // Reset focused state
             onFocusChange({
                 type: null,
@@ -634,7 +638,7 @@ const ChoroplethMap = ({
                 city: null,
                 highlightOnly: false
             });
-            
+
             // Fetch new data
             fetchData();
         }
@@ -653,7 +657,7 @@ const ChoroplethMap = ({
                     dataset.colors[i]
                 ])
             ];
-    
+
             map.current.setPaintProperty('state-choropleth', 'fill-color', expression);
             map.current.setPaintProperty('state-choropleth', 'fill-opacity', 0.75);
         }
@@ -662,7 +666,7 @@ const ChoroplethMap = ({
     // useEffect to handle focused state/county/city
     useEffect(() => {
         if (!map.current || !layersInitialized || !geoData) return;
-        
+
         // Handle city focus
         if (focus.type === 'city' && focus.city) {
             // Fly to the city
@@ -692,7 +696,7 @@ const ChoroplethMap = ({
 
             return;
         }
-        
+
         // Handle county focus
         if (focus.type === 'county' && focus.county) {
             // Hide state layers
@@ -700,18 +704,18 @@ const ChoroplethMap = ({
             // Make sure we have a valid state in the states array
             const stateName = focus.states && focus.states.length > 0 ? focus.states[0] : null;
             const countyName = focus.county;
-            
+
             toggleLayerSet(countyLayers, true);
-            
+
             // Check if we already have county data for this state
             const hasCountyData = countyData !== null;
             // console.log('[COUNTY DEBUG] Has county data:', hasCountyData, 'countyData features:', countyData?.features?.length);
-            
+
             if (hasCountyData) {
                 // We already have county data, just highlight the focused county
                 const highlighted = focusCountyOnMap(countyName);
                 // console.log('[COUNTY DEBUG] County highlighted:', highlighted);
-                
+
                 if (highlighted && isMapInteractive) {
                     onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
                 }
@@ -729,22 +733,22 @@ const ChoroplethMap = ({
                 });
             }
         }
-        
+
         // Handle state focus
         else if (focus.type === 'state' || focus.type === 'compare') {
             // Use the enhanced focusStateOnMap function
             focusStateOnMap(focus.states);
         }
     }, [
-        focus, 
-        layersInitialized, 
-        geoData, 
-        countyData, 
-        datasets, 
-        selectedDataset, 
-        toggleLayerVisibility, 
+        focus,
+        layersInitialized,
+        geoData,
+        countyData,
+        datasets,
+        selectedDataset,
+        toggleLayerVisibility,
         toggleLayerSet,
-        sourceExists, 
+        sourceExists,
         countyLayers,
         focusCountyOnMap,
         focusStateOnMap,
@@ -753,23 +757,23 @@ const ChoroplethMap = ({
         onAnnounce,
         stateLayers,
         localCountiesVisible,  // Update dependency
-        showingCounties     
+        showingCounties
     ]);
 
     // useEffect to handle LISA clusters for both states and counties
     useEffect(() => {
         if (!map.current || !layersInitialized) return;
-        
+
         if (showSpatialClusters) {
             // County level LISA clusters
-            if (localCountiesVisible) {                
+            if (localCountiesVisible) {
                 // Fetch county-level LISA clusters
                 fetch(`${apiUrl}/api/lisa_clusters/${focus.states[0]}?dataset=${selectedDataset}&level=county`)
                     .then(response => response.json())
                     .then(data => {
                         if (sourceExists('counties')) {
                             map.current.getSource('counties').setData(data);
-                            
+
                             // Add county LISA cluster layers if they don't exist
                             if (!layerExists('county-lisa-clusters-border')) {
                                 map.current.addLayer({
@@ -824,7 +828,7 @@ const ChoroplethMap = ({
             // Otherwise hide all LISA clusters
             toggleLayerSet(stateLisaLayers, false);
             toggleLayerSet(countyLisaLayers, false);
-            
+
         }
     }, [
         showSpatialClusters,
@@ -871,7 +875,7 @@ const ChoroplethMap = ({
 
     // Add handler for closing LISA clusters
     const handleCloseLisaClusters = () => {
-        onSpatialClustersToggle(false); 
+        onSpatialClustersToggle(false);
     };
 
     // Add new useEffect for accessibility
@@ -880,7 +884,7 @@ const ChoroplethMap = ({
             map.current.on('load', () => {
                 // Hide all mapbox controls from screen readers
                 const elementsToHide = document.querySelectorAll(`
-                    .mapboxgl-ctrl-attrib a, 
+                    .mapboxgl-ctrl-attrib a,
                     .mapboxgl-ctrl-logo,
                     .mapboxgl-ctrl-group button,
                     .mapboxgl-ctrl-fullscreen,
@@ -928,7 +932,7 @@ const ChoroplethMap = ({
 
         // Normalize state name input
         stateName = normalizeStateName(stateName);
-        
+
         const currentState = geoData.features.find(
             f => f.properties.state_name.toLowerCase() === stateName.toLowerCase()
         );
@@ -996,22 +1000,22 @@ const ChoroplethMap = ({
             // Clean up county layers
             removeLayersSafely(countyLayers);
             removeSourceSafely('counties');
-            
+
             // Reset to US view
             map.current.fitBounds([
                 [-125.0, 24.0],
-                [-66.0, 50.0]   
+                [-66.0, 50.0]
             ], {
                 padding: 100,
                 duration: 1000
             });
-            
+
             // Show state layers again
             toggleLayerSet(stateLayers, true);
-            
+
             // Reset county data
             setCountyData(null);
-            
+
             // Reset focus
             onFocusChange({
                 type: null,
@@ -1020,11 +1024,11 @@ const ChoroplethMap = ({
                 city: null,
                 highlightOnly: false
             });
-            
+
             // Notify parent component and update local state
             onShowingCountiesChange?.(false, null);
             setLocalCountiesVisible(false);
-            
+
             if (isMapInteractive) {
                 onAnnounce?.('Returned to national view');
             }
@@ -1053,17 +1057,17 @@ const ChoroplethMap = ({
             window.mapZoomLevel = map.current.getZoom();
             window.mapCenter = map.current.getCenter();
             window.mapBounds = map.current.getBounds();
-            
+
             // Set up event listeners for map interactions
             map.current.on('zoomend', () => {
                 try {
                     window.mapZoomLevel = map.current.getZoom();
                     window.mapCenter = map.current.getCenter();
                     window.mapBounds = map.current.getBounds();
-                    
+
                     // Log the map interaction
                     logMapInteraction(
-                        'zoom', 
+                        'zoom',
                         {
                             zoom: map.current.getZoom(),
                             center: map.current.getCenter(),
@@ -1077,16 +1081,16 @@ const ChoroplethMap = ({
                     console.error('Error in zoom event handler:', error);
                 }
             });
-            
+
             map.current.on('moveend', () => {
                 window.mapZoomLevel = map.current.getZoom();
                 window.mapCenter = map.current.getCenter();
                 window.mapBounds = map.current.getBounds();
-                
+
                 // Log the map interaction if it's not from a zoom
                 if (!map.current._zooming) {
                     logMapInteraction(
-                        'pan', 
+                        'pan',
                         {
                             zoom: map.current.getZoom(),
                             center: map.current.getCenter(),
@@ -1114,19 +1118,19 @@ const ChoroplethMap = ({
             // Handle initial focus
             if (e.key === 'Tab') {
                 e.preventDefault();
-                
+
                 // Debug the current focus state
                 console.log('Current focus state:', focus);
-                
+
                 // Check if we have a city focus, regardless of focus.type
                 if (focus.city) {
                     // When focused on a city, Tab should focus on the containing state
                     console.log('City focus detected:', focus.city);
-                    
+
                     // Make sure we have the state property and it's not empty
                     if (focus.city.state) {
                         console.log('Focusing on city state:', focus.city.state);
-                        
+
                         // Update focus to the city's state
                         onFocusChange({
                             type: 'state',
@@ -1135,7 +1139,7 @@ const ChoroplethMap = ({
                             city: null,
                             highlightOnly: false
                         });
-                        
+
                         if (isMapInteractive) {
                             onAnnounce?.(`Now focused on ${focus.city.state} state`);
                             focusStateOnMap(focus.city.state);
@@ -1152,16 +1156,16 @@ const ChoroplethMap = ({
                         city: null,
                         highlightOnly: false
                     });
-                    
-                    if (isMapInteractive) { 
+
+                    if (isMapInteractive) {
                         onAnnounce?.(`Now focused on Kansas state`);
                         focusStateOnMap('Kansas');
                     }
                 } else if (localCountiesVisible && !focus.county && countyData) {
-                    // console.log('[COUNTY DEBUG] Should focus on first county. countyData:', 
+                    // console.log('[COUNTY DEBUG] Should focus on first county. countyData:',
                     //     countyData ? `Found ${countyData.features.length} counties` : 'No county data',
                     //     'localCountiesVisible:', localCountiesVisible);
-                    
+
                     const firstCounty = countyData?.features[0]?.properties.county_name;
                     if (firstCounty) {
                         onFocusChange({
@@ -1169,7 +1173,7 @@ const ChoroplethMap = ({
                             type: 'county',
                             county: firstCounty
                         });
-                        
+
                         if (isMapInteractive) {
                             onAnnounce?.(`Now focused on ${firstCounty} county`);
                             focusCountyOnMap(firstCounty);
@@ -1181,7 +1185,7 @@ const ChoroplethMap = ({
             // Handle arrow key navigation
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                 e.preventDefault();
-                
+
                 // If we're focused on a city, show message to press Tab first
                 if (focus.type === 'city') {
                     if (isMapInteractive) {
@@ -1189,7 +1193,7 @@ const ChoroplethMap = ({
                     }
                     return;
                 }
-                
+
                 const normalizedState = normalizeStateName(focus.states[0]);
                 if (!normalizedState || (focus.type === 'county' && !focus.county)) {
                     if (isMapInteractive) {
@@ -1281,7 +1285,7 @@ const ChoroplethMap = ({
                     onShowingCountiesChange(false);
                     setLocalCountiesVisible(false);
                     setCountyData(null);
-                    
+
                     if (focus.type === 'county') {
                         onFocusChange({
                             type: 'state',
@@ -1291,7 +1295,7 @@ const ChoroplethMap = ({
                             highlightOnly: false
                         });
                     }
-                    
+
                     // Clean up county layers
                     if (map.current) {
 
@@ -1302,16 +1306,16 @@ const ChoroplethMap = ({
 
                         // show state-level choropleth
                         toggleLayerVisibility('state-choropleth', true);
-                        
+
                         // Show state-level LISA clusters again if they were visible
                         if (showSpatialClusters) {
                             toggleLayerSet(stateLisaLayers, true);
                         }
-                        
+
                         // Show state layers
                         toggleLayerSet(stateLayers, true);
                     }
-                    
+
                     focusStateOnMap(focus.states[0]);
                     if (isMapInteractive) {
                         onAnnounce?.(`Returned to state view of ${focus.states[0]}`);
@@ -1345,7 +1349,7 @@ const ChoroplethMap = ({
         removeLayersSafely,
         removeSourceSafely,
         resetToStateView,
-        sourceExists  
+        sourceExists
     ]);
 
     // Handle map interaction focus
@@ -1366,17 +1370,17 @@ const ChoroplethMap = ({
             window.mapZoomLevel = map.current.getZoom();
             window.mapCenter = map.current.getCenter();
             window.mapBounds = map.current.getBounds();
-            
+
             // Set up event listeners for map interactions
             map.current.on('zoomend', () => {
                 try {
                     window.mapZoomLevel = map.current.getZoom();
                     window.mapCenter = map.current.getCenter();
                     window.mapBounds = map.current.getBounds();
-                    
+
                     // Log the map interaction
                     logMapInteraction(
-                        'zoom', 
+                        'zoom',
                         {
                             zoom: map.current.getZoom(),
                             center: map.current.getCenter(),
@@ -1390,16 +1394,16 @@ const ChoroplethMap = ({
                     console.error('Error in zoom event handler:', error);
                 }
             });
-            
+
             map.current.on('moveend', () => {
                 window.mapZoomLevel = map.current.getZoom();
                 window.mapCenter = map.current.getCenter();
                 window.mapBounds = map.current.getBounds();
-                
+
                 // Log the map interaction if it's not from a zoom
                 if (!map.current._zooming) {
                     logMapInteraction(
-                        'pan', 
+                        'pan',
                         {
                             zoom: map.current.getZoom(),
                             center: map.current.getCenter(),
@@ -1439,9 +1443,9 @@ const ChoroplethMap = ({
 
     return (
         <div className="relative h-full ">
-            <div 
-                ref={mapContainer} 
-                className="h-full" 
+            <div
+                ref={mapContainer}
+                className="h-full"
                 role="application"
                 aria-label="Interactive map of United States"
                 tabIndex="0"
@@ -1484,7 +1488,7 @@ const ChoroplethMap = ({
             )}
 
             {/* Dataset Selector and Legend Container */}
-            <div className="absolute top-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90" 
+            <div className="absolute top-0 left-0 bg-white p-4 m-4 rounded-lg shadow-lg opacity-90"
                 tabIndex="-1">
                 {/* Dataset Selector */}
                     <div className="mb-4">
@@ -1541,13 +1545,13 @@ const ChoroplethMap = ({
                             )}
                         </div>
                     </div>
-                
+
                 {/* choropleth legend */}
                     <div className="flex flex-col gap-1">
                         {datasets[selectedDataset].breaks.map((value, i) => (
                             <div key={i} className="flex items-center">
-                                <div 
-                                    className="w-4 h-4 mr-2" 
+                                <div
+                                    className="w-4 h-4 mr-2"
                                     style={{ backgroundColor: datasets[selectedDataset].colors[i] }}
                                 />
                                 <span className="text-xs">
@@ -1572,9 +1576,9 @@ const ChoroplethMap = ({
                             aria-label="Close hot and cold spots overlay"
                             title="Close"
                         >
-                            <X 
-                                className="text-gray-500 hover:text-gray-700" 
-                                size={22} 
+                            <X
+                                className="text-gray-500 hover:text-gray-700"
+                                size={22}
                                 weight="bold"
                             />
                         </button>
@@ -1602,5 +1606,5 @@ const ChoroplethMap = ({
         </div>
     );
         };
-            
+
 export default ChoroplethMap;

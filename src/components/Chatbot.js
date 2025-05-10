@@ -879,11 +879,14 @@ const Chatbot = ({
                                         : 'bg-gray-200 text-gray-900 text-left text-xs'
                                 }`}
                             >
-                                <Typography
-                                    variant="small"
+                                <Typography variant="small" as="span"
                                     className="font-['Roboto'] font-normal leading-[1.2]"
-                                    dangerouslySetInnerHTML={{ __html: msg.text || ' ' }}
-                                />
+                                  >
+                                    {/* wrap the raw HTML (if any) in a span to satisfy children */}
+                                    <span
+                                      dangerouslySetInnerHTML={{ __html: msg.text || '' }}
+                                    />
+                                  </Typography>
                             </div>
                         </div>
                     ))}
