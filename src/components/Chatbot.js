@@ -69,27 +69,22 @@ const Chatbot = ({
     // Function to get map description based on dataset
     const getMapDescription = () => {
         if (isTaskPage) {
-            switch(dataset) {
-                case 'pct_tot_co':
-                    return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
-                case 'pct_no_bb_':
-                    return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband or computer in each state. Darker shades indicate higher percentages.";
-                default:
-                    return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
-            }
+          if (dataset === 'pct_tot_co') {
+              return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
 
+          } else if(dataset === 'pct_no_bb_') {
+            return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband or computer in each state. Darker shades indicate higher percentages.";
+          } else {
+            return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
+          }
         } else if (isTask2Page) {
-            switch(dataset) {
-                case 'gas_heating':
-                    return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
-                default:
-                    return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
+            if (dataset === 'gas_heating') {
+              return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
+            } else {
+              return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
             }
         } else {
-            switch(dataset) {
-                default: // ppl_densit
-                    return "This is an interactive choropleth map of the United States showing population density in each state. Darker shades indicate higher percentages.";
-            }
+            return "This is an interactive choropleth map of the United States showing population density in each state. Darker shades indicate higher percentages.";
         }
     };
 
@@ -557,29 +552,29 @@ const Chatbot = ({
 
     // Function to get general knowledge questions based on dataset
     const getGeneralQuestions = () => {
-        switch(dataset) {
-            case 'pct_tot_co':
-                return [
+
+          if (dataset === 'pct_tot_co') {
+            return [
                     "What's a choropleth map?",
                     "Is there a relationship between income and the percentage of underserved population?"
                 ];
-            case 'pct_no_bb_':
-                return [
+          } else if (dataset === 'pct_no_bb_') {
+            return [
                     "What's a choropleth map?",
                     "Is there a relationship between population density and the percentage of people lacking broadband or computer access?"
                 ];
-            case 'gas':
-                return [
+          } else if (dataset === 'gas') {
+            return [
                     "What's a dot density map?",
                     "Is there a relationship between climate and the number of households using heating fuel?"
                 ];
-            default: // ppl_densit
-                return [
+          } else {
+            return [
                     "What's a choropleth map?",
                     "Is there a relationship between income and population density?"
                 ];
-        }
-    };
+          }
+        };
 
     // Get fresh general questions whenever dataset changes
     const [generalQuestions, setGeneralQuestions] = useState([]);
