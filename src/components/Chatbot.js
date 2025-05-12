@@ -33,13 +33,11 @@ const Chatbot = ({
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [exampleQuestions, setExampleQuestions] = useState([]);
-    // const [isSpeechLoading, setIsSpeechLoading] = useState(false);
     const chatContainerRef = useRef(null);
     const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const audioRef = useRef(new Audio());
-    // const [useSpeech, setUseSpeech] = useState(false);
     const inputRef = useRef(null);
     const wrapperRef = useRef(null);
     const [stateAnnouncement, setStateAnnouncement] = useState('');
@@ -138,7 +136,6 @@ const Chatbot = ({
 
     // Function to handle example question click
     const handleExampleClick = (question) => {
-        //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: question, sender: 'user' }]);
         handleQuestionSubmit(question, false);  // Explicitly pass false to disable speech
         audioRef.current.pause();  // Stop any ongoing speech
@@ -160,7 +157,6 @@ const Chatbot = ({
             mediaRecorderRef.current.onstop = async () => {
                 if (audioChunksRef.current.length > 0) {
                     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                    //setUseSpeech(true);
                     await processAudioToText(audioBlob);
                 }
             };
@@ -538,7 +534,6 @@ const Chatbot = ({
 
         const userMessage = input;
         setInput('');
-        //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
         handleQuestionSubmit(userMessage, false);
     };
@@ -606,17 +601,17 @@ const Chatbot = ({
 
     // Add new useEffect for microphone permission
     useEffect(() => {
-        const requestMicrophonePermission = async () => {
-            try {
-                await navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        // Stop the stream right away - we just wanted the permission
-                        stream.getTracks().forEach(track => track.stop());
-                    });
-            } catch (error) {
-                console.log('Microphone permission was denied or error occurred:', error);
-            }
-        };
+        async function requestMicrophonePermission() {
+          try {
+            // this returns the stream directly
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // immediately stop every track
+            stream.getTracks().forEach(track => track.stop());
+            console.log("Completed")
+          } catch (error) {
+            console.log('Microphone permission was denied or error occurred:', error);
+          }
+        }
 
         requestMicrophonePermission();
     }, []); // Empty dependency array means this runs once on mount
