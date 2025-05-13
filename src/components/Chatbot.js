@@ -45,6 +45,8 @@ const Chatbot = ({
     const [announceCounter, setAnnounceCounter] = useState(0);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [currentQuestionSet, setCurrentQuestionSet] = useState(0);
+    const mountedAlready = useRef(false); // Used to prevent useEffect from
+                                         // running twice
 
     // List of US states
     const states = [
@@ -601,20 +603,27 @@ const Chatbot = ({
 
     // Add new useEffect for microphone permission
     useEffect(() => {
-        async function requestMicrophonePermission() {
-          try {
-            // this returns the stream directly
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            // immediately stop every track
-            stream.getTracks().forEach(track => track.stop());
-            console.log("Completed")
-          } catch (error) {
-            console.log('Microphone permission was denied or error occurred:', error);
-          }
+        // Check if we already mounted this useEffect. If so exit early
+        if (mountedAlready.current) {
+          return;
         }
+        mountedAlready.current = true;
 
         requestMicrophonePermission();
     }, []); // Empty dependency array means this runs once on mount
+
+    async function requestMicrophonePermission() {
+
+      try {
+        // this returns the stream directly
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // immediately stop every track
+        stream.getTracks().forEach(track => track.stop());
+        console.log("Completed")
+      } catch (error) {
+        console.log('Microphone permission was denied or error occurred:', error);
+      }
+    }
 
     // Add useEffect to monitor focused state changes
     useEffect(() => {

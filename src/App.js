@@ -70,47 +70,47 @@ function App() {
   }, []);
 
 
-useEffect(() => {
-  if (interactionFocus === 'chat') {
-    if (focus.type === 'state') {
-      setAnnouncement(
-        `Chat interaction enabled. Map focused on ${focus.states[0]}.`
-      );
-    } else {
-      setAnnouncement('Chat interaction enabled. Type a question to ask MapOutLoud.');
+  useEffect(() => {
+    if (interactionFocus === 'chat') {
+      if (focus.type === 'state') {
+        setAnnouncement(
+          `Chat interaction enabled. Map focused on ${focus.states[0]}.`
+        );
+      } else {
+        setAnnouncement('Chat interaction enabled. Type a question to ask MapOutLoud.');
+      }
+    } else if (interactionFocus === 'map') {
+      // If we have a noNeighbor property, announce that first and return early
+      if (focus.noNeighbor) {
+        if (focus.county) {
+          setAnnouncement(
+            `There is no county ${focus.noNeighbor} of ${focus.county}`
+          );
+        } else {
+          setAnnouncement(
+            `There is no state ${focus.noNeighbor} of ${focus.states[0]}`
+          );
+        }
+        return;
+      }
+      // If we have a county in focus
+      if (focus.county && focus.states?.length > 0) {
+        setAnnouncement(
+          `Map interaction enabled. Focused on ${focus.county} county in ${focus.states[0]}.`
+        );
+      }
+      // If we have a single state
+      else if (focus?.states?.length > 0) {
+        setAnnouncement(
+          `Map interaction enabled. Focused on ${focus.states[0]} state.`
+        );
+      }
+      // No specific focus
+      else {
+        setAnnouncement('Map interaction enabled. Press Tab to move onto the map.');
+      }
     }
-  } else if (interactionFocus === 'map') {
-     // If we have a noNeighbor property, announce that first and return early
-     if (focus.noNeighbor) {
-       if (focus.county) {
-         setAnnouncement(
-           `There is no county ${focus.noNeighbor} of ${focus.county}`
-         );
-       } else {
-         setAnnouncement(
-           `There is no state ${focus.noNeighbor} of ${focus.states[0]}`
-         );
-       }
-       return;
-     }
-     // If we have a county in focus
-     if (focus.county && focus.states?.length > 0) {
-      setAnnouncement(
-        `Map interaction enabled. Focused on ${focus.county} county in ${focus.states[0]}.`
-      );
-    }
-    // If we have a single state
-    else if (focus?.states?.length > 0) {
-      setAnnouncement(
-        `Map interaction enabled. Focused on ${focus.states[0]} state.`
-      );
-    }
-    // No specific focus
-    else {
-      setAnnouncement('Map interaction enabled. Press Tab to move onto the map.');
-    }
-  }
-}, [interactionFocus, focus]);
+  }, [interactionFocus, focus]);
 
   useEffect(() => {
     // Log session end when the component unmounts
