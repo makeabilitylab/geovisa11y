@@ -697,6 +697,39 @@ const ChoroplethMap = ({
             return;
         }
 
+        // New Code snippit (Using async and await)
+        // Handle county focus
+        if (focus.type === 'county' && focus.county) {
+            // Hide state layers
+            toggleLayerSet(stateLayers, false);
+            // Make sure we have a valid state in the states array
+            const stateName = focus.states && focus.states.length > 0 ? focus.states[0] : null;
+            const countyName = focus.county;
+
+            toggleLayerSet(countyLayers, true);
+
+            // Check if we already have county data for this state
+            const hasCountyData = countyData !== null;
+            // console.log('[COUNTY DEBUG] Has county data:', hasCountyData, 'countyData features:', countyData?.features?.length);
+
+            if (hasCountyData) {
+                // We already have county data, just highlight the focused county
+                const highlighted = focusCountyOnMap(countyName);
+                // console.log('[COUNTY DEBUG] County highlighted:', highlighted);
+
+                if (highlighted && isMapInteractive) {
+                    onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
+                }
+            } else {
+                // We need to display county data first
+                // This will fetch the data and set up the layers
+                // Change made here
+                loadAndFocusCounty(stateName, countyName);
+            }
+        }
+
+        /* OLD version .then call (I personally think that it isn't explicit
+        what is going on in the code snippit )
         // Handle county focus
         if (focus.type === 'county' && focus.county) {
             // Hide state layers
@@ -733,6 +766,7 @@ const ChoroplethMap = ({
                 });
             }
         }
+        */
 
         // Handle state focus
         else if (focus.type === 'state' || focus.type === 'compare') {
@@ -759,6 +793,29 @@ const ChoroplethMap = ({
         localCountiesVisible,  // Update dependency
         showingCounties
     ]);
+
+    /**
+     * DOUBLE CHECK THIS FUNCTION COMMENT (TODO)
+     * Helper function in UseEffect above to display the county data first
+     * @param {String} stateName - State name to pull counties from
+     * @param {String} countyName - County to displyay
+     */
+    async function loadAndFocusCounty(stateName, countyName) {
+      try {
+        // fetch & set up county data
+        await displayingCountyData(stateName);
+        // small delay for layers to render
+        await new Promise(resolve => setTimeout(resolve, 500));
+        // highlight and announce
+        focusCountyOnMap(countyName);
+        if (isMapInteractive) {
+          onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
+        }
+      } catch (err) {
+        console.error('Error loading or focusing county:', err);
+      }
+    }
+
 
     // useEffect to handle LISA clusters for both states and counties
     useEffect(() => {
