@@ -7,47 +7,46 @@ import {
     Input,
     Button,
 } from '@material-tailwind/react';
-import { 
-    logQuestionData, 
-    logAnswerData, 
+import {
+    logQuestionData,
+    logAnswerData,
 } from '../utils/logger';
 import HelpPopup from './HelpPopup';
 import { questionDatabase } from '../utils/questionDatabase';
 import RecordButton from './RecordButton';
 
 
-const Chatbot = ({ 
-    dataset, 
+const Chatbot = ({
+    dataset,
     focus = { type: null, states: [], county: null, city: null, highlightOnly: false },
     onFocusChange,
-    onPatternQuestion, 
-    apiUrl, 
-    isInputFocused, 
-    onInputClick, 
+    onPatternQuestion,
+    apiUrl,
+    isInputFocused,
+    onInputClick,
     showingCounties,
     isTaskPage = false,
     isTask2Page = false
 }) => {
-    
+
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [exampleQuestions, setExampleQuestions] = useState([]);
-    // const [isSpeechLoading, setIsSpeechLoading] = useState(false);
     const chatContainerRef = useRef(null);
     const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const audioRef = useRef(new Audio());
-    // const [useSpeech, setUseSpeech] = useState(false);
     const inputRef = useRef(null);
     const wrapperRef = useRef(null);
-    const [currentFocusedCity, setCurrentFocusedCity] = useState(null);
     const [stateAnnouncement, setStateAnnouncement] = useState('');
     const [lastBotMessage, setLastBotMessage] = useState('');
     const [announceCounter, setAnnounceCounter] = useState(0);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [currentQuestionSet, setCurrentQuestionSet] = useState(0);
+    const mountedAlready = useRef(false); // Used to prevent useEffect from
+                                         // running twice
 
     // List of US states
     const states = [
@@ -70,27 +69,22 @@ const Chatbot = ({
     // Function to get map description based on dataset
     const getMapDescription = () => {
         if (isTaskPage) {
-            switch(dataset) {
-                case 'pct_tot_co':
-                    return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
-                case 'pct_no_bb_':
-                    return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband or computer in each state. Darker shades indicate higher percentages.";
-                default:
-                    return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
-            }
-        
+          if (dataset === 'pct_tot_co') {
+              return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
+
+          } else if(dataset === 'pct_no_bb_') {
+            return "This is a choropleth map of the United States showing the percentage of population lacking access to broadband or computer in each state. Darker shades indicate higher percentages.";
+          } else {
+            return "This is a choropleth map of the United States showing the percentage of underserved population for the Digital Equity Act in each state. Darker shades indicate higher percentages.";
+          }
         } else if (isTask2Page) {
-            switch(dataset) {
-                case 'gas_heating':
-                    return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
-                default:
-                    return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
+            if (dataset === 'gas_heating') {
+              return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
+            } else {
+              return "This is an interactive dot density map of the United States showing the heating fuel used in each state. One dot represents 100,000 households.";
             }
         } else {
-            switch(dataset) {
-                default: // ppl_densit
-                    return "This is an interactive choropleth map of the United States showing population density in each state. Darker shades indicate higher percentages.";
-            }
+            return "This is an interactive choropleth map of the United States showing population density in each state. Darker shades indicate higher percentages.";
         }
     };
 
@@ -98,13 +92,13 @@ const Chatbot = ({
     const getExampleQuestions = () => {
         const [state1, state2, state3] = getRandomStates(3);
         let questions = [];
-        
+
         // Get the appropriate question set based on dataset
         if (isTask2Page) {
             questions = questionDatabase.gas_heating;
         } else if (isTaskPage) {
-            questions = dataset === 'pct_tot_co' 
-                ? questionDatabase.pct_tot_co 
+            questions = dataset === 'pct_tot_co'
+                ? questionDatabase.pct_tot_co
                 : questionDatabase.pct_no_bb_;
         } else {
             questions = questionDatabase.ppl_densit;
@@ -115,7 +109,7 @@ const Chatbot = ({
         const selectedQuestions = questions.slice(startIdx, startIdx + 3);
 
         // Replace state placeholders with random states
-        return selectedQuestions.map(q => 
+        return selectedQuestions.map(q =>
             q.replace(/\[STATE1\]/g, state1)
              .replace(/\[STATE2\]/g, state2)
              .replace(/\[STATE3\]/g, state3)
@@ -132,6 +126,7 @@ const Chatbot = ({
     useEffect(() => {
         setExampleQuestions(getExampleQuestions());
         setGeneralQuestions(getGeneralQuestions());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dataset, currentQuestionSet]);
 
     // Scroll to bottom of chat container when messages are updated
@@ -143,7 +138,6 @@ const Chatbot = ({
 
     // Function to handle example question click
     const handleExampleClick = (question) => {
-        //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: question, sender: 'user' }]);
         handleQuestionSubmit(question, false);  // Explicitly pass false to disable speech
         audioRef.current.pause();  // Stop any ongoing speech
@@ -165,7 +159,6 @@ const Chatbot = ({
             mediaRecorderRef.current.onstop = async () => {
                 if (audioChunksRef.current.length > 0) {
                     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                    //setUseSpeech(true);
                     await processAudioToText(audioBlob);
                 }
             };
@@ -173,16 +166,16 @@ const Chatbot = ({
             // Request data every 250ms
             mediaRecorderRef.current.start(250);
             setIsRecording(true);
-            
+
             // Add visual feedback for recording
-            setMessages(prev => [...prev, { 
-                text: 'Listening...', 
+            setMessages(prev => [...prev, {
+                text: 'Listening...',
                 sender: 'bot',
-                isTemp: true 
+                isTemp: true
             }]);
         } catch (error) {
             console.error('Error accessing microphone:', error);
-            setMessages(prev => [...prev, { 
+            setMessages(prev => [...prev, {
                 text: 'Error accessing microphone. Please check your permissions.',
                 sender: 'bot'
             }]);
@@ -194,7 +187,7 @@ const Chatbot = ({
             mediaRecorderRef.current.stop();
             setIsRecording(false);
             mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-            
+
             // Remove the "Listening..." message
             setMessages(prev => prev.filter(msg => !msg.isTemp));
         }
@@ -207,10 +200,10 @@ const Chatbot = ({
                 dangerouslyAllowBrowser: true
             });
             // Show processing message
-            setMessages(prev => [...prev.filter(msg => !msg.isTemp), { 
-                text: 'Processing your speech...', 
+            setMessages(prev => [...prev.filter(msg => !msg.isTemp), {
+                text: 'Processing your speech...',
                 sender: 'bot',
-                isTemp: true 
+                isTemp: true
             }]);
 
             const formData = new FormData();
@@ -225,7 +218,7 @@ const Chatbot = ({
             setMessages(prev => prev.filter(msg => !msg.isTemp));
 
             let transcribedText = transcriptionResponse.text;
-            
+
             // Filter out various forms of the microphone access message
             const micAccessMessages = [
                 "Page is accessing your microphone.",
@@ -258,26 +251,26 @@ const Chatbot = ({
 
                 // Add the transcribed text to chat as a user message
                 setMessages(prev => [...prev, { text: transcribedText, sender: 'user' }]);
-                
+
                 // Add delay before processing the question
                 // Estimate reading time: ~200ms per word + 1 second base time
                 const wordCount = transcribedText.split(' ').length;
                 const readingDelay = Math.max(1000, wordCount * 200);
-                
+
                 // Wait for screen reader to finish
                 await new Promise(resolve => setTimeout(resolve, readingDelay));
-                
+
                 // Send to API for processing with speech preserved
                 handleQuestionSubmit(transcribedText, true);
             } else {
-                setMessages(prev => [...prev, { 
+                setMessages(prev => [...prev, {
                     text: 'I couldn\'t detect any speech. Please try again.',
                     sender: 'bot'
                 }]);
             }
         } catch (error) {
             console.error('Error processing audio:', error);
-            setMessages(prev => [...prev, { 
+            setMessages(prev => [...prev, {
                 text: 'Sorry, I had trouble understanding that. Please try again.',
                 sender: 'bot'
             }]);
@@ -286,27 +279,26 @@ const Chatbot = ({
 
     // Add state for tracking previous answer
     const [previousAnswer, setPreviousAnswer] = useState(null);
-    const [conversationHistory, setConversationHistory] = useState([]);
 
     const handleQuestionSubmit = async (input, useSpeech = false) => {
         try {
             const startTime = Date.now();
             setIsLoading(true);
-            
+
             // Add more flexible matching for "What else can you do?"
             const whatElseRegex = /^what\s+(else|more)\s+(can|could)\s+(you|i)\s+(do|ask|say).*$/i;
-            if (whatElseRegex.test(input.trim()) || 
-                input.toLowerCase().includes("what can you do") || 
+            if (whatElseRegex.test(input.trim()) ||
+                input.toLowerCase().includes("what can you do") ||
                 input.toLowerCase().includes("what else can you do")) {
-                setMessages(prev => [...prev, { 
+                setMessages(prev => [...prev, {
                     text: `For the current dataset, I can:<br>
                             • Compare and sort data<br>
                             • Filter information<br>
                             • Find similar values and outliers<br>
                             • Describe patterns on the map<br>
                             • Describe state shapes<br>
-                            • Identify neighboring states`, 
-                    sender: 'bot' 
+                            • Identify neighboring states`,
+                    sender: 'bot'
                 }]);
                 setIsLoading(false);
                 return;
@@ -333,8 +325,8 @@ const Chatbot = ({
                     ? {
                         type: focus.type,
                         states: focus.states || [],
-                        full: focus.states?.length > 1 
-                          ? focus.states.join(', ') 
+                        full: focus.states?.length > 1
+                          ? focus.states.join(', ')
                           : focus.states?.[0] || ''
                       }
                     : {
@@ -347,7 +339,7 @@ const Chatbot = ({
 
             // Build conversation history from messages
             const messageHistory = messages.map(msg => msg.text);
-            
+
             // Get map viewport information (you'll need to pass this from the Map component)
             const mapViewport = {
                 zoom: window.mapZoomLevel || null,
@@ -357,8 +349,8 @@ const Chatbot = ({
 
             // Log the question data and get a question ID
             const questionId = await logQuestionData(
-                input, 
-                previousAnswer, 
+                input,
+                previousAnswer,
                 focus.type,
                 focus.states,
                 focus.county,
@@ -369,12 +361,12 @@ const Chatbot = ({
             );
 
             console.log('Conversation history:', messageHistory);
-  
+
             // Prepare the request data with clear property names to avoid confusion
             const requestData = {
                 input: input,
                 current_dataset: dataset,
-                current_focus: focus || { type: null, states: [], county: null, city: null, highlightOnly: false }, 
+                current_focus: focus || { type: null, states: [], county: null, city: null, highlightOnly: false },
                 previous_answer: previousAnswer,
                 conversation_history: messageHistory,
                 question_id: questionId,
@@ -401,20 +393,20 @@ const Chatbot = ({
 
             const data = await response.json();
             const processingTime = Date.now() - startTime;
-            
+
             console.log('Response:', {
                 "dataset": dataset,
                 "question_type": data.question_type,
                 "result": data.result,
                 "processing_time_ms": processingTime
             });
-            
+
             // Log the answer data
             await logAnswerData(
-                questionId, 
-                data.result, 
-                processingTime, 
-                dataset, 
+                questionId,
+                data.result,
+                processingTime,
+                dataset,
                 data.question_type
             );
 
@@ -422,9 +414,9 @@ const Chatbot = ({
             if (data.is_action) {
                 if (data.action_type === 'focus_city') {
                     // Handle city focus
-                    setMessages(prev => [...prev, { 
-                        text: `Focusing on ${data.city_name}, ${data.state}.`, 
-                        sender: 'bot' 
+                    setMessages(prev => [...prev, {
+                        text: `Focusing on ${data.city_name}, ${data.state}.`,
+                        sender: 'bot'
                     }]);
                     onFocusChange({
                         type: 'city',
@@ -444,9 +436,9 @@ const Chatbot = ({
                         states: [data.state],
                         highlightOnly: false
                     });
-                    setMessages(prev => [...prev, { 
-                        text: `Focusing on ${data.county_name}, ${data.state}.`, 
-                        sender: 'bot' 
+                    setMessages(prev => [...prev, {
+                        text: `Focusing on ${data.county_name}, ${data.state}.`,
+                        sender: 'bot'
                     }]);
                     return;
                 } else if (data.action_type === 'focus' && data.state) {
@@ -457,9 +449,9 @@ const Chatbot = ({
                         city: null,
                         highlightOnly: false
                     });
-                    setMessages(prev => [...prev, { 
-                        text: `Focusing on ${data.state}.`, 
-                        sender: 'bot' 
+                    setMessages(prev => [...prev, {
+                        text: `Focusing on ${data.state}.`,
+                        sender: 'bot'
                     }]);
                     return;
                 }
@@ -468,7 +460,6 @@ const Chatbot = ({
             // Handle question responses
             if (data.result) {
                 setPreviousAnswer(data.result); // Store the answer for context
-                setConversationHistory(prev => [...prev, input, data.result]); // Update conversation history
                 setLastBotMessage(data.result); // Add this line to track last bot message
                 if (data.question_type === 'get_pattern' ||  data.question_type === 'urban_rural_comparison') {
                     onPatternQuestion(true);
@@ -530,7 +521,7 @@ const Chatbot = ({
 
         } catch (error) {
             console.error('Error:', error);
-            setMessages(prev => [...prev, { 
+            setMessages(prev => [...prev, {
                 text: 'Sorry, I encountered an error. Please try again.',
                 sender: 'bot'
             }]);
@@ -545,9 +536,8 @@ const Chatbot = ({
 
         const userMessage = input;
         setInput('');
-        //setUseSpeech(false);  // Disable speech mode
         setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
-        handleQuestionSubmit(userMessage, false); 
+        handleQuestionSubmit(userMessage, false);
     };
 
     // Modify handleKeyDown for text input to ignore spacebar
@@ -559,44 +549,49 @@ const Chatbot = ({
 
     // Function to get general knowledge questions based on dataset
     const getGeneralQuestions = () => {
-        switch(dataset) {
-            case 'pct_tot_co':
-                return [
+
+          if (dataset === 'pct_tot_co') {
+            return [
                     "What's a choropleth map?",
                     "Is there a relationship between income and the percentage of underserved population?"
                 ];
-            case 'pct_no_bb_':
-                return [
+          } else if (dataset === 'pct_no_bb_') {
+            return [
                     "What's a choropleth map?",
                     "Is there a relationship between population density and the percentage of people lacking broadband or computer access?"
                 ];
-            case 'gas':
-                return [
+          } else if (dataset === 'gas') {
+            return [
                     "What's a dot density map?",
                     "Is there a relationship between climate and the number of households using heating fuel?"
                 ];
-            default: // ppl_densit
-                return [
+          } else {
+            return [
                     "What's a choropleth map?",
                     "Is there a relationship between income and population density?"
                 ];
-        }
-    };
+          }
+        };
 
     // Get fresh general questions whenever dataset changes
     const [generalQuestions, setGeneralQuestions] = useState([]);
-    
+
     useEffect(() => {
         setExampleQuestions(getExampleQuestions());
         setGeneralQuestions(getGeneralQuestions());
     }, [dataset]);
 
     useEffect(() => {
+        // Obtaining reference to avoid a call on a null object
+        const currentAudioElement = audioRef.current;
+
         // Cleanup function to stop audio when component unmounts or dataset changes
         return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
+            if (currentAudioElement) {
+                currentAudioElement.pause();
+                currentAudioElement.currentTime = 0;
+            } else {
+                console.log("Audio cleanup: No element found to clean up."); //
             }
         };
     }, [dataset]);
@@ -608,20 +603,27 @@ const Chatbot = ({
 
     // Add new useEffect for microphone permission
     useEffect(() => {
-        const requestMicrophonePermission = async () => {
-            try {
-                await navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        // Stop the stream right away - we just wanted the permission
-                        stream.getTracks().forEach(track => track.stop());
-                    });
-            } catch (error) {
-                console.log('Microphone permission was denied or error occurred:', error);
-            }
-        };
+        // Check if we already mounted this useEffect. If so exit early
+        if (mountedAlready.current) {
+          return;
+        }
+        mountedAlready.current = true;
 
         requestMicrophonePermission();
     }, []); // Empty dependency array means this runs once on mount
+
+    async function requestMicrophonePermission() {
+
+      try {
+        // this returns the stream directly
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // immediately stop every track
+        stream.getTracks().forEach(track => track.stop());
+        console.log("Completed")
+      } catch (error) {
+        console.log('Microphone permission was denied or error occurred:', error);
+      }
+    }
 
     // Add useEffect to monitor focused state changes
     useEffect(() => {
@@ -648,7 +650,7 @@ const Chatbot = ({
 
     // Add ref for the welcome section
     const welcomeRef = useRef(null);
-    
+
     // Add effect for Ctrl+H hotkey to show help popup
     useEffect(() => {
         const handleHelpHotkey = (e) => {
@@ -657,7 +659,7 @@ const Chatbot = ({
                 setIsHelpOpen(!isHelpOpen);
             }
         };
-        
+
         window.addEventListener('keydown', handleHelpHotkey);
         return () => window.removeEventListener('keydown', handleHelpHotkey);
     }, [isHelpOpen]);
@@ -672,7 +674,7 @@ const Chatbot = ({
             city: newFocus?.city || null,
             highlightOnly: newFocus?.highlightOnly || false
         };
-        
+
         // Update focus state with safe values
         onFocusChange(safeFocus);
     };
@@ -713,7 +715,7 @@ const Chatbot = ({
                 }
             }
         };
-        
+
         window.addEventListener('keydown', handleLastMessageHotkey);
         return () => window.removeEventListener('keydown', handleLastMessageHotkey);
     }, [lastBotMessage, announceCounter]);
@@ -726,27 +728,27 @@ const Chatbot = ({
                 rotateQuestions();
             }
         };
-        
+
         window.addEventListener('keydown', handleRefreshHotkey);
         return () => window.removeEventListener('keydown', handleRefreshHotkey);
     }, []);
 
     return (
-        <CardBody 
+        <CardBody
             className="flex flex-col h-full p-2 overflow-y-auto max-h-screen min-w-[300px]"
             role="region"
             aria-label="MapOutLoud chat interface"
             style={{ maxHeight: '100vh' }}
         >
-            <div 
-                id="welcome"  
+            <div
+                id="welcome"
                 ref={welcomeRef}
-                aria-live="polite" 
+                aria-live="polite"
                 role="region"
                 tabIndex="0"
                 aria-label="Welcome to MapOutLoud"
                 className="mb-4"
-            > 
+            >
                 <Typography variant="h6" color="blue-gray" className="mb-2" as="h1">
                     Welcome to MapOutLoud
                 </Typography>
@@ -795,9 +797,12 @@ const Chatbot = ({
                     </div>
                 </div>
 
+                {/* The Typography component underlying is a p tag. Therefore
+                    a div isn't allowed within it*/}
                 <Typography variant="small" color="gray" className="mb-4 text-xs">
                     Or you can ask me questions outside of the dataset:
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    {/* Changed this tag to a span from a div tag */}
+                    <span className="flex flex-wrap gap-2 mt-2">
                         {generalQuestions.map((question, index) => (
                             <span
                                 key={index}
@@ -814,7 +819,7 @@ const Chatbot = ({
                                 {question}
                             </span>
                         ))}
-                    </div>
+                    </span>
                 </Typography>
 
                 <Typography variant="small" color="gray" className="text-xs">
@@ -844,13 +849,13 @@ const Chatbot = ({
             </div>
 
             {/* Help Popup */}
-            <HelpPopup 
+            <HelpPopup
                 open={isHelpOpen}
                 handleOpen={() => setIsHelpOpen(!isHelpOpen)}
                 dataset={dataset}
             />
 
-            <div 
+            <div
                 ref={chatContainerRef}
                 className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md"
                 role="log"
@@ -873,19 +878,22 @@ const Chatbot = ({
                                         : 'bg-gray-200 text-gray-900 text-left text-xs'
                                 }`}
                             >
-                                <Typography 
-                                    variant="small" 
+                                <Typography variant="small" as="span"
                                     className="font-['Roboto'] font-normal leading-[1.2]"
-                                    dangerouslySetInnerHTML={{ __html: msg.text || ' ' }}
-                                />
+                                  >
+                                    {/* wrap the raw HTML (if any) in a span to satisfy children */}
+                                    <span
+                                      dangerouslySetInnerHTML={{ __html: msg.text || '' }}
+                                    />
+                                  </Typography>
                             </div>
                         </div>
                     ))}
                     {isLoading && (
                         <div className="flex justify-start mb-2">
                             <div className="py-2 px-4 rounded-md bg-gray-200 text-gray-900 text-left text-xs">
-                                <Typography 
-                                    variant="small" 
+                                <Typography
+                                    variant="small"
                                     className="font-['Roboto'] font-normal leading-[1.2] italic"
                                 >
                                     Looking for answers...
@@ -907,7 +915,7 @@ const Chatbot = ({
             </div>
 
             {/* Input, Microphone, and Send Button */}
-            <div 
+            <div
                 className="flex gap-2 items-center"
                 role="form"
                 aria-label="Message input"
@@ -943,12 +951,12 @@ const Chatbot = ({
                             />
                     </div>
                 </div>
-                <RecordButton 
+                <RecordButton
                     isRecording={isRecording}
                     onStartRecording={startRecording}
                     onStopRecording={stopRecording}
                 />
-                <Button 
+                <Button
                     onClick={handleSubmit}
                     className={`bg-teal-500 text-white p-2.5 aspect-square ${!isInputFocused ? 'opacity-50 cursor-not-allowed' : ''}`}
                     size="sm"

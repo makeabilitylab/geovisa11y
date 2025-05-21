@@ -49,7 +49,7 @@ class SemanticService:
         """Identify the type of question being asked using GPT"""
         try:
             metric_name = self.dataset_terms[current_dataset]['metric']
-            
+
             system_prompt = """You are a geographic data analysis expert. Your task is to classify questions about geographic data into one of these categories:
             1. retrieve - Direct value retrieval (e.g., "What's the X of State Y?")
             2. compare - Value comparisons (e.g., "Which state has higher X, Y or Z?")
@@ -112,7 +112,7 @@ class SemanticService:
             result = response.choices[0].message.content.strip().lower()
             if result == 'none':
                 return []
-                
+
             states = [state.strip() for state in result.split(',')]
             print(f"Debug - Extracted states: {states}")
             return states
@@ -126,13 +126,13 @@ class SemanticService:
         try:
             system_prompt = """You are a geographic data expert. Extract county and state names from the question.
             Return ONLY a JSON array of objects with county and state names found, or "none" if no counties are mentioned.
-            
+
             Rules:
             1. Always include both county and state when available
             2. For implicit state references (when state isn't mentioned), use null for state
             3. Remove the word "County" from county names
             4. Clean up any punctuation or extra spaces
-            
+
             Examples:
             "What's the population density of Hamilton County, Ohio?" -> [{"county": "Hamilton", "state": "Ohio"}]
             "What's the population of Clark County in Washington?" -> [{"county": "Clark", "state": "Washington"}]
@@ -157,7 +157,7 @@ class SemanticService:
                 return []
 
             counties = json.loads(result)
-            
+
             # If we have current_focus and any counties without state, fill in the state
             if current_focus:
                 state = None
@@ -165,12 +165,12 @@ class SemanticService:
                     state = current_focus['state']
                 elif isinstance(current_focus, str):
                     state = current_focus
-                    
+
                 if state:
                     # Handle case where state might be a list
                     if isinstance(state, list) and len(state) > 0:
                         state = state[0]
-                        
+
                     for county in counties:
                         if county['state'] is None:
                             county['state'] = state
@@ -185,7 +185,7 @@ class SemanticService:
     def is_out_of_scope(self, question, current_dataset, available_datasets=None):
         """
         Check if question is out of scope for the current dataset and available datasets using GPT
-        Returns: 
+        Returns:
             - If no available_datasets provided: bool - True if question should be handled by GPT directly
             - If available_datasets provided: (bool, str) - (is_out_of_scope, matching_dataset or None)
         """
@@ -198,9 +198,9 @@ class SemanticService:
             # This applies regardless of whether we're checking against available_datasets or not
             geo_scope_prompt = """You are an expert at analyzing geographic data questions.
             Determine if this question asks about geographic units that are NOT available in the dataset.
-            
+
             The dataset ONLY contains data at the state and county levels.
-            
+
             Return 'true' if the question asks about:
             - Cities or towns
             - Regions (Northeast, Midwest, South, West, etc.)
@@ -208,7 +208,7 @@ class SemanticService:
             - The world or other countries
             - Census tracts, zip codes, or other sub-county areas
             - Any other geographic unit that is NOT a state or county
-            
+
             Examples:
             - "What's the population density of Seattle?" -> true (city)
             - "Which region of the United States has the highest population density?" -> true (region)
@@ -216,7 +216,7 @@ class SemanticService:
             - "What's the population density of the Northeast region?" -> true (region)
             - "What's the population density of Texas?" -> false (state)
             - "What's the population density of Harris County?" -> false (county)
-            
+
             IMPORTANT: Return ONLY 'true' or 'false' as a single word.
             """
 
@@ -230,10 +230,10 @@ class SemanticService:
                 ],
                 temperature=0
             )
-            
+
             geo_out_of_scope = geo_response.choices[0].message.content.strip().lower() == 'true'
             print(f"Geographic scope check: {geo_out_of_scope}")
-            
+
             # If the question is about geographic units not available, it's out of scope
             if geo_out_of_scope:
                 return True if available_datasets is None else (True, None)
@@ -243,14 +243,14 @@ class SemanticService:
                 # Replace 'electricity' with 'electricit' in available_datasets if present
                 if 'electricity' in available_datasets:
                     available_datasets = [ds if ds != 'electricity' else 'electricit' for ds in available_datasets]
-                
+
                 # Create a list of all available metrics for the prompt
                 available_metrics = [f"{self.dataset_terms[ds]['metric']} ({ds})" for ds in available_datasets]
                 metrics_list = ", ".join(available_metrics)
-                
+
                 system_prompt = f"""You are an expert at analyzing geographic data questions.
                 Determine which dataset would best answer this question.
-                
+
                 Available datasets:
                 {metrics_list}
 
@@ -264,17 +264,17 @@ class SemanticService:
                 7. For questions about PERCENTAGES or PROPORTIONS of households using oil heating, return 'pct_oil'
                 8. For questions about underserved populations or underserved population percentages, return 'pct_tot_co'
                 9. For questions about people lacking broadband or computer access, return 'pct_no_bb_'
-                
+
                 CRITICAL DISTINCTIONS:
                 - If the question asks about "how many households" use a heating type, use the COUNT datasets (gas, electricit, oil)
                 - If the question asks about "what percentage" or "what proportion" of households use a heating type, use the PERCENTAGE datasets (pct_gas, pct_electr, pct_oil)
                 - If the question asks about comparing with neighbors, use the dataset that matches the metric being compared
                 - Questions about "underserved population" or "underserved populations" should use 'pct_tot_co'
-                
+
                 Return the dataset code in parentheses that best matches the question, or 'none' if the question:
                 1. Asks about a DIFFERENT metric than any available dataset
                 2. Asks conceptual questions about geography or metrics
-                
+
                 IMPORTANT: Return ONLY the dataset code or 'none' as a single word.
 
                 Examples:
@@ -296,22 +296,22 @@ class SemanticService:
                 )
                 result = response.choices[0].message.content.strip().lower()
                 print(f"Dataset match check: {result}")
-                
+
                 # Clean up the result - remove any parentheses or extra characters
                 result = result.strip('()')
                 result = result.strip()
-                
+
                 if result != 'none' and result in available_datasets:
                     # Question matches an available dataset
                     return False, result
                 else:
                     # Question doesn't match any available dataset
                     return True, None
-            
+
             # Original behavior when no available_datasets is provided
             system_prompt = """You are an expert at analyzing geographic data questions.
             Determine if this question can be answered using the current dataset.
-            
+
             Return 'true' if the question:
             1. Asks about a DIFFERENT metric than the current dataset
                Example: When viewing population density data:
@@ -356,23 +356,23 @@ class SemanticService:
             lower_question = question.lower()
             location_keywords = ['here', 'this state', 'that state', 'this county', 'that county', 'it', 'its']
             subject_keywords = ['what about', 'how about']
-            
+
             has_location_reference = any(keyword in lower_question for keyword in location_keywords)
             has_subject_reference = any(keyword in lower_question for keyword in subject_keywords)
-            
+
             # If we have an obvious ambiguity, handle it directly without calling the model
             if has_location_reference or has_subject_reference:
                 # Normalize current_focus for the context
                 if isinstance(current_focus, dict) and current_focus.get('county'):
                     county_name = current_focus['county']
                     state_name = current_focus.get('state')
-                    
+
                     # Handle array input for state
                     if not state_name and current_focus.get('states') and len(current_focus['states']) > 0:
                         state_name = current_focus['states'][0]
                     elif isinstance(state_name, list) and len(state_name) > 0:
                         state_name = state_name[0]
-                    
+
                     location = f"{county_name} County, {state_name}"
                     context_type = "county"
                     location_components = {
@@ -382,13 +382,13 @@ class SemanticService:
                 elif isinstance(current_focus, dict) and current_focus.get('city'):
                     city_info = current_focus['city']
                     state_name = current_focus.get('state')
-                    
+
                     # Handle array input for state
                     if not state_name and current_focus.get('states') and len(current_focus['states']) > 0:
                         state_name = current_focus['states'][0]
-                    
+
                     city_name = city_info.get('name') if isinstance(city_info, dict) else city_info
-                    
+
                     location = f"{city_name}, {state_name}"
                     context_type = "city"
                     location_components = {
@@ -401,12 +401,12 @@ class SemanticService:
                         location = current_focus['states'][0]
                     else:
                         location = current_focus.get('state') if isinstance(current_focus, dict) else current_focus
-                    
+
                     context_type = "state"
                     location_components = {
                         "state": location
                     }
-                
+
                 ambiguity_type = None
                 if has_location_reference and has_subject_reference:
                     ambiguity_type = "both"
@@ -414,35 +414,35 @@ class SemanticService:
                     ambiguity_type = "location_reference"
                 else:
                     ambiguity_type = "subject_reference"
-                
+
                 context_needed = {
                     'location': location,
                     'type': context_type,
                     'components': location_components,
                     'subject': None
                 }
-                
+
                 return True, ambiguity_type, context_needed
-            
+
             # If no obvious ambiguity is found, proceed with the model-based check
             system_prompt = """You are an expert at analyzing geographic questions for ambiguity.
             Analyze if the question contains any ambiguous "references" that require context to resolve.
-            
+
             There are two types of ambiguity:
-            
+
             1. "location_reference" - when the location is ambiguous:
                - The input includes "here" (e.g., "What's the population density here?")
                - The input includes "it/its" referring to a location (e.g., "What does it look like?", "What are its neighbors?")
                - The input includes "this/that state/county" without naming it (e.g., "What's the population of this state?")
                - The input includes "the biggest/second largest city" without naming the state context (e.g., "What's the biggest city?")
-            
+
             2. "subject_reference" - when the subject is ambiguous:
                - The input refers to a previous question's subject without specifying it (e.g., "What about Illinois?")
                - The input uses comparative terms without clear reference (e.g., "How does it compare to California?")
                - The input uses ordinal references without context (e.g., "What's the third largest?")
-            
+
             A question can have both types of ambiguity simultaneously.
-            
+
             Respond with ONLY a JSON string in this exact format:
             {
                 "is_ambiguous": true/false,
@@ -460,13 +460,13 @@ class SemanticService:
                 # Ensure we keep both county and state information
                 county_name = current_focus['county']
                 state_name = current_focus.get('state')
-                
+
                 # Handle array input for state
                 if not state_name and current_focus.get('states') and len(current_focus['states']) > 0:
                     state_name = current_focus['states'][0]
                 elif isinstance(state_name, list) and len(state_name) > 0:
                     state_name = state_name[0]
-                
+
                 location = f"{county_name} County, {state_name}"
                 context_type = "county"
                 # Store the components separately for better context handling
@@ -477,13 +477,13 @@ class SemanticService:
             elif isinstance(current_focus, dict) and current_focus.get('city'):
                 city_info = current_focus['city']
                 state_name = current_focus.get('state')
-                
+
                 # Handle array input for state
                 if not state_name and current_focus.get('states') and len(current_focus['states']) > 0:
                     state_name = current_focus['states'][0]
-                
+
                 city_name = city_info.get('name') if isinstance(city_info, dict) else city_info
-                
+
                 location = f"{city_name}, {state_name}"
                 context_type = "city"
                 location_components = {
@@ -496,7 +496,7 @@ class SemanticService:
                     location = current_focus['states'][0]
                 else:
                     location = current_focus.get('state') if isinstance(current_focus, dict) else current_focus
-                
+
                 context_type = "state"
                 location_components = {
                     "state": location
@@ -532,7 +532,7 @@ class SemanticService:
 
             result = json.loads(response.choices[0].message.content.strip())
             print(f"ambiguity_check_result: {result}")
-            
+
             # If ambiguous and we have context, provide it
             if result["is_ambiguous"] and location:
                 if result.get("ambiguity_type") in ["location_reference", "both"]:
@@ -585,36 +585,36 @@ class SemanticService:
 
         try:
             system_prompt = """You are an expert at resolving ambiguous geographic questions.
-            Given a question with ambiguous references and the context, rewrite the question 
+            Given a question with ambiguous references and the context, rewrite the question
             to be explicit and unambiguous.
-            
+
             For location references:
             - Replace "here" with the specific location name INCLUDING BOTH COUNTY AND STATE when applicable
             - Replace "it/its" referring to a location with the complete location name
             - Replace "this/that state/county" with the specific location name
             - For counties, ALWAYS include both county name AND state (e.g., "Clark County, Washington")
             - Add state context to city references when missing
-            
+
             For subject references:
             - Use the conversation history to determine what subject the user is referring to
             - Replace vague references like "what about" with the specific subject from previous exchanges
             - For comparative questions, make both the subject and location explicit
             - When the subject is a heating type (gas, electricity, oil), be specific about "households with [type] heating"
-            
+
             Examples:
-            
+
             Question: "What's the population density here?"
             Context: {"location": "California", "type": "state"}
             Resolved: "What's the population density in California?"
-            
+
             Question: "What about Illinois?"
             Context: {"location": "Kansas", "type": "state", "conversation_history": "User: What's the income level of Kansas? Assistant: The median household income in Kansas is $59,597."}
             Resolved: "What's the income level of Illinois?"
-            
+
             Question: "What about electricity?"
             Context: {"location": "Michigan", "type": "state", "conversation_history": "User: How many households use gas heating in Michigan? Assistant: Michigan has 3,371,101 households with gas heating."}
             Resolved: "How many households use electricity heating in Michigan?"
-            
+
             Question: "How does it compare to its neighbors?"
             Context: {"location": "Kansas", "type": "state", "conversation_history": "User: What's the income level of Kansas? Assistant: The median household income in Kansas is $59,597."}
             Resolved: "How does the income level of Kansas compare to the income levels of Kansas's neighboring states?"
@@ -622,7 +622,7 @@ class SemanticService:
             Question: "What's the population density here?"
             Context: {"location": "Clark County, Washington", "type": "county"}
             Resolved: "What's the population density in Clark County, Washington?"
-            
+
             Question: "What's the biggest city?"
             Context: {"location": "New York", "type": "state"}
             Resolved: "What's the biggest city in New York state?"
@@ -675,7 +675,7 @@ class SemanticService:
                         Return exactly "None" if it's not a navigation command.
                         If it is a navigation command for a state, return a JSON object with "type": "state" and "name": state_name.
                         If it is a navigation command for a city, return a JSON object with "type": "city", "city", "state", and "coordinates".
-                        
+
                         Examples:
                         "Take me to California" -> {"type": "state", "name": "California"}
                         "What is the population of Texas" -> "None"
@@ -692,15 +692,22 @@ class SemanticService:
                 temperature=0,
                 max_tokens=100
             )
-            
+
             result = response.choices[0].message.content.strip()
             if result == "None":
                 return False, None
-            
+
             print(f"navigation_action_result: {result}")
+
             # Try to parse as JSON
             try:
                 location_info = json.loads(result)
+                print(f"The format of json: {location_info}")
+                # Test against non‐dict results
+                if not isinstance(location_info, dict):
+                    raise ValueError("parsed JSON is not an object")
+
+
                 if location_info["type"] == "city":
                     return True, ("city", {
                         "city": location_info["city"],
@@ -718,6 +725,7 @@ class SemanticService:
                 return False, None
 
         except Exception as e:
+            # Error being thrown here.
             print(f"Error in is_navigation_action: {str(e)}")
             # Fall back to regex pattern if API fails
             action_match = re.match(r'^(?:focus\s+on|go\s+to)\s+(.+)$', user_input, re.IGNORECASE)

@@ -18,7 +18,7 @@ const generateQuestionId = () => {
   return uuidv4();
 };
 
-const API_URL = process.env.NODE_ENV === 'production' 
+const API_URL = process.env.NODE_ENV === 'production'
   ? 'https://mappie-talkie-api-245835075814.us-central1.run.app/api/logs'
   : 'http://localhost:5000/api/logs';
 
@@ -30,18 +30,25 @@ const logToMongoDB = async (logData) => {
     logData.timestamp = new Date().toISOString();
     logData.screen_resolution = `${window.screen.width}x${window.screen.height}`;
     logData.user_agent = navigator.userAgent;
-    
+
     const response = await axios.post(API_URL, logData, {
       withCredentials: true,
       headers: {
         'Content-Type': 'application/json',
       }
     });
-    
+
     // console.log('Log successfully sent to MongoDB:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error sending log to MongoDB:', error);
+    //console.error('Error sending log to MongoDB:', error);
+    console.error("Error sending log to MongoDB: ", {
+      message: error.message,
+      endpoint: API_URL,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data
+    });
     return false;
   }
 };
@@ -59,7 +66,7 @@ const logQuestionData = async (
   mapViewport               // mapViewport from Chatbot.js
 ) => {
   const questionId = generateQuestionId();
-  
+
   const logData = {
     log_type: 'question',
     question_id: questionId,
@@ -73,7 +80,7 @@ const logQuestionData = async (
     current_dataset: dataset,
     map_viewport: mapViewport
   };
-  
+
   // console.log('Logging question data:', logData);
   const result = await logToMongoDB(logData);
   return questionId;
@@ -86,7 +93,7 @@ const logProcessingData = async (questionId, processingData) => {
     question_id: questionId,
     ...processingData
   };
-  
+
   // console.log('Logging processing data:', logData);
   return await logToMongoDB(logData);
 };
@@ -102,7 +109,7 @@ const logAnswerData = async (questionId, result, processingTime, dataset, questi
     dataset: dataset,
     question_type: questionType
   };
-  
+
   // console.log('Logging answer data:', logData);
   return await logToMongoDB(logData);
 };
@@ -117,7 +124,7 @@ const logMapInteraction = async (interactionType, viewport, focusedState, focuse
     focused_county: focusedCounty,
     focus_method: focusMethod // 'map' or 'chatbot'
   };
-  
+
   // console.log('Logging map interaction:', logData);
   return await logToMongoDB(logData);
 };
@@ -126,23 +133,23 @@ const logMapInteraction = async (interactionType, viewport, focusedState, focuse
 const logSessionEnd = async () => {
   const sessionId = getSessionId();
   const sessionStart = localStorage.getItem('mappie_session_start');
-  
+
   const logData = {
     log_type: 'session_end',
     session_id: sessionId,
     session_start: sessionStart,
     session_duration_ms: new Date() - new Date(sessionStart)
   };
-  
+
   // console.log('Logging session end:', logData);
   return await logToMongoDB(logData);
 };
 
-export { 
-  logQuestionData, 
-  logProcessingData, 
-  logAnswerData, 
-  logMapInteraction, 
+export {
+  logQuestionData,
+  logProcessingData,
+  logAnswerData,
+  logMapInteraction,
   logSessionEnd,
   generateQuestionId
 };
