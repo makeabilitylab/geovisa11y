@@ -694,20 +694,32 @@ class SemanticService:
             )
 
             result = response.choices[0].message.content.strip()
-            if result == "None":
+
+            # Removing wrapping quotes, if present. This response can implictly
+            # add quotes around the returning string
+            sanitizedResult = result
+            if sanitizedResult.startswith('"') and sanitizedResult.endswith('"'):
+                # Take everything from the first index to the second to last
+                # index from the right. Again this is zero based
+                sanitizedResult = sanitizedResult[1:-1]
+
+            if sanitizedResult == "None":
                 return False, None
 
-            print(f"navigation_action_result: {result}")
+            print(f"navigation_action_result after test: {sanitizedResult}")
 
             # Try to parse as JSON
             try:
-                location_info = json.loads(result)
-                print(f"The format of json: {location_info}")
+                location_info = json.loads(sanitizedResult)
+
                 # Test against non‐dict results
                 if not isinstance(location_info, dict):
                     raise ValueError("parsed JSON is not an object")
 
 
+                # Missing country processing. Right now only have city and
+                # state
+                # TODO
                 if location_info["type"] == "city":
                     return True, ("city", {
                         "city": location_info["city"],
@@ -717,7 +729,7 @@ class SemanticService:
                 else:  # state navigation
                     return True, ("state", location_info["name"])
             except json.JSONDecodeError:
-                print(f"Error parsing JSON response: {result}")
+                print(f"Error parsing JSON response: {sanitizedResult}")
                 # Fall back to regex pattern
                 action_match = re.match(r'^(?:focus\s+on|go\s+to)\s+(.+)$', user_input, re.IGNORECASE)
                 if action_match:

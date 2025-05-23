@@ -340,6 +340,8 @@ def answer_question(question, current_dataset, current_focus=None):
 
         print(f"DEBUG - State filter extracted: {state_filter}, County view: {county_view}")
 
+        # SCOPE SOME OF THE question type handling into a seperate function
+
         # Handle pattern questions before metric check
         if question_type == 'get_pattern':
             # For Task2, return hardcoded answer about heating fuel patterns
