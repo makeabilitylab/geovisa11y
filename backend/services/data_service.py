@@ -15,6 +15,9 @@ from scipy.stats import chi2_contingency
 import libpysal
 from scipy.spatial.distance import squareform, pdist
 
+# Import MetricInfo dataset information via absolute importing
+from services.MetricInfo import MetricInfo
+
 # Initialize DuckDB connection
 con = duckdb.connect('database/spatial-db.db', read_only=True)
 con.execute("INSTALL 'spatial';")
@@ -24,7 +27,8 @@ con.execute("LOAD 'spatial';")
 semantic_service = SemanticService()
 
 # Define a centralized metric mapping dictionary with simplified structure
-METRIC_MAPPING = {
+# The keys are a dataset
+METRIC_MAPPING_DATA_SERVICE = {
     'ppl_densit': {
         'name': 'population density',
         'unit': 'people per square mile',
@@ -76,42 +80,10 @@ METRIC_MAPPING = {
     }
 }
 
-## Metric Info Class
-class MetricInfo:
-    def __init__(self, dataset ,name, unit, is_percentage, prefix):
-        self.dataset = dataset
-        self.name = name
-        self.unit = unit
-        self.is_percentage = is_percentage
-        self.prefix = prefix
-
-    # Add a formatting function to the metric info
-    def format_value(self, value):
-        if self.is_percentage or self.dataset.startswith('pct_'):
-            # Multiply by 100 for percentage values if they're in decimal form (0-1 range)
-            if value < 1:
-                value = value * 100
-            return f"{value:.1f}%"
-        else:
-            # For non-percentage values, format based on the type of metric
-            if self.unit == 'households':
-                # Format household counts as integers
-                return f"{int(value):,} {self.unit}"
-            elif self.unit:
-                # For other units like population density, use 2 decimal places
-                return f"{value:.2f} {self.unit}"
-            else:
-                return f"{value:.2f}"
-
-    def get_description(self):
-        if self.prefix:
-            return f"{self.prefix} {self.name}"
-        return self.name
-
 def get_metric_info(dataset):
     """Get metric information for a dataset and handle percentage formatting"""
     # Get the base metric info or create a default one
-    metric_info = METRIC_MAPPING.get(dataset, {
+    metric_info = METRIC_MAPPING_DATA_SERVICE.get(dataset, {
         'name': dataset,
         'unit': '',
         'is_percentage': dataset.startswith('pct_')

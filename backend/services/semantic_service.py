@@ -3,10 +3,11 @@ import openai
 import re
 import json
 
-class SemanticService:
-    def __init__(self):
-        # Define dataset-specific terms
-        self.dataset_terms = {
+# Import MetricInfo dataset information via absolute importing
+from services.MetricInfo import MetricInfo
+
+# The keys are a dataset
+METRIC_MAPPING_SEMANTIC = {
             'ppl_densit': {
                 'metric': 'population density',
                 'unit': 'people per square mile'
@@ -45,10 +46,39 @@ class SemanticService:
             }
         }
 
+class SemanticService:
+    def __init__(self):
+        # TODO: might remove later
+        # Define dataset-specific terms
+        self.dataset_terms = METRIC_MAPPING_SEMANTIC
+
+
+    # SemanticServices version of parsing out each datasets metadata cleanly
+    # in this file
+    def get_metric_info(self, dataset):
+      """Get metric information for a dataset and handle percentage formatting"""
+      # Get the base metric info or create a default one
+      metric_info = METRIC_MAPPING_SEMANTIC.get(dataset, {
+          'metric': dataset,
+          'unit': '',
+          'is_percentage': dataset.startswith('pct_')
+      })
+
+      # instantiate MetricInfo with the raw dataset and all its params
+      return MetricInfo(
+          dataset=dataset,
+          name=metric_info['metric'],
+          unit=metric_info.get('unit', ''),
+          # These fields will be set as defaults in this class
+          is_percentage=metric_info.get('is_percentage', False),
+          prefix=metric_info.get('prefix', '')
+      )
+
     def identify_question_type(self, question, current_dataset='ppl_densit'):
         """Identify the type of question being asked using GPT"""
         try:
-            metric_name = self.dataset_terms[current_dataset]['metric']
+            metric_info = self.get_metric_info(current_dataset)
+            metric_name = metric_info.metric
 
             system_prompt = """You are a geographic data analysis expert. Your task is to classify questions about geographic data into one of these categories:
             1. retrieve - Direct value retrieval (e.g., "What's the X of State Y?")
@@ -191,8 +221,9 @@ class SemanticService:
         """
         try:
             # Get the correct metric name from dataset_terms
-            metric_name = self.dataset_terms[current_dataset]['metric']
-            unit = self.dataset_terms[current_dataset]['unit']
+            metric_info = self.get_metric_info(current_dataset)
+            metric_name = metric_info.metric
+            unit = metric_info.unit
 
             # First, check if the question is about geographic units not available in the dataset
             # This applies regardless of whether we're checking against available_datasets or not
@@ -245,7 +276,8 @@ class SemanticService:
                     available_datasets = [ds if ds != 'electricity' else 'electricit' for ds in available_datasets]
 
                 # Create a list of all available metrics for the prompt
-                available_metrics = [f"{self.dataset_terms[ds]['metric']} ({ds})" for ds in available_datasets]
+                # TODO: Verify that this access is correct
+                available_metrics = [f"{self.get_metric_info(ds).metric} ({ds})" for ds in available_datasets]
                 metrics_list = ", ".join(available_metrics)
 
                 system_prompt = f"""You are an expert at analyzing geographic data questions.
@@ -705,8 +737,6 @@ class SemanticService:
 
             if sanitizedResult == "None":
                 return False, None
-
-            print(f"navigation_action_result after test: {sanitizedResult}")
 
             # Try to parse as JSON
             try:
