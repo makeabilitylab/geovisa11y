@@ -23,7 +23,7 @@ con = duckdb.connect('database/spatial-db.db', read_only=True)
 con.execute("INSTALL 'spatial';")
 con.execute("LOAD 'spatial';")
 
-# Initialize the semantic service
+# Initialize the semantic service (Globally scopped)
 semantic_service = SemanticService()
 
 # Define a centralized metric mapping dictionary with simplified structure
@@ -314,50 +314,34 @@ def answer_question(question, current_dataset, current_focus=None):
 
         # SCOPE SOME OF THE question type handling into a seperate function
 
-        # Handle pattern questions before metric check
-        if question_type == 'get_pattern':
-            # For Task2, return hardcoded answer about heating fuel patterns
-            if current_dataset in ['gas', 'electricity', 'oil']:
-                # Use urban_rural_comparison when in county view OR when we have a state filter
-                if county_view and state_filter:
-                    result = compare_urban_rural_heating_fuels(state_filter)
-                    return {
-                        'result': result,
-                        'dataset': current_dataset,
-                        'question_type': 'urban_rural_comparison',
-                        'state': state_filter
-                    }
-                # For state level view, use the original hardcoded answer
-                else:
-                    pattern_result = 'Yes, there is a clustered pattern in the map; states with similar heating fuel composition tend to be located near each other.'
-                    description_result = 'Southern states like Florida, Texas, and Georgia use predominantly electricity, midwestern states like Minnesota, Illinois, and Wisconsin use predominantly gas, and northeastern states like Maine and Vermont use predominantly oil.'
-                    return {
-                        'result': f"{pattern_result} {description_result}",
-                        'dataset': current_dataset,
-                        'question_type': 'get_pattern'
-                    }
+        # Map for handing each question type
+        # Currently omitting the else if for urban rural comparasion since
+        # its a bit complicated
+        question_hander_map = {
+          'get_pattern': handle_get_pattern,
+          'retrieve':  handle_retrieve,
+          'compare':  handle_compare,
+          'find_extremum': handle_find_extremum,
+          'aggregate':  handle_aggregate,
+          'filter':  handle_filter,
+          'sort': handle_sort,
+          'data_ranges':  handle_data_ranges,
+          'cluster':  handle_cluster,
+          'find_outliers': handle_find_outliers,
+          'correlate':  handle_none,
+          'describe_shape':  handle_none,
+          'others':  handle_none,
+          'compare_neighbors': handle_compare_neighbors,
+        }
 
-            # For other datasets, combine Moran's I and LISA analysis
-            moran_result = get_moran_i(current_dataset, state_filter if county_view else None)
+        # Process Question
+        handler = question_hander_map.get(question_type)
 
-            # If there's no pattern, just return that without the description
-            if moran_result['pattern'] == 'random':
-                return {
-                    'result': moran_result['description'],
-                    'dataset': current_dataset,
-                    'question_type': 'get_pattern'
-                }
+        if handler:
+            return handler(current_dataset, question, current_focus, state_filter, county_view)
 
-            # Otherwise, add the pattern description
-            lisa_result = get_lisa_clusters(current_dataset, state_filter if county_view else None)
-            pattern_description = get_gpt_spatial_pattern_summary(lisa_result, current_dataset, state_filter if county_view else None)
-
-            return {
-                'result': f"{moran_result['description']} {pattern_description}",
-                'dataset': current_dataset,
-                'question_type': 'get_pattern'
-            }
-
+        ''' TODO: REMOVE LATER AFTER Chu approves
+        # A one of case, that is more specific then generalized
         elif question_type == 'urban_rural_comparison' and current_dataset in ['gas', 'electricity', 'oil']:
             # Extract state from the question or use the current focused state
             states = semantic_service.extract_states(question)
@@ -394,161 +378,203 @@ def answer_question(question, current_dataset, current_focus=None):
                     'dataset': current_dataset,
                     'question_type': 'clarification_needed'
                 }
-
-        if question_type == 'retrieve':
-            # Check if this is a county question
-            if 'County' in question:
-                try:
-                    # Extract county information using the new method
-                    counties = semantic_service.extract_counties(question, current_focus)
-                    if counties:
-                        county_info = counties[0]  # Take the first county if multiple are found
-                        print(f"Debug - Using county: {county_info['county']}, state: {county_info['state']}")
-
-                        result = retrieve_value(county_info['county'], current_dataset,
-                                             is_county=True, state=county_info['state'])
-                        if result:
-                            return {
-                                'result': result['result'],
-                                'county': county_info['county'],
-                                'state': county_info['state'],
-                                'dataset': current_dataset,
-                                'question_type': 'retrieve'
-                            }
-
-                    print("Debug - County parsing failed, falling back to state-level")
-                except Exception as e:
-                    print(f"Error parsing county question: {str(e)}")
-
-            # Handle state-level questions
-            states = semantic_service.extract_states(question)
-            if not states:
-                return None
-            result = retrieve_value(states[0], current_dataset)
-            return {
-                'result': result['result'],
-                'state': result['state'],
-                'dataset': current_dataset,
-                'question_type': 'retrieve'
-            }
-
-        elif question_type == 'compare':
-            states = semantic_service.extract_states(question)
-            if len(states) != 2:
-                return None
-            result = compare_states(states[0], states[1], current_dataset)
-            return {
-                'result': result,
-                'states': states,
-                'dataset': current_dataset,
-                'question_type': 'compare'
-            }
-
-        elif question_type == 'find_extremum':
-            result = get_extrema(question, current_dataset, state_filter)
-            return {
-                'result': result['result'],
-                'state': result['state'],
-                'county': result['county'],
-                'dataset': current_dataset,
-                'question_type': 'find_extremum'
-            }
-
-        elif question_type == 'aggregate':
-            result = get_mean(current_dataset)
-            return {
-                'result': result,
-                'dataset': current_dataset,
-                'question_type': 'aggregate'
-            }
-
-        elif question_type == 'filter':
-            result = filter(question, current_dataset)
-            return {
-                'result': result,
-                'dataset': current_dataset,
-                'question_type': 'filter'
-            }
-
-        elif question_type == 'sort':
-            result = sort(question, current_dataset)
-            return {
-                'result': result,
-                'dataset': current_dataset,
-                'question_type': 'sort'
-            }
-
-        elif question_type == 'data_ranges':
-            result = get_data_range(current_dataset)
-            return {
-                'result': result,
-                'dataset': current_dataset,
-                'question_type': 'data_ranges'
-            }
-
-        elif question_type == 'cluster':
-            states = semantic_service.extract_states(question)
-            if not states:
-                return None
-            result = find_similar(states[0], current_dataset)
-            return {
-                'result': result['result'],
-                'state': result['state'],
-                'dataset': current_dataset,
-                'question_type': 'cluster'
-            }
-
-        elif question_type == 'find_outliers':
-            result = get_lisa_clusters(current_dataset, state_filter if county_view else None)
-            outliers = find_outliers(result, current_dataset)
-            return {
-                'result': outliers,
-                'dataset': current_dataset,
-                'question_type': 'find_outliers'
-            }
-
-        elif question_type == 'correlate':
-            return None
-
-        elif question_type == 'describe_shape':
-            return None
-
-        elif question_type == 'others':
-            return None
-
-        elif question_type == 'compare_neighbors':
-            states = semantic_service.extract_states(question)
-            state = None
-
-            # If state is explicitly mentioned in question
-            if states:
-                state = states[0]
-            # Otherwise use the current focus
-            elif current_focus:
-                if isinstance(current_focus, dict):
-                    state = current_focus.get('state')
-                    # Handle array input for state
-                    if not state and current_focus.get('states') and len(current_focus['states']) > 0:
-                        state = current_focus['states'][0]
-                else:
-                    state = current_focus
-
-            if state:
-                result = compare_with_neighbors(state, current_dataset)
-                return {
-                    'result': result['result'],
-                    'state': result['state'],
-                    'dataset': current_dataset,
-                    'question_type': 'compare_neighbors'
-                }
-            return None
-
+        '''
         return None
 
     except Exception as e:
         print(f"Error in answer_question: {str(e)}")
         return None
 
+#######################################
+# Map Handler Functions
+#######################################
+
+def handle_get_pattern(current_dataset, question, current_focus, state_filter, county_view):
+    # For Task2, return hardcoded answer about heating fuel patterns
+    if current_dataset in ['gas', 'electricity', 'oil']:
+        # Use urban_rural_comparison when in county view OR when we have a state filter
+        if county_view and state_filter:
+            result = compare_urban_rural_heating_fuels(state_filter)
+            return {
+                'result': result,
+                'dataset': current_dataset,
+                'question_type': 'urban_rural_comparison',
+                'state': state_filter
+            }
+        # For state level view, use the original hardcoded answer
+        else:
+            pattern_result = 'Yes, there is a clustered pattern in the map; states with similar heating fuel composition tend to be located near each other.'
+            description_result = 'Southern states like Florida, Texas, and Georgia use predominantly electricity, midwestern states like Minnesota, Illinois, and Wisconsin use predominantly gas, and northeastern states like Maine and Vermont use predominantly oil.'
+            return {
+                'result': f"{pattern_result} {description_result}",
+                'dataset': current_dataset,
+                'question_type': 'get_pattern'
+            }
+
+    # For other datasets, combine Moran's I and LISA analysis
+    moran_result = get_moran_i(current_dataset, state_filter if county_view else None)
+
+    # If there's no pattern, just return that without the description
+    if moran_result['pattern'] == 'random':
+        return {
+            'result': moran_result['description'],
+            'dataset': current_dataset,
+            'question_type': 'get_pattern'
+        }
+
+    # Otherwise, add the pattern description
+    lisa_result = get_lisa_clusters(current_dataset, state_filter if county_view else None)
+    pattern_description = get_gpt_spatial_pattern_summary(lisa_result, current_dataset, state_filter if county_view else None)
+
+    return {
+        'result': f"{moran_result['description']} {pattern_description}",
+        'dataset': current_dataset,
+        'question_type': 'get_pattern'
+    }
+
+
+def handle_retrieve(current_dataset, question, current_focus, state_filter, county_view):
+    # Check if this is a county question
+    if 'County' in question:
+        try:
+            # Extract county information using the new method
+            counties = semantic_service.extract_counties(question, current_focus)
+            if counties:
+                county_info = counties[0]  # Take the first county if multiple are found
+                print(f"Debug - Using county: {county_info['county']}, state: {county_info['state']}")
+
+                result = retrieve_value(county_info['county'], current_dataset,
+                                      is_county=True, state=county_info['state'])
+                if result:
+                    return {
+                        'result': result['result'],
+                        'county': county_info['county'],
+                        'state': county_info['state'],
+                        'dataset': current_dataset,
+                        'question_type': 'retrieve'
+                    }
+
+            print("Debug - County parsing failed, falling back to state-level")
+        except Exception as e:
+            print(f"Error parsing county question: {str(e)}")
+
+    # Handle state-level questions
+    states = semantic_service.extract_states(question)
+    if not states:
+        return None
+    result = retrieve_value(states[0], current_dataset)
+    return {
+        'result': result['result'],
+        'state': result['state'],
+        'dataset': current_dataset,
+        'question_type': 'retrieve'
+    }
+
+def handle_compare(current_dataset, question, current_focus, state_filter, county_view):
+    states = semantic_service.extract_states(question)
+    if len(states) != 2:
+        return None
+    result = compare_states(states[0], states[1], current_dataset)
+    return {
+        'result': result,
+        'states': states,
+        'dataset': current_dataset,
+        'question_type': 'compare'
+    }
+
+def handle_find_extremum(current_dataset, question, current_focus, state_filter, county_view):
+    result = get_extrema(question, current_dataset, state_filter)
+    return {
+        'result': result['result'],
+        'state': result['state'],
+        'county': result['county'],
+        'dataset': current_dataset,
+        'question_type': 'find_extremum'
+    }
+
+def handle_aggregate(current_dataset, question, current_focus, state_filter, county_view):
+    result = get_mean(current_dataset)
+    return {
+        'result': result,
+        'dataset': current_dataset,
+        'question_type': 'aggregate'
+    }
+
+def handle_filter(current_dataset, question, current_focus, state_filter, county_view):
+    result = filter(question, current_dataset)
+    return {
+        'result': result,
+        'dataset': current_dataset,
+        'question_type': 'filter'
+    }
+
+def handle_sort(current_dataset, question, current_focus, state_filter, county_view):
+    result = sort(question, current_dataset)
+    return {
+        'result': result,
+        'dataset': current_dataset,
+        'question_type': 'sort'
+    }
+
+def handle_data_ranges(current_dataset, question, current_focus, state_filter, county_view):
+    result = get_data_range(current_dataset)
+    return {
+        'result': result,
+        'dataset': current_dataset,
+        'question_type': 'data_ranges'
+    }
+
+def handle_cluster(current_dataset, question, current_focus, state_filter, county_view):
+    states = semantic_service.extract_states(question)
+    if not states:
+        return None
+    result = find_similar(states[0], current_dataset)
+    return {
+        'result': result['result'],
+        'state': result['state'],
+        'dataset': current_dataset,
+        'question_type': 'cluster'
+    }
+
+def handle_find_outliers(current_dataset, question, current_focus, state_filter, county_view):
+    result = get_lisa_clusters(current_dataset,
+                              state_filter if county_view else None)
+    outliers = find_outliers(result, current_dataset)
+    return {
+        'result': outliers,
+        'dataset': current_dataset,
+        'question_type': 'find_outliers'
+    }
+
+def handle_none(current_dataset, question, current_focus, state_filter, county_view):
+    return None
+
+def handle_compare_neighbors(current_dataset, question, current_focus, state_filter, county_view):
+    states = semantic_service.extract_states(question)
+    state = None
+
+    # If state is explicitly mentioned in question
+    if states:
+        state = states[0]
+    # Otherwise use the current focus
+    elif current_focus:
+        if isinstance(current_focus, dict):
+            state = current_focus.get('state')
+            # Handle array input for state
+            if not state and current_focus.get('states') and len(current_focus['states']) > 0:
+                state = current_focus['states'][0]
+        else:
+            state = current_focus
+
+    if state:
+        result = compare_with_neighbors(state, current_dataset)
+        return {
+            'result': result['result'],
+            'state': result['state'],
+            'dataset': current_dataset,
+            'question_type': 'compare_neighbors'
+        }
+    return None
 
 #######################################
 # Query Functions
