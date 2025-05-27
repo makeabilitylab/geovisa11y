@@ -8,8 +8,6 @@ class MetricInfo:
         self.unit = unit
         self.is_percentage = is_percentage
         self.prefix = prefix
-        # Semantic service name
-        self.metric = name
 
     # Add a formatting function to the metric info
     def format_value(self, value):

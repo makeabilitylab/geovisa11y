@@ -8,43 +8,52 @@ from services.MetricInfo import MetricInfo
 
 # The keys are a dataset
 METRIC_MAPPING_SEMANTIC = {
-            'ppl_densit': {
-                'metric': 'population density',
-                'unit': 'people per square mile'
-            },
-            'pct_tot_co': {
-                'metric': 'underserved population percentage',
-                'unit': 'percent'
-            },
-            'pct_no_bb_': {
-                'metric': 'percentage of people lacking broadband and computer access',
-                'unit': 'percent'
-            },
-            'gas': {
-                'metric': 'number of households with gas heating',
-                'unit': 'count'
-            },
-            'electricit': {
-                'metric': 'number of households with electric heating',
-                'unit': 'count'
-            },
-            'oil': {
-                'metric': 'number of households with oil heating',
-                'unit': 'count'
-            },
-            'pct_gas': {
-                'metric': 'percentage of households with gas heating',
-                'unit': 'percent'
-            },
-            'pct_electr': {
-                'metric': 'percentage of households with electric heating',
-                'unit': 'percent'
-            },
-            'pct_oil': {
-                'metric': 'percentage of households with oil heating',
-                'unit': 'percent'
-            }
-        }
+    'ppl_densit': {
+        'name': 'population density',
+        'unit': 'people per square mile',
+        'is_percentage': False
+    },
+    'pct_tot_co': {
+        'name': 'underserved population percentage',
+        'unit': '%',
+        'is_percentage': True
+    },
+    'pct_no_bb_': {
+        'name': 'percentage of people lacking broadband and computer access',
+        'unit': '%',
+        'is_percentage': True
+    },
+    'gas': {
+        'name': 'number of households with gas heating',
+        'unit': 'count',
+        'is_percentage': False
+    },
+    'electricit': {
+        'name': 'number of households with electric heating',
+        'unit': 'count',
+        'is_percentage': False
+    },
+    'oil': {
+        'name': 'number of households with oil heating',
+        'unit': 'count',
+        'is_percentage': False
+    },
+    'pct_gas': {
+        'name': 'percentage of households with gas heating',
+        'unit': '%',
+        'is_percentage': True
+    },
+    'pct_electr': {
+        'name': 'percentage of households with electric heating',
+        'unit': '%',
+        'is_percentage': True
+    },
+    'pct_oil': {
+        'name': 'percentage of households with oil heating',
+        'unit': '%',
+        'is_percentage': True
+    }
+}
 
 class SemanticService:
     def __init__(self):
@@ -59,7 +68,7 @@ class SemanticService:
       """Get metric information for a dataset and handle percentage formatting"""
       # Get the base metric info or create a default one
       metric_info = METRIC_MAPPING_SEMANTIC.get(dataset, {
-          'metric': dataset,
+          'name': dataset,
           'unit': '',
           'is_percentage': dataset.startswith('pct_')
       })
@@ -67,7 +76,7 @@ class SemanticService:
       # instantiate MetricInfo with the raw dataset and all its params
       return MetricInfo(
           dataset=dataset,
-          name=metric_info['metric'],
+          name=metric_info['name'],
           unit=metric_info.get('unit', ''),
           # These fields will be set as defaults in this class
           is_percentage=metric_info.get('is_percentage', False),
@@ -78,7 +87,7 @@ class SemanticService:
         """Identify the type of question being asked using GPT"""
         try:
             metric_info = self.get_metric_info(current_dataset)
-            metric_name = metric_info.metric
+            metric_name = metric_info.name
 
             system_prompt = """You are a geographic data analysis expert. Your task is to classify questions about geographic data into one of these categories:
             1. retrieve - Direct value retrieval (e.g., "What's the X of State Y?")
@@ -222,7 +231,7 @@ class SemanticService:
         try:
             # Get the correct metric name from dataset_terms
             metric_info = self.get_metric_info(current_dataset)
-            metric_name = metric_info.metric
+            metric_name = metric_info.name
             unit = metric_info.unit
 
             # First, check if the question is about geographic units not available in the dataset
@@ -277,7 +286,7 @@ class SemanticService:
 
                 # Create a list of all available metrics for the prompt
                 # TODO: Verify that this access is correct
-                available_metrics = [f"{self.get_metric_info(ds).metric} ({ds})" for ds in available_datasets]
+                available_metrics = [f"{self.get_metric_info(ds).name} ({ds})" for ds in available_datasets]
                 metrics_list = ", ".join(available_metrics)
 
                 system_prompt = f"""You are an expert at analyzing geographic data questions.
