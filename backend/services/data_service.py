@@ -340,7 +340,8 @@ def answer_question(question, current_dataset, current_focus=None):
         if handler:
             return handler(current_dataset, question, current_focus, state_filter, county_view)
 
-        ''' TODO: REMOVE LATER AFTER Chu approves
+        ''' Chu want to keep this classification. Therefore, we will keep the
+        code for the time being.
         # A one of case, that is more specific then generalized
         elif question_type == 'urban_rural_comparison' and current_dataset in ['gas', 'electricity', 'oil']:
             # Extract state from the question or use the current focused state
@@ -472,9 +473,15 @@ def handle_retrieve(current_dataset, question, current_focus, state_filter, coun
 
 def handle_compare(current_dataset, question, current_focus, state_filter, county_view):
     states = semantic_service.extract_states(question)
-    if len(states) != 2:
+    ## TODO Pick up from here later. Check when this comparastion handler
+    ## gets triggered for particular queries.
+
+    ## Need to change to handle more than one. Perhaps if its more less than
+    ## two now, we complain
+    if len(states) < 2:
         return None
-    result = compare_states(states[0], states[1], current_dataset)
+    result = compare_states(states, current_dataset)
+    print("Inside handle compare hander function")
     return {
         'result': result,
         'states': states,
@@ -643,29 +650,67 @@ def retrieve_value(state_or_county_name, dataset, is_county=False, state=None):
         return None
 
 #01_compare
-def compare_states(state1, state2, dataset):
+def compare_states(states, dataset):
     """Compare values between two states"""
     try:
+        # Building a parameterized SQL "WHERE LOWER(state_name) IN (...)" with
+        # a flexible amount of placeholders as needed
+        placeholders = ", ".join("LOWER(?)" for _ in states)
         query = f"""
             SELECT state_name,
                 COALESCE({dataset}, 0) as value
             FROM state
-            WHERE LOWER(state_name) IN (LOWER(?), LOWER(?))
+            WHERE LOWER(state_name) IN ({placeholders})
         """
-        results = con.execute(query, [state1, state2]).fetchall()
+        # Santize the input
+        params = [s.lower() for s in states]
+        results = con.execute(query, params).fetchall()
+
         # print(f"Debug - Compare states results: {results}")
-        if len(results) != 2:
+        if len(results) != len(states):
             return None
 
         # Convert input state names to title case for matching
-        state1 = state1.title()
-        state2 = state2.title()
+        normalized_input = [s.title() for s in states]
+        #state1 = state1.title()
+        #state2 = state2.title()
 
-        state1_data = next(r for r in results if r[0].lower() == state1.lower())
-        state2_data = next(r for r in results if r[0].lower() == state2.lower())
+        #state1_data = next(r for r in results if r[0].lower() == state1.lower())
+        #state2_data = next(r for r in results if r[0].lower() == state2.lower())
+
+        # Build a dict mapping from (title‐cased) state_name → value
+        value_by_state = {
+                          row[0].title(): row[1]
+                          for row in results
+                        }
+
+         # Double‐check that every requested state appeared
+        missing = [st for st in normalized_input if st not in value_by_state]
+        if missing:
+            return None
+
+        # Sort states by their numeric value, descending
+        sorted_states = sorted(
+            normalized_input,
+            key=lambda st: value_by_state[st],
+            reverse=True
+        )
 
         metric_info = get_metric_info(dataset)
+        unit = metric_info.unit
+        name = metric_info.name
 
+        # Build a per‐state description,
+        # e.g. "California: 28.30 people per square mile"
+        listings = []
+        for st in sorted_states:
+            val = value_by_state[st]
+            listings.append(f"{st}: {val:.2f} {unit}")
+
+        listing_str = "; ".join(listings)
+        listing_str += "\n"
+
+        '''
         # Determine which state has higher value
         higher_state = state1_data[0] if state1_data[1] > state2_data[1] else state2_data[0]
         lower_state = state2_data[0] if state1_data[1] > state2_data[1] else state1_data[0]
@@ -675,6 +720,36 @@ def compare_states(state1, state2, dataset):
             f"{state2_data[0]} has {state2_data[1]:.2f} {metric_info.unit}. "
             f"{higher_state} has higher {metric_info.name} than {lower_state}."
         )
+        '''
+
+        # Stating which state is highest and which is lowest
+        highest = sorted_states[0]
+        lowest  = sorted_states[-1]
+        summary = None
+
+        # Need to reformat the 2 state case string
+        '''
+        if (len(states) == 2):
+            summary = (
+                f"{state1_data[0]} has {state1_data[1]:.2f} {metric_info.unit} {metric_info.name} while "
+            f"{state2_data[0]} has {state2_data[1]:.2f} {metric_info.unit}. "
+            f"{higher_state} has higher {metric_info.name} than {lower_state}."
+            )
+        else:
+          summary = (
+              f"{listing_str}. "
+              f"Highest {name} is {highest} ({value_by_state[highest]:.2f} {unit}), while the "
+              f"lowest {name} is {lowest} ({value_by_state[lowest]:.2f} {unit})."
+          )
+        '''
+
+        summary = (
+              f"{listing_str}."
+              "   \n"
+              f"Highest {name} is {highest} ({value_by_state[highest]:.2f} {unit}), while the lowest {name} is {lowest} ({value_by_state[lowest]:.2f} {unit})."
+          )
+
+        return summary
     except Exception as e:
         print(f"Error comparing states: {str(e)}")
         return None
