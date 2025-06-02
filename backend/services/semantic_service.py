@@ -2,62 +2,13 @@ from config import DevelopmentConfig
 import openai
 import re
 import json
+from configs.config import METRIC_MAPPING_SEMANTIC
 
 # Import MetricInfo dataset information via absolute importing
 from services.MetricInfo import MetricInfo
 
-# The keys are a dataset
-METRIC_MAPPING_SEMANTIC = {
-    'ppl_densit': {
-        'name': 'population density',
-        'unit': 'people per square mile',
-        'is_percentage': False
-    },
-    'pct_tot_co': {
-        'name': 'underserved population percentage',
-        'unit': '%',
-        'is_percentage': True
-    },
-    'pct_no_bb_': {
-        'name': 'percentage of people lacking broadband and computer access',
-        'unit': '%',
-        'is_percentage': True
-    },
-    'gas': {
-        'name': 'number of households with gas heating',
-        'unit': 'count',
-        'is_percentage': False
-    },
-    'electricit': {
-        'name': 'number of households with electric heating',
-        'unit': 'count',
-        'is_percentage': False
-    },
-    'oil': {
-        'name': 'number of households with oil heating',
-        'unit': 'count',
-        'is_percentage': False
-    },
-    'pct_gas': {
-        'name': 'percentage of households with gas heating',
-        'unit': '%',
-        'is_percentage': True
-    },
-    'pct_electr': {
-        'name': 'percentage of households with electric heating',
-        'unit': '%',
-        'is_percentage': True
-    },
-    'pct_oil': {
-        'name': 'percentage of households with oil heating',
-        'unit': '%',
-        'is_percentage': True
-    }
-}
-
 class SemanticService:
     def __init__(self):
-        # TODO: might remove later
         # Define dataset-specific terms
         self.dataset_terms = METRIC_MAPPING_SEMANTIC
 
