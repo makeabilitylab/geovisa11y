@@ -1,5 +1,6 @@
 # services/data_service.py
-import duckdb
+
+#import duckdb
 import geopandas as gpd
 import json
 from flask import jsonify
@@ -14,76 +15,29 @@ import traceback
 from scipy.stats import chi2_contingency
 import libpysal
 from scipy.spatial.distance import squareform, pdist
+from configs.config import METRIC_MAPPING_SEMANTIC, get_duckdb_connection
 
 # Import MetricInfo dataset information via absolute importing
 from services.MetricInfo import MetricInfo
 
 # Initialize DuckDB connection
+con = get_duckdb_connection('database/spatial-db.db', True, ['spatial'])
+
+'''
 con = duckdb.connect('database/spatial-db.db', read_only=True)
 con.execute("INSTALL 'spatial';")
 con.execute("LOAD 'spatial';")
+'''
 
 # Initialize the semantic service (Globally scopped)
 semantic_service = SemanticService()
 
-# Define a centralized metric mapping dictionary with simplified structure
-# The keys are a dataset
-METRIC_MAPPING_DATA_SERVICE = {
-    'ppl_densit': {
-        'name': 'population density',
-        'unit': 'people per square mile',
-        'is_percentage': False
-    },
-    'pct_tot_co': {
-        'name': 'underserved population',
-        'unit': '%',
-        'is_percentage': True
-    },
-    'pct_no_bb_': {
-        'name': 'people lacking broadband or computer access',
-        'unit': '%',
-        'is_percentage': True,
-        'prefix': 'of'
-    },
-    'gas': {
-        'name': 'with gas heating',
-        'unit': 'households',
-        'is_percentage': False
-    },
-    'electricit': {
-        'name': 'with electricity heating',
-        'unit': 'households',
-        'is_percentage': False
-    },
-    'oil': {
-        'name': 'with oil heating',
-        'unit': 'households',
-        'is_percentage': False
-    },
-    'pct_gas': {
-        'name': 'households that use gas heating',
-        'unit': '%',
-        'is_percentage': True,
-        'prefix': 'of'
-    },
-    'pct_electr': {
-        'name': 'households that use electricity heating',
-        'unit': '%',
-        'is_percentage': True,
-        'prefix': 'of'
-    },
-    'pct_oil': {
-        'name': 'households that use oil heating',
-        'unit': '%',
-        'is_percentage': True,
-        'prefix': 'of'
-    }
-}
-
 def get_metric_info(dataset):
     """Get metric information for a dataset and handle percentage formatting"""
-    # Get the base metric info or create a default one
-    metric_info = METRIC_MAPPING_DATA_SERVICE.get(dataset, {
+
+    # Define a centralized metric mapping dictionary with simplified structure
+    # The keys are a dataset
+    metric_info = METRIC_MAPPING_SEMANTIC.get(dataset, {
         'name': dataset,
         'unit': '',
         'is_percentage': dataset.startswith('pct_')
