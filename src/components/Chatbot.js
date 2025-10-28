@@ -14,6 +14,7 @@ import {
 import HelpPopup from './HelpPopup';
 import { questionDatabase } from '../utils/questionDatabase';
 import RecordButton from './RecordButton';
+import { APP_CONFIG } from '../config/appConfig';
 
 
 const Chatbot = ({
@@ -737,7 +738,7 @@ const Chatbot = ({
         <CardBody
             className="flex flex-col h-full p-2 overflow-y-auto max-h-screen min-w-[300px]"
             role="region"
-            aria-label="MapOutLoud chat interface"
+            aria-label={`${APP_CONFIG.name} chat interface`}
             style={{ maxHeight: '100vh' }}
         >
             <div
@@ -746,11 +747,11 @@ const Chatbot = ({
                 aria-live="polite"
                 role="region"
                 tabIndex="0"
-                aria-label="Welcome to MapOutLoud"
+                aria-label={`Welcome to ${APP_CONFIG.name}`}
                 className="mb-4"
             >
                 <Typography variant="h6" color="blue-gray" className="mb-2" as="h1">
-                    Welcome to MapOutLoud
+                    Welcome to {APP_CONFIG.name}
                 </Typography>
 
                 <Typography variant="small" color="gray" className="mb-2 text-xs">
@@ -869,7 +870,7 @@ const Chatbot = ({
                             key={index}
                             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
                             role={msg.sender === 'user' ? 'note' : 'article'}
-                            aria-label={`${msg.sender === 'user' ? 'You' : 'MapOutLoud'} said`}
+                            aria-label={`${msg.sender === 'user' ? 'You' : APP_CONFIG.name} said`}
                         >
                             <div
                                 className={`py-2 px-4 rounded-md max-w-[80%] font-['Roboto'] ${
@@ -924,7 +925,7 @@ const Chatbot = ({
                     <div ref={wrapperRef}>
                             <Input
                                 type="text"
-                                label="Ask MapOutLoud"
+                                label={`Ask ${APP_CONFIG.name}`}
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}

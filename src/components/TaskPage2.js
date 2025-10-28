@@ -3,6 +3,7 @@ import '../App.css';
 import DotDensityMap from './DotDensityMap';
 import Chatbot from './Chatbot';
 import { logSessionEnd } from '../utils/logger';
+import { APP_CONFIG } from '../config/appConfig';
 
 function TaskPage2() {
   const [currentDataset, setCurrentDataset] = useState('gas');
@@ -68,7 +69,7 @@ function TaskPage2() {
           `Chat interaction enabled. Map focused on ${focus.states[0]}.`
         );
       } else {
-        setAnnouncement('Chat interaction enabled. Type a question to ask MapOutLoud.');
+        setAnnouncement(`Chat interaction enabled. Type a question to ask ${APP_CONFIG.name}.`);
       }
     } else if (interactionFocus === 'map') {
        // If we have a noNeighbor property, announce that first and return early

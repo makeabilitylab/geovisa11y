@@ -27,8 +27,19 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>MapOutLoud</title>
+    <!-- App name is loaded from app-config.js -->
+    <title id="app-title">Loading...</title>
+    <script src="%PUBLIC_URL%/app-config.js"></script>
     <script src="%PUBLIC_URL%/env-config.js"></script>
+    <script>
+      // Set the page title from app configuration
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.APP_CONFIG) {
+          document.getElementById('app-title').textContent = window.APP_CONFIG.name;
+          document.title = window.APP_CONFIG.name;
+        }
+      });
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

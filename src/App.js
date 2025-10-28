@@ -3,6 +3,7 @@ import './App.css';
 import ChoroplethMap from './components/ChoroplethMap';
 import Chatbot from './components/Chatbot';
 import { logSessionEnd } from './utils/logger';
+import { APP_CONFIG } from './config/appConfig';
 
 function App() {
   const [currentDataset, setCurrentDataset] = useState('ppl_densit');
@@ -77,7 +78,7 @@ function App() {
           `Chat interaction enabled. Map focused on ${focus.states[0]}.`
         );
       } else {
-        setAnnouncement('Chat interaction enabled. Type a question to ask MapOutLoud.');
+        setAnnouncement(`Chat interaction enabled. Type a question to ask ${APP_CONFIG.name}.`);
       }
     } else if (interactionFocus === 'map') {
       // If we have a noNeighbor property, announce that first and return early

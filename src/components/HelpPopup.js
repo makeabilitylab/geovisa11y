@@ -7,6 +7,7 @@ import {
     IconButton,
 } from "@material-tailwind/react";
 import { X } from "@phosphor-icons/react";
+import { APP_CONFIG } from '../config/appConfig';
 
 const HelpPopup = ({ open, handleOpen, dataset }) => {
     // Function to get the appropriate data label based on dataset
@@ -34,7 +35,7 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
         >
             <DialogHeader id="help-dialog-title" className="border-b border-gray-200 flex justify-between items-center">
                 <Typography variant="h6" color="blue-gray" as="h2">
-                    MapOutLoud Help Guide
+                    {APP_CONFIG.name} Help Guide
                 </Typography>
                 <IconButton
                     variant="text"
