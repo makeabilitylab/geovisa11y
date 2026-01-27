@@ -1,4 +1,4 @@
-# GeoQA^3
+# GeoVisA11ly
 
 ## Setup
 

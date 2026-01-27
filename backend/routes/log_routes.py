@@ -22,7 +22,9 @@ logger = logging.getLogger(__name__)
 
 log_bp = Blueprint('logs', __name__)
 
-# MongoDB connection
+# MongoDB connection - always define logs_collection so imports succeed even when DB is down
+logs_collection = None
+
 MONGO_URI = os.getenv('MONGO_URI', "mongodb+srv://chuchuli:***REDACTED***@mappietalkie.tldw8.mongodb.net/?retryWrites=true&w=majority&appName=MappieTalkie")
 
 try:
@@ -44,9 +46,10 @@ try:
 
     print("Successfully connected to the database!")
     logger.info("Successfully connected to the database!")
-    logs_collection = db.logs  
+    logs_collection = db.logs
 except Exception as e:
     logger.error(f"Error connecting to MongoDB Atlas: {e}")
+    # logs_collection stays None - app still starts; logging endpoints no-op or return graceful response
 
 
 def get_client_ip(request):
@@ -70,6 +73,9 @@ def log_data():
         return '', 200
 
     try:
+        if logs_collection is None:
+            return jsonify({'id': 'logging-unavailable', 'warning': 'MongoDB not connected'}), 201
+
         data = request.json
         if not data:
             return jsonify({'error': 'No data provided'}), 400
@@ -100,6 +106,13 @@ def log_data():
 @log_bp.route('/backend-logs', methods=['POST'])
 def save_backend_log():
     try:
+        if logs_collection is None:
+            return jsonify({
+                'success': True,
+                'message': 'Logging skipped (MongoDB not connected)',
+                'id': None
+            }), 201
+
         log_data = request.json
         
         # Add timestamp

@@ -79,6 +79,8 @@ def get_geojson(dataset):
 
 def log_backend_processing(question_id, processing_data):
     try:
+        if logs_collection is None:
+            return None
         processing_data['question_id'] = question_id
         processing_data['timestamp'] = datetime.datetime.utcnow()
         processing_data['source'] = 'backend'
