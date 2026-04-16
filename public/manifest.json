@@ -1,7 +1,7 @@
 {
   "_comment": "NOTE: Update short_name and name fields to match src/config/appConfig.js and public/app-config.js",
-  "short_name": "GeoVisA11ly",
-  "name": "GeoVisA11ly - Interactive Map Visualization",
+  "short_name": "GeoVisA11y",
+  "name": "GeoVisA11y - Interactive Map Visualization",
   "icons": [
     {
       "src": "favicon.ico",

@@ -8,8 +8,8 @@
 //
 // These files cannot import from the src directory, so they must be updated separately.
 export const APP_CONFIG = {
-  name: 'GeoVisA11ly',
+  name: 'GeoVisA11y',
   description: 'Interactive Map Visualization',
-  title: 'GeoVisA11ly'
+  title: 'GeoVisA11y'
 };
 

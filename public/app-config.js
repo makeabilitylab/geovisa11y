@@ -4,8 +4,8 @@
 // then update the APP_CONFIG object below to match
 
 window.APP_CONFIG = {
-  name: 'GeoVisA11ly',
+  name: 'GeoVisA11y',
   description: 'Interactive Map Visualization',
-  title: 'GeoVisA11ly'
+  title: 'GeoVisA11y'
 };
 

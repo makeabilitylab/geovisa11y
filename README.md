@@ -1,4 +1,4 @@
-# GeoVisA11ly
+# GeoVisA11y
 
 ## Setup
 

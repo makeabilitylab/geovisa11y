@@ -114,8 +114,8 @@ function TaskPage() {
   }, []);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
-      <div className="w-2/3 h-full relative">
+    <div className="flex h-screen w-screen overflow-hidden" role="presentation">
+      <div className="w-2/3 h-full relative" role="presentation">
         <ChoroplethMap
           focus={focus}
           onFocusChange={handleFocusChange}
@@ -139,7 +139,7 @@ function TaskPage() {
           {announcement}
         </div>
       </div>
-      <div className="w-1/3 h-full">
+      <div className="w-1/3 h-full" role="presentation">
         <Chatbot
           dataset={currentDataset}
           focus={focus}

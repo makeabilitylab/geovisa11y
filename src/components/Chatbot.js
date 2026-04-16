@@ -42,6 +42,7 @@ const Chatbot = ({
     const inputRef = useRef(null);
     const wrapperRef = useRef(null);
     const [stateAnnouncement, setStateAnnouncement] = useState('');
+    const [chatAnnouncement, setChatAnnouncement] = useState('');
     const [lastBotMessage, setLastBotMessage] = useState('');
     const [announceCounter, setAnnounceCounter] = useState(0);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
@@ -136,6 +137,16 @@ const Chatbot = ({
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
     }, [messages, isLoading]);
+
+    useEffect(() => {
+        if (messages.length > 0) {
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg.sender === 'bot' && !lastMsg.isTemp) {
+                const plainText = lastMsg.text.replace(/<[^>]*>/g, '');
+                setChatAnnouncement(plainText);
+            }
+        }
+    }, [messages]);
 
     // Function to handle example question click
     const handleExampleClick = (question) => {
@@ -744,11 +755,8 @@ const Chatbot = ({
             <div
                 id="welcome"
                 ref={welcomeRef}
-                aria-live="polite"
-                role="region"
-                tabIndex="0"
-                aria-label={`Welcome to ${APP_CONFIG.name}`}
                 className="mb-4"
+                role="presentation"
             >
                 <Typography variant="h6" color="blue-gray" className="mb-2" as="h1">
                     Welcome to {APP_CONFIG.name}
@@ -759,14 +767,14 @@ const Chatbot = ({
                     <span>{'You can ask me questions about the map visualization:'}</span>
                 </Typography>
 
-                <div className="mb-4">
-                    <div className="flex flex-wrap gap-2 mb-2">
+                <div className="mb-4" role="presentation">
+                    <div className="flex flex-wrap gap-2 mb-2" role="presentation">
                         {exampleQuestions.map((question, index) => (
                             <span
                                 key={index}
                                 onClick={() => handleExampleClick(question)}
                                 className="px-3 py-1 bg-light-green-50 hover:bg-light-green-100 rounded-full text-xs text-green-900 transition-colors text-left cursor-pointer"
-                                role="text"
+                                role="button"
                                 tabIndex="0"
                                 onKeyPress={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
@@ -778,7 +786,7 @@ const Chatbot = ({
                             </span>
                         ))}
                     </div>
-                    <div className="flex justify-start">
+                    <div className="flex justify-start" role="presentation">
                         <span
                             onClick={rotateQuestions}
                             className="px-3 py-1 bg-blue-gray-50 hover:bg-blue-gray-100 rounded-full text-xs text-blue-gray-900 transition-colors cursor-pointer flex items-center gap-1 w-fit"
@@ -803,13 +811,13 @@ const Chatbot = ({
                 <Typography variant="small" color="gray" className="mb-4 text-xs">
                     Or you can ask me questions outside of the dataset:
                     {/* Changed this tag to a span from a div tag */}
-                    <span className="flex flex-wrap gap-2 mt-2">
+                    <span className="flex flex-wrap gap-2 mt-2" role="presentation">
                         {generalQuestions.map((question, index) => (
                             <span
                                 key={index}
                                 onClick={() => handleExampleClick(question)}
                                 className="px-3 py-1 bg-purple-50 hover:bg-purple-100 rounded-full text-xs text-purple-900 transition-colors text-left cursor-pointer font-normal"
-                                role="text"
+                                role="button"
                                 tabIndex="0"
                                 onKeyPress={(e) => {
                                     if (e.key === 'Enter' || e.key === ' ') {
@@ -828,7 +836,7 @@ const Chatbot = ({
                         <span
                         onClick={() => handleExampleClick("What else can you do?")}
                         className="mb-2 px-3 py-1 bg-blue-50 hover:bg-blue-100 rounded-full text-xs text-blue-900 transition-colors text-left cursor-pointer inline-block font-normal"
-                        role="text"
+                        role="button"
                         tabIndex="0"
                         onKeyPress={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -861,16 +869,14 @@ const Chatbot = ({
                 className="flex-grow overflow-y-auto mb-2 p-2 bg-gray-50 rounded-md"
                 role="log"
                 aria-label="Chat messages"
-                aria-live="polite"
                 style={{ minHeight: '400px' }}
             >
-                <div role="log">
+                <div role="presentation">
                     {messages.map((msg, index) => (
                         <div
                             key={index}
                             className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
-                            role={msg.sender === 'user' ? 'note' : 'article'}
-                            aria-label={`${msg.sender === 'user' ? 'You' : APP_CONFIG.name} said`}
+                            role="presentation"
                         >
                             <div
                                 className={`py-2 px-4 rounded-md max-w-[80%] font-['Roboto'] ${
@@ -878,6 +884,8 @@ const Chatbot = ({
                                         ? 'bg-teal-100 text-teal-900 text-left text-xs'
                                         : 'bg-gray-200 text-gray-900 text-left text-xs'
                                 }`}
+                                role={msg.sender === 'user' ? 'note' : 'article'}
+                                aria-label={`${msg.sender === 'user' ? 'You' : APP_CONFIG.name} said`}
                             >
                                 <Typography variant="small" as="span"
                                     className="font-['Roboto'] font-normal leading-[1.2]"
@@ -905,7 +913,7 @@ const Chatbot = ({
                 </div>
             </div>
 
-            {/* Live region for announcements */}
+            {/* Live region for state announcements */}
             <div
                 role="alert"
                 aria-live="assertive"
@@ -915,14 +923,23 @@ const Chatbot = ({
                 {stateAnnouncement || ' '}
             </div>
 
+            {/* Live region for new bot messages */}
+            <div
+                aria-live="polite"
+                aria-atomic="true"
+                className="sr-only"
+            >
+                {chatAnnouncement}
+            </div>
+
             {/* Input, Microphone, and Send Button */}
             <div
                 className="flex gap-2 items-center"
                 role="form"
                 aria-label="Message input"
             >
-                <div className="flex-grow">
-                    <div ref={wrapperRef}>
+                <div className="flex-grow" role="presentation">
+                    <div ref={wrapperRef} role="presentation">
                             <Input
                                 type="text"
                                 label={`Ask ${APP_CONFIG.name}`}

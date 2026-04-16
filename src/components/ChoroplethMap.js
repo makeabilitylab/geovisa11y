@@ -1499,7 +1499,7 @@ const ChoroplethMap = ({
     }, [focus.states]);
 
     return (
-        <div className="relative h-full ">
+        <div className="relative h-full " role="presentation">
             <div
                 ref={mapContainer}
                 className="h-full"

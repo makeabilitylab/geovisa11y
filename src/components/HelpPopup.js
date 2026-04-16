@@ -29,7 +29,6 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
             className="bg-white overflow-hidden"
             size="md"
             aria-labelledby="help-dialog-title"
-            role="region"
             aria-live="polite"
             tabIndex="0"
         >
@@ -49,7 +48,6 @@ const HelpPopup = ({ open, handleOpen, dataset }) => {
             </DialogHeader>
             <DialogBody 
             className="h-[40vh] overflow-y-auto pr-4"
-            role="region"
             aria-live="polite"
             >
                 <div className="space-y-4">
