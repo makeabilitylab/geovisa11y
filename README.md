@@ -4,7 +4,8 @@ GeoVisA11y is an open-source system for interactive and accessible map visualiza
 Check out our [paper preprint](PAPER_URL), [live demo](DEMO_URL), and [video](VIDEO_URL) for more information.
 <br> -->
 <br>
-![GeoVisA11y](/figures/project-teaser.jpg)
+
+![GeoVisA11y](figures/project-teaser.jpg)
 
 This repository contains the code for the GeoVisA11y prototype, which is our CHI'26 paper titled *GeoVisA11y: AI-based Geovisualization QA System for Screen-Reader Users* by Chu Li, Rock Pang, Arnavi Chheda-Kothary, Ather Sharif, Henok Assalif, Jeffrey Heer and Jon E. Froehlich.
 
