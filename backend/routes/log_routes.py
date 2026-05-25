@@ -1,6 +1,5 @@
 # routes/log_routes.py
 from flask import Blueprint, request, jsonify, make_response
-from pymongo import MongoClient
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import datetime
@@ -25,31 +24,23 @@ log_bp = Blueprint('logs', __name__)
 # MongoDB connection - always define logs_collection so imports succeed even when DB is down
 logs_collection = None
 
-MONGO_URI = os.getenv('MONGO_URI', "mongodb+srv://chuchuli:***REDACTED***@mappietalkie.tldw8.mongodb.net/?retryWrites=true&w=majority&appName=MappieTalkie")
+MONGO_URI = os.getenv('MONGO_URI')
 
-try:
-    client = MongoClient(MONGO_URI, server_api=ServerApi('1'))
-    # Test connection with ping
-    client.admin.command('ping')
-    print("Pinged your deployment. You successfully connected to MongoDB!")
-    logger.info("Pinged your deployment. You successfully connected to MongoDB!")
-    
-    # Set up database and collection
-    logger.info(f"Available databases: {client.list_database_names()}")
-    if "analytics_logs" not in client.list_database_names():
-        client.create_database("analytics_logs")
-    db = client.get_database("analytics_logs")  
+if not MONGO_URI:
+    logger.warning("MONGO_URI not set — logging endpoints will be disabled")
+else:
+    try:
+        client = MongoClient(MONGO_URI, server_api=ServerApi('1'))
+        client.admin.command('ping')
+        logger.info("Successfully connected to MongoDB Atlas")
 
-    if "logs" not in db.list_collection_names():
-        logger.info("Collection does not exist, creating collection...")
-        db.create_collection("logs")
+        db = client.get_database("analytics_logs")
+        if "logs" not in db.list_collection_names():
+            db.create_collection("logs")
 
-    print("Successfully connected to the database!")
-    logger.info("Successfully connected to the database!")
-    logs_collection = db.logs
-except Exception as e:
-    logger.error(f"Error connecting to MongoDB Atlas: {e}")
-    # logs_collection stays None - app still starts; logging endpoints no-op or return graceful response
+        logs_collection = db.logs
+    except Exception as e:
+        logger.error(f"Error connecting to MongoDB Atlas: {e}")
 
 
 def get_client_ip(request):
