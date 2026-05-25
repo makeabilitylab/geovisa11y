@@ -2,53 +2,43 @@ from config import DevelopmentConfig
 import openai
 import re
 import json
+from configs.config import METRIC_MAPPING_SEMANTIC
+
+# Import MetricInfo dataset information via absolute importing
+from services.MetricInfo import MetricInfo
 
 class SemanticService:
     def __init__(self):
         # Define dataset-specific terms
-        self.dataset_terms = {
-            'ppl_densit': {
-                'metric': 'population density',
-                'unit': 'people per square mile'
-            },
-            'pct_tot_co': {
-                'metric': 'underserved population percentage',
-                'unit': 'percent'
-            },
-            'pct_no_bb_': {
-                'metric': 'percentage of people lacking broadband and computer access',
-                'unit': 'percent'
-            },
-            'gas': {
-                'metric': 'number of households with gas heating',
-                'unit': 'count'
-            },
-            'electricit': {
-                'metric': 'number of households with electric heating',
-                'unit': 'count'
-            },
-            'oil': {
-                'metric': 'number of households with oil heating',
-                'unit': 'count'
-            },
-            'pct_gas': {
-                'metric': 'percentage of households with gas heating',
-                'unit': 'percent'
-            },
-            'pct_electr': {
-                'metric': 'percentage of households with electric heating',
-                'unit': 'percent'
-            },
-            'pct_oil': {
-                'metric': 'percentage of households with oil heating',
-                'unit': 'percent'
-            }
-        }
+        self.dataset_terms = METRIC_MAPPING_SEMANTIC
+
+
+    # SemanticServices version of parsing out each datasets metadata cleanly
+    # in this file
+    def get_metric_info(self, dataset):
+      """Get metric information for a dataset and handle percentage formatting"""
+      # Get the base metric info or create a default one
+      metric_info = METRIC_MAPPING_SEMANTIC.get(dataset, {
+          'name': dataset,
+          'unit': '',
+          'is_percentage': dataset.startswith('pct_')
+      })
+
+      # instantiate MetricInfo with the raw dataset and all its params
+      return MetricInfo(
+          dataset=dataset,
+          name=metric_info['name'],
+          unit=metric_info.get('unit', ''),
+          # These fields will be set as defaults in this class
+          is_percentage=metric_info.get('is_percentage', False),
+          prefix=metric_info.get('prefix', '')
+      )
 
     def identify_question_type(self, question, current_dataset='ppl_densit'):
         """Identify the type of question being asked using GPT"""
         try:
-            metric_name = self.dataset_terms[current_dataset]['metric']
+            metric_info = self.get_metric_info(current_dataset)
+            metric_name = metric_info.name
 
             system_prompt = """You are a geographic data analysis expert. Your task is to classify questions about geographic data into one of these categories:
             1. retrieve - Direct value retrieval (e.g., "What's the X of State Y?")
@@ -191,8 +181,9 @@ class SemanticService:
         """
         try:
             # Get the correct metric name from dataset_terms
-            metric_name = self.dataset_terms[current_dataset]['metric']
-            unit = self.dataset_terms[current_dataset]['unit']
+            metric_info = self.get_metric_info(current_dataset)
+            metric_name = metric_info.name
+            unit = metric_info.unit
 
             # First, check if the question is about geographic units not available in the dataset
             # This applies regardless of whether we're checking against available_datasets or not
@@ -245,7 +236,8 @@ class SemanticService:
                     available_datasets = [ds if ds != 'electricity' else 'electricit' for ds in available_datasets]
 
                 # Create a list of all available metrics for the prompt
-                available_metrics = [f"{self.dataset_terms[ds]['metric']} ({ds})" for ds in available_datasets]
+                # TODO: Verify that this access is correct
+                available_metrics = [f"{self.get_metric_info(ds).name} ({ds})" for ds in available_datasets]
                 metrics_list = ", ".join(available_metrics)
 
                 system_prompt = f"""You are an expert at analyzing geographic data questions.
@@ -694,20 +686,30 @@ class SemanticService:
             )
 
             result = response.choices[0].message.content.strip()
-            if result == "None":
-                return False, None
 
-            print(f"navigation_action_result: {result}")
+            # Removing wrapping quotes, if present. This response can implictly
+            # add quotes around the returning string
+            sanitizedResult = result
+            if sanitizedResult.startswith('"') and sanitizedResult.endswith('"'):
+                # Take everything from the first index to the second to last
+                # index from the right. Again this is zero based
+                sanitizedResult = sanitizedResult[1:-1]
+
+            if sanitizedResult == "None":
+                return False, None
 
             # Try to parse as JSON
             try:
-                location_info = json.loads(result)
-                print(f"The format of json: {location_info}")
+                location_info = json.loads(sanitizedResult)
+
                 # Test against non‐dict results
                 if not isinstance(location_info, dict):
                     raise ValueError("parsed JSON is not an object")
 
 
+                # Missing country processing. Right now only have city and
+                # state
+                # TODO
                 if location_info["type"] == "city":
                     return True, ("city", {
                         "city": location_info["city"],
@@ -717,7 +719,7 @@ class SemanticService:
                 else:  # state navigation
                     return True, ("state", location_info["name"])
             except json.JSONDecodeError:
-                print(f"Error parsing JSON response: {result}")
+                print(f"Error parsing JSON response: {sanitizedResult}")
                 # Fall back to regex pattern
                 action_match = re.match(r'^(?:focus\s+on|go\s+to)\s+(.+)$', user_input, re.IGNORECASE)
                 if action_match:
