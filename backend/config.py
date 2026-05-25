@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env file in project root
-load_dotenv(dotenv_path='../.env')
+load_dotenv(dotenv_path='../.env', override=True)
 
 class Config:
     DEBUG = False
