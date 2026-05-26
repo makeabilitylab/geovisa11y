@@ -429,13 +429,7 @@ def get_counties(state_name):
 def check_ambiguity():
     """Check if a question is ambiguous and resolve if possible"""
     if request.method == 'OPTIONS':
-        # Handle preflight request
-        response = make_response()
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'POST,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return make_response()  
+        return '', 200
 
     try:
         data = request.json
@@ -510,13 +504,8 @@ def check_ambiguity():
 def get_county_geojson():
     """Get GeoJSON data for counties"""
     if request.method == 'OPTIONS':
-        # Explicitly return response for OPTIONS request
-        response = make_response()
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,OPTIONS')
-        return response
-        
+        return '', 200
+
     try:
         accuracy = request.args.get("accuracy", default=0.01, type=float)
         value_column = request.args.get("dataset", default="ppl_densit")
@@ -531,17 +520,10 @@ def get_county_geojson():
 def get_task2_geojson():
     """Get GeoJSON data for the task2 dataset with multiple fuel types"""
     if request.method == 'OPTIONS':
-        # Explicitly return response for OPTIONS request
-        response = make_response()
-        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,OPTIONS')
-        return response
-        
+        return '', 200
+
     try:
         accuracy = request.args.get("accuracy", default=0.01, type=float)
-        
-        # Use the state table instead of task2_state
         return fetch_fuel_data('state', accuracy)
     except Exception as e:
         return jsonify({'error': str(e)}), 500

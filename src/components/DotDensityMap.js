@@ -620,14 +620,13 @@ const DotDensityMap = ({
                 // We need to display county data first
                 // This will fetch the data and set up the layers
                 displayingCountyData(stateName).then(() => {
-                    // After county data is loaded, highlight the county
                     setTimeout(() => {
                         focusCountyOnMap(countyName);
                         if (isMapInteractive) {
                             onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
                         }
-                    }, 500); // Small delay to ensure layers are ready
-                });
+                    }, 500);
+                }).catch(err => console.error('Failed to load county data:', err));
             }
         }
         

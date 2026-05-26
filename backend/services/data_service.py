@@ -61,7 +61,7 @@ def parse_neighbors(neighbors_str):
         neighbors = [s.strip().strip("'\"") for s in neighbors]
         neighbors = [s if s and s.lower() != 'none' else None for s in neighbors]
         return neighbors
-    except:
+    except (ValueError, AttributeError):
         return [None, None, None, None]
 
 
