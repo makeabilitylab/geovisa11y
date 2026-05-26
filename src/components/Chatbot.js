@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import OpenAI from 'openai';
 import { ArrowRight, ArrowsClockwise } from "@phosphor-icons/react";
 import {
     CardBody,
@@ -207,11 +206,6 @@ const Chatbot = ({
 
     const processAudioToText = async (audioBlob) => {
         try {
-            const openai = new OpenAI({
-                apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-                dangerouslyAllowBrowser: true
-            });
-            // Show processing message
             setMessages(prev => [...prev.filter(msg => !msg.isTemp), {
                 text: 'Processing your speech...',
                 sender: 'bot',
@@ -221,15 +215,16 @@ const Chatbot = ({
             const formData = new FormData();
             formData.append('file', new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
 
-            const transcriptionResponse = await openai.audio.transcriptions.create({
-                file: new File([audioBlob], 'audio.webm', { type: 'audio/webm' }),
-                model: 'whisper-1',
+            const res = await fetch(`${apiUrl}/api/transcribe`, {
+                method: 'POST',
+                body: formData,
             });
+            if (!res.ok) throw new Error('Transcription failed');
+            const { text } = await res.json();
 
-            // Remove processing message
             setMessages(prev => prev.filter(msg => !msg.isTemp));
 
-            let transcribedText = transcriptionResponse.text;
+            let transcribedText = text;
 
             // Filter out various forms of the microphone access message
             const micAccessMessages = [
@@ -607,11 +602,6 @@ const Chatbot = ({
             }
         };
     }, [dataset]);
-
-    useEffect(() => {
-        console.log('OpenAI API Key:', process.env.REACT_APP_OPENAI_API_KEY ? 'Set' : 'Not Set');
-        console.log('Mapbox Token:', process.env.REACT_APP_MAPBOX_TOKEN ? 'Set' : 'Not Set');
-    }, []);
 
     // Add new useEffect for microphone permission
     useEffect(() => {

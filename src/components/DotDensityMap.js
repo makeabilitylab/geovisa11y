@@ -347,17 +347,6 @@ const DotDensityMap = ({
     }, [countyData]);
 
 
-    useEffect(() => {
-        // Log environment info
-        console.log('Environment Check:', {
-            apiUrl,
-            nodeEnv: process.env.NODE_ENV,
-            mapboxToken: window.ENV?.REACT_APP_MAPBOX_TOKEN?.substring(0, 10) + '...',
-            windowEnv: window.ENV,
-            origin: window.location.origin
-        });
-    }, [apiUrl]);
-
     const fetchData = async () => {
         setIsLoading(true);
         try {

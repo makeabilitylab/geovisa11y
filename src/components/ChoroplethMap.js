@@ -104,20 +104,7 @@ const ChoroplethMap = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [selectedDataset, isTaskPage, onDatasetChange, datasets]);
 
-    useEffect(() => {
-        // Log environment info
-        console.log('Environment Check:', {
-            apiUrl,
-            nodeEnv: process.env.NODE_ENV,
-            mapboxToken: window.ENV?.REACT_APP_MAPBOX_TOKEN?.substring(0, 10) + '...',
-            windowEnv: window.ENV,
-            origin: window.location.origin
-        });
-    }, [apiUrl]);
-
     const fetchData = async () => {
-        // Testing when fetchData gets invoked
-        console.log("Inside fetch Data...")
         setIsLoading(true);
         try {
 

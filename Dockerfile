@@ -15,16 +15,10 @@ COPY . .
 
 # Verify and set environment variables
 ARG REACT_APP_MAPBOX_TOKEN
-ARG REACT_APP_OPENAI_API_KEY
 ENV REACT_APP_MAPBOX_TOKEN=$REACT_APP_MAPBOX_TOKEN
-ENV REACT_APP_OPENAI_API_KEY=$REACT_APP_OPENAI_API_KEY
-
-# Add environment verification
-RUN echo "Building with environment variables configured..."
 
 # Create .env file
 RUN echo "REACT_APP_MAPBOX_TOKEN=$REACT_APP_MAPBOX_TOKEN" > .env
-RUN echo "REACT_APP_OPENAI_API_KEY=$REACT_APP_OPENAI_API_KEY" >> .env
 
 # Build the app
 RUN npm run build

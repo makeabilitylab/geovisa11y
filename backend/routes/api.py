@@ -60,6 +60,28 @@ def get_openai_response(question):
         print(f"Error getting OpenAI response: {str(e)}")
         return "I can only provide information about US states and territories. Please ask about a valid US state."
 
+@api.route('/transcribe', methods=['POST', 'OPTIONS'])
+def transcribe_audio():
+    """Proxy Whisper transcription so the OpenAI key stays server-side."""
+    if request.method == 'OPTIONS':
+        return '', 200
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No audio file provided'}), 400
+
+        audio_file = request.files['file']
+        openai.api_key = DevelopmentConfig.OPENAI_API_KEY
+        client = openai.OpenAI(api_key=DevelopmentConfig.OPENAI_API_KEY)
+        transcription = client.audio.transcriptions.create(
+            file=(audio_file.filename, audio_file.stream, audio_file.content_type),
+            model='whisper-1',
+        )
+        return jsonify({'text': transcription.text})
+    except Exception as e:
+        logger.error(f"Transcription error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @api.route('/geojson/<dataset>', methods=['GET', 'OPTIONS'])
 def get_geojson(dataset):
     """Get GeoJSON data for the specified dataset"""
