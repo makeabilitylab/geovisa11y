@@ -255,11 +255,6 @@ def answer_question(question, current_dataset, current_focus=None):
             elif isinstance(current_focus, list):  # Handle case where current_focus is a list
                 state_filter = current_focus[0] if current_focus else None
 
-        # SCOPE SOME OF THE question type handling into a seperate function
-
-        # Map for handing each question type
-        # Currently omitting the else if for urban rural comparasion since
-        # its a bit complicated
         question_hander_map = {
           'get_pattern': handle_get_pattern,
           'retrieve':  handle_retrieve,
@@ -275,6 +270,7 @@ def answer_question(question, current_dataset, current_focus=None):
           'describe_shape':  handle_none,
           'others':  handle_none,
           'compare_neighbors': handle_compare_neighbors,
+          'urban_rural_comparison': handle_urban_rural_comparison,
         }
 
         # Process Question
@@ -283,46 +279,6 @@ def answer_question(question, current_dataset, current_focus=None):
         if handler:
             return handler(current_dataset, question, current_focus, state_filter, county_view)
 
-        ''' Chu want to keep this classification. Therefore, we will keep the
-        code for the time being.
-        # A one of case, that is more specific then generalized
-        elif question_type == 'urban_rural_comparison' and current_dataset in ['gas', 'electricity', 'oil']:
-            # Extract state from the question or use the current focused state
-            states = semantic_service.extract_states(question)
-            state_name = states[0] if states else None
-
-            #Determine if we're in county view
-            county_view = False
-            if isinstance(current_focus, dict):
-                if current_focus.get('county') or current_focus.get('showing_counties'):
-                    county_view = True
-
-            # If no state was mentioned in the question but there's a focused state,
-            # use the focused state from the frontend
-            if not state_name and isinstance(current_focus, dict):
-                if current_focus.get('state'):
-                    state_name = current_focus.get('state')
-                elif current_focus.get('states') and len(current_focus.get('states')) > 0:
-                    state_name = current_focus.get('states')[0]
-            elif not state_name and isinstance(current_focus, str) and current_focus:
-                state_name = current_focus
-
-            if county_view and state_name:
-                # Handle urban vs rural comparison for heating fuels
-                result = compare_urban_rural_heating_fuels(state_name)
-                return {
-                    'result': result,
-                    'dataset': current_dataset,
-                    'question_type': 'urban_rural_comparison',
-                    'state': state_name
-                }
-            else:
-                return {
-                    'result': "Urban vs rural comparisons are only available when viewing counties. Please zoom in to a state first.",
-                    'dataset': current_dataset,
-                    'question_type': 'clarification_needed'
-                }
-        '''
         return None
 
     except Exception as e:
@@ -332,6 +288,36 @@ def answer_question(question, current_dataset, current_focus=None):
 #######################################
 # Map Handler Functions
 #######################################
+
+def handle_urban_rural_comparison(current_dataset, question, current_focus, state_filter, county_view):
+    if current_dataset not in ['gas', 'electricity', 'oil']:
+        return None
+
+    states = semantic_service.extract_states(question)
+    state_name = states[0] if states else None
+
+    if not state_name and isinstance(current_focus, dict):
+        state_name = current_focus.get('state') or (
+            current_focus.get('states', [None])[0] if current_focus.get('states') else None
+        )
+    elif not state_name and isinstance(current_focus, str) and current_focus:
+        state_name = current_focus
+
+    if county_view and state_name:
+        result = compare_urban_rural_heating_fuels(state_name)
+        return {
+            'result': result,
+            'dataset': current_dataset,
+            'question_type': 'urban_rural_comparison',
+            'state': state_name
+        }
+    else:
+        return {
+            'result': "Urban vs rural comparisons are only available when viewing counties. Please zoom in to a state first.",
+            'dataset': current_dataset,
+            'question_type': 'clarification_needed'
+        }
+
 
 def handle_get_pattern(current_dataset, question, current_focus, state_filter, county_view):
     # For Task2, return hardcoded answer about heating fuel patterns
