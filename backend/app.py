@@ -1,5 +1,8 @@
 # app.py
 import os
+from dotenv import load_dotenv
+load_dotenv(dotenv_path='../.env', override=True)
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from routes.api import api
@@ -16,35 +19,11 @@ if os.getenv('GAE_ENV', '').startswith('standard'):
 else:
     app.config.from_object(DevelopmentConfig)
 
-# Define allowed origins
-ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://mappie-talkie-frontend-245835075814.us-central1.run.app"
-]
-
-# Simplified CORS setup
 CORS(app,
-     origins=ALLOWED_ORIGINS,
+     origins=app.config['CORS_ORIGINS'],
      supports_credentials=True,
      allow_headers=["Content-Type", "Authorization", "Origin", "Accept"],
      methods=["GET", "POST", "OPTIONS"])
-
-@app.after_request
-def after_request(response):
-    origin = request.headers.get('Origin')
-
-    # If the origin is in our allowed list, set the CORS headers
-    if origin in ALLOWED_ORIGINS:
-        response.headers['Access-Control-Allow-Origin'] = origin
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, Origin, Accept'
-        response.headers['Access-Control-Allow-Credentials'] = 'true'
-
-    # For OPTIONS requests, return immediately
-    if request.method == 'OPTIONS':
-        return response
-
-    return response
 
 @app.route('/')
 def index():

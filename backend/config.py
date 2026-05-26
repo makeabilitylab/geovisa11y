@@ -7,12 +7,7 @@ load_dotenv(dotenv_path='../.env', override=True)
 
 class Config:
     DEBUG = False
-    # Define CORS_ORIGINS as a list directly
-    CORS_ORIGINS = [
-        "http://localhost:3000",
-        "https://mappie-talkie.web.app",
-        "https://mappie-talkie-api-245835075814.us-central1.run.app"
-    ]
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
     DATABASE_PATH = 'database/spatial-db.db'
     OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 

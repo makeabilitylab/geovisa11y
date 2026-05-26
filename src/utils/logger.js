@@ -18,9 +18,7 @@ const generateQuestionId = () => {
   return uuidv4();
 };
 
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://mappie-talkie-api-245835075814.us-central1.run.app/api/logs'
-  : 'http://localhost:5000/api/logs';
+const API_URL = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/logs`;
 
 const logToMongoDB = async (logData) => {
   try {

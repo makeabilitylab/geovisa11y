@@ -12,16 +12,7 @@ function App() {
   const [showingCounties, setShowingCounties] = useState(false);
   const [announcement, setAnnouncement] = useState('');
 
-  const API_URL = process.env.NODE_ENV === 'production'
-    ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
-    : 'http://localhost:5000';
-
-  // console.log('App initialization:', {
-  //   nodeEnv: process.env.NODE_ENV,
-  //   apiUrl: process.env.NODE_ENV === 'production'
-  //       ? 'https://mappie-talkie-api-245835075814.us-central1.run.app'
-  //       : 'http://localhost:5000'
-  // });
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   const handleDatasetChange = (dataset) => {
     setCurrentDataset(dataset);
