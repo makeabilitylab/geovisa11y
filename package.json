@@ -6,20 +6,13 @@
     "@material-tailwind/react": "^2.1.8",
     "@phosphor-icons/react": "^2.1.7",
     "@turf/turf": "^7.2.0",
-    "@xenova/transformers": "^2.17.2",
     "axios": "^1.7.9",
-    "cra-template": "1.2.0",
-    "csv-parse": "^5.6.0",
-    "dotenv": "^16.4.7",
     "mapbox-gl": "^3.9.1",
-    "openai": "^4.77.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-map-gl": "^7.1.8",
     "react-router-dom": "^6.30.0",
     "react-scripts": "5.0.1",
     "tailwindcss": "^3.4.1",
-    "turf": "^3.0.14",
     "uuid": "^11.1.0"
   },
   "scripts": {
@@ -49,7 +42,6 @@
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "autoprefixer": "^10.4.20",
-    "json-loader": "^0.5.7",
     "postcss": "^8.4.49"
   }
 }
