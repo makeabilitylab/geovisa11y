@@ -3,6 +3,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
+      '-f', 'deploy/Dockerfile',
       '-t', 'gcr.io/$PROJECT_ID/mappie-talkie-frontend',
       '--build-arg', 'REACT_APP_MAPBOX_TOKEN=${_MAPBOX_TOKEN}',
       '.'

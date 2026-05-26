@@ -30,13 +30,13 @@ FROM nginx:alpine
 COPY --from=build /app/build /usr/share/nginx/html
 
 # Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Create a script to inject environment variables at runtime
 RUN echo "window.ENV = {};" > /usr/share/nginx/html/env-config.js
 
 # Modify entrypoint to include environment variable injection
-COPY docker-entrypoint.sh /
+COPY deploy/docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
 
 # Expose port
