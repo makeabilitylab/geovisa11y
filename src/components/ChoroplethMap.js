@@ -703,44 +703,6 @@ const ChoroplethMap = ({
             }
         }
 
-        /* OLD version .then call (I personally think that it isn't explicit
-        what is going on in the code snippit )
-        // Handle county focus
-        if (focus.type === 'county' && focus.county) {
-            // Hide state layers
-            toggleLayerSet(stateLayers, false);
-            // Make sure we have a valid state in the states array
-            const stateName = focus.states && focus.states.length > 0 ? focus.states[0] : null;
-            const countyName = focus.county;
-
-            toggleLayerSet(countyLayers, true);
-
-            // Check if we already have county data for this state
-            const hasCountyData = countyData !== null;
-
-            if (hasCountyData) {
-                // We already have county data, just highlight the focused county
-                const highlighted = focusCountyOnMap(countyName);
-
-                if (highlighted && isMapInteractive) {
-                    onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
-                }
-            } else {
-                // We need to display county data first
-                // This will fetch the data and set up the layers
-                displayingCountyData(stateName).then(() => {
-                    // After county data is loaded, highlight the county
-                    setTimeout(() => {
-                        focusCountyOnMap(countyName);
-                        if (isMapInteractive) {
-                            onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
-                        }
-                    }, 500); // Small delay to ensure layers are ready
-                });
-            }
-        }
-        */
-
         // Handle state focus
         else if (focus.type === 'state' || focus.type === 'compare') {
             // Use the enhanced focusStateOnMap function
@@ -768,10 +730,9 @@ const ChoroplethMap = ({
     ]);
 
     /**
-     * DOUBLE CHECK THIS FUNCTION COMMENT (TODO)
      * Helper function in UseEffect above to display the county data first
      * @param {String} stateName - State name to pull counties from
-     * @param {String} countyName - County to displyay
+     * @param {String} countyName - County to display
      */
     async function loadAndFocusCounty(stateName, countyName) {
       try {

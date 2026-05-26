@@ -335,43 +335,7 @@ def analyze_input():
         # If we found a matching dataset different from current_dataset, use it
         dataset_to_use = matching_dataset if matching_dataset else current_dataset
 
-        # # 6. Handle county-specific questions
-        # county_info = extract_county_info(user_input)
-        
-        # # Log county extraction
-        # log_backend_processing(question_id, {
-        #     'step': 'county_extraction',
-        #     'county_info': county_info
-        # })
-        
-        # if county_info:
-        #     county_name, state_name = county_info
-        #     result = retrieve_value(county_name, dataset_to_use, is_county=True)
-        #     if result:
-        #         processing_time = time.time() - start_time
-                
-        #         # Log the final result
-        #         log_backend_processing(question_id, {
-        #             'step': 'final_result',
-        #             'result_type': 'county_question',
-        #             'county_name': county_name,
-        #             'state_name': state_name,
-        #             'dataset_used': dataset_to_use,
-        #             'processing_time_ms': processing_time * 1000
-        #         })
-                
-        #         return jsonify({
-        #             'result': result['result'],
-        #             'question_type': 'retrieve',
-        #             'county': county_name,
-        #             'state': state_name,
-        #             'dataset': dataset_to_use,  # Include the dataset used
-        #             'dataset_changed': dataset_to_use != current_dataset,  # Flag if dataset changed TBD
-        #             'processing_time_ms': processing_time * 1000,
-        #             'question_id': question_id
-        #         }), 200
-
-        # 7. Handle all other questions
+        # 6. Handle all other questions
         analysis = answer_question(user_input, dataset_to_use, current_focus)
         
         # Log answer generation
@@ -435,17 +399,6 @@ def analyze_input():
             'question_id': question_id
         }), 500
 
-
-@api.route('/test', methods=['GET'])
-def test():
-    return jsonify({"message": "API is working!"})
-
-@api.route('/test-cors', methods=['GET', 'OPTIONS'])
-def test_cors():
-    """Test endpoint for CORS"""
-    if request.method == 'OPTIONS':
-        return '', 200
-    return jsonify({"status": "CORS is working"}), 200
 
 @api.route('/counties/<state_name>', methods=['GET'])
 def get_counties(state_name):

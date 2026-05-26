@@ -236,8 +236,6 @@ class SemanticService:
                 if 'electricity' in available_datasets:
                     available_datasets = [ds if ds != 'electricity' else 'electricit' for ds in available_datasets]
 
-                # Create a list of all available metrics for the prompt
-                # TODO: Verify that this access is correct
                 available_metrics = [f"{self.get_metric_info(ds).name} ({ds})" for ds in available_datasets]
                 metrics_list = ", ".join(available_metrics)
 
@@ -705,9 +703,6 @@ class SemanticService:
                     raise ValueError("parsed JSON is not an object")
 
 
-                # Missing country processing. Right now only have city and
-                # state
-                # TODO
                 if location_info["type"] == "city":
                     return True, ("city", {
                         "city": location_info["city"],

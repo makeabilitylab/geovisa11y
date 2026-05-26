@@ -6,7 +6,6 @@ load_dotenv(dotenv_path='../.env', override=True)
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from routes.api import api
-from routes.test_routes import test_bp
 from routes.log_routes import log_bp
 from config import DevelopmentConfig, ProductionConfig
 
@@ -27,11 +26,7 @@ CORS(app,
 
 @app.route('/')
 def index():
-    return jsonify({"message": "Hello, World!"}), 200
-
-@app.route('/test')
-def test():
-    return jsonify({"message": "API is working"}), 200
+    return jsonify({"message": "GeoVisA11y API"}), 200
 
 @app.route('/health')
 def health_check():
@@ -43,7 +38,6 @@ def health_check():
 
 # Register blueprints
 app.register_blueprint(api, url_prefix='/api')
-app.register_blueprint(test_bp)
 app.register_blueprint(log_bp, url_prefix='/api')
 
 if __name__ == '__main__':

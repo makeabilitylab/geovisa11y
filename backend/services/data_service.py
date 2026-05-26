@@ -26,11 +26,6 @@ logger = logging.getLogger(__name__)
 # Initialize DuckDB connection
 con = get_duckdb_connection('database/spatial-db.db', True, ['spatial'])
 
-'''
-con = duckdb.connect('database/spatial-db.db', read_only=True)
-con.execute("INSTALL 'spatial';")
-con.execute("LOAD 'spatial';")
-'''
 
 # Initialize the semantic service (Globally scopped)
 semantic_service = SemanticService()
@@ -420,11 +415,6 @@ def handle_retrieve(current_dataset, question, current_focus, state_filter, coun
 
 def handle_compare(current_dataset, question, current_focus, state_filter, county_view):
     states = semantic_service.extract_states(question)
-    ## TODO Pick up from here later. Check when this comparastion handler
-    ## gets triggered for particular queries.
-
-    ## Need to change to handle more than one. Perhaps if its more less than
-    ## two now, we complain
     if len(states) < 2:
         return None
     result = compare_states(states, current_dataset)
@@ -563,7 +553,6 @@ def retrieve_value(state_or_county_name, dataset, is_county=False, state=None):
 
         # Generate response based on location type and dataset
         if is_county:
-            ## MARK FOR REMOVAL LATER (TODO)
             county, state, value = result
             location_phrase = f"{county} County in {state}"
         else:
