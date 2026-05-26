@@ -57,7 +57,7 @@ def get_openai_response(question):
         
         return response.choices[0].message.content
     except Exception as e:
-        print(f"Error getting OpenAI response: {str(e)}")
+        logger.error("Error getting OpenAI response: %s", e)
         return "I can only provide information about US states and territories. Please ask about a valid US state."
 
 @api.route('/transcribe', methods=['POST', 'OPTIONS'])
@@ -147,11 +147,6 @@ def analyze_input():
         raw_state = data.get('raw_state')
         showing_counties = data.get('showing_counties', False)
         
-        # Debug the incoming data
-        print(f"Processing input: {user_input} for dataset: {current_dataset}")
-        print(f"Current focus: {current_focus}")
-        print(f"Raw county: {raw_county}, Raw state: {raw_state}")
-        print(f"Showing counties: {showing_counties}")
         # Fix for county context - if we have raw_county and raw_state but current_focus is just the state
         if raw_county and raw_state and (not isinstance(current_focus, dict) or not current_focus.get('county')):
             # Create a proper county context
@@ -162,16 +157,11 @@ def analyze_input():
                 'full': f"{raw_county} County, {state_name}",
                 'showing_counties': showing_counties
             }
-            print(f"Updated current_focus to include county: {current_focus}")
-        
         # Handle the new focus structure where state is in the states array
         if isinstance(current_focus, dict) and current_focus.get('states') and len(current_focus['states']) > 0 and not current_focus.get('state'):
             current_focus['state'] = current_focus['states'][0]
             if 'showing_counties' not in current_focus:
                 current_focus['showing_counties'] = showing_counties
-            print(f"Updated current_focus with state from states array: {current_focus}")
-        
-        print(f"Conversation history: {conversation_history}")
         logger.info(f"Processing input: {user_input} for dataset: {current_dataset}")
         logger.info(f"Conversation history: {conversation_history[:2]}...")
 
@@ -231,7 +221,6 @@ def analyze_input():
 
         # 2. If not action, treat as question and get question type
         question_type = semantic_service.identify_question_type(user_input)
-        # print(f"Question type identified: {question_type}")
         logger.info(f"Question type identified: {question_type}")
         
         # Log question type
@@ -315,7 +304,6 @@ def analyze_input():
             user_input = resolved_question
 
         # 5. Check if question is out of scope for current dataset but in scope for another dataset
-        print(f"Checking out of scope: {user_input}, Current dataset: {current_dataset}, Available datasets: {available_datasets}")
         is_out_of_scope, matching_dataset = semantic_service.is_out_of_scope(user_input, current_dataset, available_datasets)
         
         # Log out of scope check
@@ -347,8 +335,6 @@ def analyze_input():
         # If we found a matching dataset different from current_dataset, use it
         dataset_to_use = matching_dataset if matching_dataset else current_dataset
 
-        print(f"Dataset to use: {dataset_to_use}")
-        
         # # 6. Handle county-specific questions
         # county_info = extract_county_info(user_input)
         
@@ -465,12 +451,10 @@ def test_cors():
 def get_counties(state_name):
     """Get GeoJSON data for all counties in a state"""
     try:
-        print(f"Fetching counties for state: {state_name}")  # Debug log
         accuracy = request.args.get("accuracy", default=0.01, type=float)
         
         # Get the dataset from query parameters, default to population density
         dataset = request.args.get("dataset", default="ppl_densit", type=str)
-        print(f"Using dataset: {dataset}")  # Debug log
         
         # Handle array input
         if isinstance(state_name, list):
@@ -479,16 +463,13 @@ def get_counties(state_name):
         # Clean up state name
         state_name = state_name.strip()
         
-        print(f"Normalized state name: {state_name}")  # Debug log
-        
         # For Task2, use the fuel data function
         if dataset in ['gas', 'electricity', 'oil']:
             return fetch_fuel_data('county', accuracy, state_name)
         else:
             return fetch_data('county', accuracy, dataset, state_name)
     except Exception as e:
-        print(f"Error fetching counties: {str(e)}")
-        print(f"Full traceback: {traceback.format_exc()}")
+        logger.error("Error fetching counties: %s\n%s", e, traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
 @api.route('/check-ambiguity', methods=['POST', 'OPTIONS'])
@@ -505,8 +486,6 @@ def check_ambiguity():
 
     try:
         data = request.json
-        print("Received ambiguity check data:", data)
-        
         question = data.get('question')
         previous_answer = data.get('previous_answer')
         current_focus = data.get('current_focus')
@@ -517,8 +496,6 @@ def check_ambiguity():
         # Handle the new focus structure where state is in the states array
         if isinstance(current_focus, dict) and current_focus.get('states') and len(current_focus['states']) > 0 and not current_focus.get('state'):
             current_focus['state'] = current_focus['states'][0]
-            print(f"Updated current_focus with state from states array: {current_focus}")
-
         # Handle the context based on county and state information
         if raw_county and raw_state:
             # When we have both county and state
@@ -534,13 +511,6 @@ def check_ambiguity():
                     context = current_focus.get('state') or (current_focus['states'][0] if current_focus.get('states') and len(current_focus['states']) > 0 else None) or current_focus.get('full')
             else:
                 context = current_focus
-
-        print("Processing ambiguity check:", {
-            'question': question,
-            'previous_answer': previous_answer,
-            'context': context,  # Log the processed context
-            'conversation_history': conversation_history[:2] + ['...'] if len(conversation_history) > 2 else conversation_history
-        })
 
         if not question:
             return jsonify({'error': 'No question provided'}), 400
@@ -579,7 +549,7 @@ def check_ambiguity():
         })
 
     except Exception as e:
-        print(f"Error checking ambiguity: {str(e)}")
+        logger.error("Error checking ambiguity: %s", e)
         return jsonify({'error': str(e)}), 500
 
 
@@ -658,6 +628,5 @@ def get_lisa_clusters(state_name):
         return jsonify(clusters)
         
     except Exception as e:
-        print(f"Error getting LISA clusters: {str(e)}")
-        print(f"Full traceback: {traceback.format_exc()}")
+        logger.error("Error getting LISA clusters: %s\n%s", e, traceback.format_exc())
         return jsonify({'error': str(e)}), 500

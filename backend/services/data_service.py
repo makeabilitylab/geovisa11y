@@ -3,6 +3,7 @@
 #import duckdb
 import geopandas as gpd
 import json
+import logging
 from flask import jsonify
 import numpy as np
 import pandas as pd
@@ -19,6 +20,8 @@ from configs.config import METRIC_MAPPING_SEMANTIC, get_duckdb_connection
 
 # Import MetricInfo dataset information via absolute importing
 from services.MetricInfo import MetricInfo
+
+logger = logging.getLogger(__name__)
 
 # Initialize DuckDB connection
 con = get_duckdb_connection('database/spatial-db.db', True, ['spatial'])
@@ -124,17 +127,11 @@ def fetch_data(table_name, accuracy, value_column='ppl_densit', state_filter=Non
         gdf.drop(columns=['geom_wkt'], inplace=True)
         geojson_data = json.loads(gdf.to_json())
 
-        # Debug log
-        # print(f"GeoJSON features count: {len(geojson_data['features'])}")
-        # if geojson_data['features']:
-        #     print(f"Sample feature properties: {geojson_data['features'][0]['properties']}")
-
         return jsonify(geojson_data)
 
     except Exception as e:
-        print(f"Error in fetch_data: {str(e)}")
-        print(f"Full traceback: {traceback.format_exc()}")
-        raise  # Re-raise the exception to be caught by the route handler
+        logger.error("Error in fetch_data: %s\n%s", e, traceback.format_exc())
+        raise
 
 def fetch_fuel_data(table_name, accuracy, state_filter=None):
     """Fetch data for all fuel types (gas, electricity, oil) for the dot density map"""
@@ -185,9 +182,7 @@ def fetch_fuel_data(table_name, accuracy, state_filter=None):
         return jsonify(geojson_data)
 
     except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"Error fetching fuel data: {str(e)}\n{error_details}")
+        logger.error("Error fetching fuel data: %s\n%s", e, traceback.format_exc())
         raise e
 
 def execute_query(query):
@@ -201,7 +196,7 @@ def execute_query(query):
         return records
 
     except Exception as e:
-        print(f"Error executing query: {str(e)}")
+        logger.error("Error executing query: %s", e)
         return None
 
 def check_location_exists(location):
@@ -215,7 +210,7 @@ def check_location_exists(location):
         result = con.execute(query, [f"%{location}%"]).fetchone()
         return bool(result)
     except Exception as e:
-        print(f"Error checking location: {str(e)}")
+        logger.error("Error checking location: %s", e)
         return False
 
 #######################################
@@ -231,8 +226,7 @@ def answer_question(question, current_dataset, current_focus=None):
             try:
                 counties = semantic_service.extract_counties(question, current_focus)
                 if counties:
-                    county_info = counties[0]  # Take the first county if multiple are found
-                    print(f"Debug - Using county: {county_info['county']}, state: {county_info['state']}")
+                    county_info = counties[0]
 
                     result = retrieve_value(county_info['county'], current_dataset,
                                          is_county=True, state=county_info['state'])
@@ -246,7 +240,7 @@ def answer_question(question, current_dataset, current_focus=None):
                             'showing_counties': current_focus.get('showingCounties', False)
                         }
             except Exception as e:
-                print(f"Error handling county question: {str(e)}")
+                logger.error("Error handling county question: %s", e)
 
         # Get the question type for non-county questions or if county lookup failed
         question_type = semantic_service.identify_question_type(question, current_dataset)
@@ -255,7 +249,6 @@ def answer_question(question, current_dataset, current_focus=None):
         state_filter = None
         county_view = False
         if current_focus:
-            print(f"DEBUG - Full current_focus received: {current_focus}")
             if isinstance(current_focus, dict):
                 if current_focus.get('state'):
                     state_filter = current_focus.get('state')
@@ -266,8 +259,6 @@ def answer_question(question, current_dataset, current_focus=None):
                 state_filter = current_focus
             elif isinstance(current_focus, list):  # Handle case where current_focus is a list
                 state_filter = current_focus[0] if current_focus else None
-
-        print(f"DEBUG - State filter extracted: {state_filter}, County view: {county_view}")
 
         # SCOPE SOME OF THE question type handling into a seperate function
 
@@ -340,7 +331,7 @@ def answer_question(question, current_dataset, current_focus=None):
         return None
 
     except Exception as e:
-        print(f"Error in answer_question: {str(e)}")
+        logger.error("Error in answer_question: %s", e)
         return None
 
 #######################################
@@ -398,8 +389,7 @@ def handle_retrieve(current_dataset, question, current_focus, state_filter, coun
             # Extract county information using the new method
             counties = semantic_service.extract_counties(question, current_focus)
             if counties:
-                county_info = counties[0]  # Take the first county if multiple are found
-                print(f"Debug - Using county: {county_info['county']}, state: {county_info['state']}")
+                county_info = counties[0]
 
                 result = retrieve_value(county_info['county'], current_dataset,
                                       is_county=True, state=county_info['state'])
@@ -412,9 +402,9 @@ def handle_retrieve(current_dataset, question, current_focus, state_filter, coun
                         'question_type': 'retrieve'
                     }
 
-            print("Debug - County parsing failed, falling back to state-level")
+            logger.debug("County parsing failed, falling back to state-level")
         except Exception as e:
-            print(f"Error parsing county question: {str(e)}")
+            logger.error("Error parsing county question: %s", e)
 
     # Handle state-level questions
     states = semantic_service.extract_states(question)
@@ -438,7 +428,6 @@ def handle_compare(current_dataset, question, current_focus, state_filter, count
     if len(states) < 2:
         return None
     result = compare_states(states, current_dataset)
-    print("Inside handle compare hander function")
     return {
         'result': result,
         'states': states,
@@ -556,10 +545,7 @@ def retrieve_value(state_or_county_name, dataset, is_county=False, state=None):
                 WHERE LOWER(county_nam) LIKE LOWER(?) || '%'
                 AND LOWER(state_name) = LOWER(?)
             """
-            print(f"Debug - County query params: {state_or_county_name}, {state}")  # Debug line
             result = con.execute(query, [state_or_county_name, state]).fetchone()
-            if result:
-                print(f"Debug - County query result: {result}")  # Debug line
         else:
             query = f"""
                 SELECT state_name,
@@ -603,7 +589,7 @@ def retrieve_value(state_or_county_name, dataset, is_county=False, state=None):
 
     except Exception as e:
         # Issue with metric info is being logged over here
-        print(f"Error retrieving value: {str(e)}")
+        logger.error("Error retrieving value: %s", e)
         return None
 
 #01_compare
@@ -623,7 +609,6 @@ def compare_states(states, dataset):
         params = [s.lower() for s in states]
         results = con.execute(query, params).fetchall()
 
-        # print(f"Debug - Compare states results: {results}")
         if len(results) != len(states):
             return None
 
@@ -708,7 +693,7 @@ def compare_states(states, dataset):
 
         return summary
     except Exception as e:
-        print(f"Error comparing states: {str(e)}")
+        logger.error("Error comparing states: %s", e)
         return None
 
 #02_find_extremum
@@ -770,7 +755,7 @@ def get_extrema(question, dataset, state_filter=None):
             'county': result[0] if is_county_question else None  # Return county name if it's a county question
         }
     except Exception as e:
-        print(f"Error getting extrema: {str(e)}")
+        logger.error("Error getting extrema: %s", e)
         return None
 
 #03_mean
@@ -792,7 +777,7 @@ def get_mean(dataset):
 
         return f"The average {metric_info.name} across all states is {result[0]:.2f} {metric_info.name}."
     except Exception as e:
-        print(f"Error calculating average: {str(e)}")
+        logger.error("Error calculating average: %s", e)
         return None
 
 #04_filter
@@ -835,7 +820,7 @@ def filter(question, dataset):
         return f"States with {metric_info.name} {operator} {value}: {', '.join(states)}"
 
     except Exception as e:
-        print(f"Error in filter_states: {str(e)}")
+        logger.error("Error in filter_states: %s", e)
         return None
 
 #05_sort
@@ -875,7 +860,7 @@ def sort(question, dataset):
         return f"Top {limit} states by {metric_info.name}:\n" + "\n".join(formatted_results)
 
     except Exception as e:
-        print(f"Error in sort_states: {str(e)}")
+        logger.error("Error in sort_states: %s", e)
         return None
 
 #06_data_range
@@ -897,7 +882,7 @@ def get_data_range(dataset):
                 f"with an average of {result[2]:.2f} {unit}.")
 
     except Exception as e:
-        print(f"Error in get_data_range: {str(e)}")
+        logger.error("Error in get_data_range: %s", e)
         return None
 
 #07_find_similar
@@ -949,7 +934,7 @@ def find_similar(state, dataset):
         }
 
     except Exception as e:
-        print(f"Error in find_similar: {str(e)}")
+        logger.error("Error in find_similar: %s", e)
         return {
             'result': f"Error finding similar states to {state.title()}",
             'state': state.title()
@@ -1027,16 +1012,14 @@ def get_moran_i(dataset, state_filter=None):
             w.transform = 'r'  # Row-standardize weights
         else:
             # If there are islands, we need to handle them
-            print(f"Warning: {len(w.islands)} locations have no neighbors")
-            # Use KNN as fallback for islands
+            logger.warning("%d locations have no neighbors", len(w.islands))
             knn = libpysal.weights.KNN.from_dataframe(gdf, k=1)
             w = libpysal.weights.util.attach_islands(w, knn)
             w.transform = 'r'
 
         # Calculate global Moran's I with fixed number of permutations
         moran = Moran(gdf['value'], w, permutations=999)
-        print(f"Moran's I: {moran.I}")
-        print(f"Moran's p-value: {moran.p_sim}")
+        logger.debug("Moran's I: %s, p-value: %s", moran.I, moran.p_sim)
 
         # Get the metric name for better descriptions
         metric_info = get_metric_info(dataset)
@@ -1066,8 +1049,7 @@ def get_moran_i(dataset, state_filter=None):
         return response
 
     except Exception as e:
-        print(f"Error analyzing global pattern: {str(e)}")
-        print(f"Full traceback: {traceback.format_exc()}")
+        logger.error("Error analyzing global pattern: %s\n%s", e, traceback.format_exc())
         return {
             'pattern': 'error',
             'description': "I couldn't analyze the spatial pattern due to a technical issue."
@@ -1147,8 +1129,7 @@ def get_lisa_clusters(dataset, state_filter=None):
             w.transform = 'r'  # Row-standardize weights
         else:
             # If there are islands, we need to handle them
-            print(f"Warning: {len(w.islands)} locations have no neighbors in LISA analysis")
-            # Use KNN as fallback for islands
+            logger.warning("%d locations have no neighbors in LISA analysis", len(w.islands))
             knn = libpysal.weights.KNN.from_dataframe(gdf, k=1)
             w = libpysal.weights.util.attach_islands(w, knn)
             w.transform = 'r'
@@ -1176,8 +1157,7 @@ def get_lisa_clusters(dataset, state_filter=None):
         }
 
     except Exception as e:
-        print(f"Error analyzing spatial patterns: {str(e)}")
-        print(f"Full traceback: {traceback.format_exc()}")
+        logger.error("Error analyzing spatial patterns: %s\n%s", e, traceback.format_exc())
         return {
             'HH': [],
             'LL': [],
@@ -1245,7 +1225,7 @@ def get_gpt_spatial_pattern_summary(lisa_clusters, dataset, state_filter=None):
         return response.choices[0].message.content
 
     except Exception as e:
-        print(f"Error getting GPT summary: {str(e)}")
+        logger.error("Error getting GPT summary: %s", e)
         if state_filter:
             return f"I found some patterns in {metric_name} among counties in {state_filter}, but couldn't generate a detailed summary."
         else:
@@ -1279,7 +1259,7 @@ def find_outliers(lisa_results, dataset):
             return f"Outliers include states like {parts[0]}."
 
     except Exception as e:
-        print(f"Error formatting outliers: {str(e)}")
+        logger.error("Error formatting outliers: %s", e)
         return None
 
 #11_compare_urban_rural_heating_fuels
@@ -1354,7 +1334,7 @@ def compare_urban_rural_heating_fuels(state_name=None):
         return response
 
     except Exception as e:
-        print(f"Error comparing urban and rural heating fuels: {str(e)}")
+        logger.error("Error comparing urban and rural heating fuels: %s", e)
         # Format the state name for error message
         state_display = state_name if isinstance(state_name, str) else str(state_name)
         state_phrase = f" in {state_display}" if state_name else ""
@@ -1434,7 +1414,7 @@ def compare_with_neighbors(state, dataset):
         }
 
     except Exception as e:
-        print(f"Error comparing with neighbors: {str(e)}")
+        logger.error("Error comparing with neighbors: %s", e)
         return {
             'result': f"Error comparing {state.title()} with its neighbors",
             'state': state.title()

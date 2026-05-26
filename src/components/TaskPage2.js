@@ -42,7 +42,6 @@ function TaskPage2() {
       // Handle Ctrl+M to toggle between map and chat focus
       if (e.ctrlKey && e.key.toLowerCase() === 'm') {
         e.preventDefault();
-        console.log('Global Ctrl+M caught');
         // First, remove focus from any active element
         if (document.activeElement) {
           document.activeElement.blur();
@@ -53,7 +52,6 @@ function TaskPage2() {
           if (prev === 'chat') return 'map';
           return 'map'; // If 'none', default to map
         });
-        // console.log('Interaction focus1', interactionFocus);
       }
     };
     window.addEventListener('keydown', globalHandler);

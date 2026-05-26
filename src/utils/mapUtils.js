@@ -44,7 +44,6 @@ export const useMapLayers = (map) => {
         
         if (sourceExists(sourceId)) {
             map.current.removeSource(sourceId);
-            console.log(`Source ${sourceId} removed`);
         }
     }, [sourceExists, map]);
 

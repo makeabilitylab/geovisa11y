@@ -36,7 +36,6 @@ const logToMongoDB = async (logData) => {
       }
     });
 
-    // console.log('Log successfully sent to MongoDB:', response.data);
     return response.data;
   } catch (error) {
     //console.error('Error sending log to MongoDB:', error);
@@ -79,7 +78,6 @@ const logQuestionData = async (
     map_viewport: mapViewport
   };
 
-  // console.log('Logging question data:', logData);
   const result = await logToMongoDB(logData);
   return questionId;
 };
@@ -92,7 +90,6 @@ const logProcessingData = async (questionId, processingData) => {
     ...processingData
   };
 
-  // console.log('Logging processing data:', logData);
   return await logToMongoDB(logData);
 };
 
@@ -108,7 +105,6 @@ const logAnswerData = async (questionId, result, processingTime, dataset, questi
     question_type: questionType
   };
 
-  // console.log('Logging answer data:', logData);
   return await logToMongoDB(logData);
 };
 
@@ -123,7 +119,6 @@ const logMapInteraction = async (interactionType, viewport, focusedState, focuse
     focus_method: focusMethod // 'map' or 'chatbot'
   };
 
-  // console.log('Logging map interaction:', logData);
   return await logToMongoDB(logData);
 };
 
@@ -139,7 +134,6 @@ const logSessionEnd = async () => {
     session_duration_ms: new Date() - new Date(sessionStart)
   };
 
-  // console.log('Logging session end:', logData);
   return await logToMongoDB(logData);
 };
 

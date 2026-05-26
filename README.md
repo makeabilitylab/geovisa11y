@@ -43,3 +43,14 @@ npm start
 ```
 
 The app will open at [http://localhost:3000](http://localhost:3000)
+
+## Debug Logging
+
+Backend logging is controlled by the `level` parameter in each file's `logging.basicConfig()` call:
+- `backend/routes/log_routes.py` — set to `WARNING` by default
+- `backend/routes/api.py` — set to `INFO` by default
+
+To see verbose debug output, change the level to `logging.DEBUG`:
+```python
+logging.basicConfig(level=logging.DEBUG)
+```

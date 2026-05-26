@@ -135,11 +135,8 @@ const DotDensityMap = ({
         });
 
         // Generate county dot density data
-        console.log('Generating county dot density data');
-        
         // Use a much smaller dot value for counties (1000 instead of 100,000)
         const countyDotData = generateMultiAttributeDotDensity(data, fuelTypes, 1000);
-        console.log('Generated county dot density data with', countyDotData.features.length, 'points');
         
         // Add county dot density source
         map.current.addSource('county-dot-density', {
@@ -369,14 +366,12 @@ const DotDensityMap = ({
             }
 
             const data = await response.json();
-            console.log('Fetched data:', data);
             setGeoData(data);
 
             if (map.current) {
                 const source = map.current.getSource('population');
                 if (source) {
                     source.setData(data);
-                    console.log('Source data updated successfully');
                 } else {
                     console.error('Population source not found');
                 }
@@ -401,8 +396,6 @@ const DotDensityMap = ({
     useEffect(() => {
         if (mapContainer.current && !map.current) {
             try {
-                console.log('Map initialization starting...');
-                
                 const mapboxToken = window.ENV?.REACT_APP_MAPBOX_TOKEN || process.env.REACT_APP_MAPBOX_TOKEN;
                 
                 if (!mapboxToken) {
@@ -426,7 +419,6 @@ const DotDensityMap = ({
 
                 // Set up layers once when style loads
                 map.current.once('style.load', () => {
-                    console.log('Style loaded, initializing layers...');
                     initializeLayers();
                     setLayersInitialized(true);
                 });
@@ -578,7 +570,6 @@ const DotDensityMap = ({
         if (focus.type === 'city' && focus.city) {
             // Fly to the city
             const { name, state, coordinates } = focus.city;
-            console.log('Focusing on city:', focus.city);
 
             map.current.flyTo({
                 center: coordinates,
@@ -835,14 +826,11 @@ const DotDensityMap = ({
         if (showSpatialClusters) {
             // For county level view
             if (showingCounties) {
-                console.log('Showing rural/non-rural choropleth');
-                
                 // Show county level pattern layer
                 toggleLayerVisibility('county-choropleth', true);
 
                             if (map.current.getLayer('state-highlight')) {
                 map.current.removeLayer('state-highlight');
-                console.log('Removed state-highlight layer');
             }
 
 
@@ -855,8 +843,6 @@ const DotDensityMap = ({
             }
             // For state level view
             else {
-                console.log('Showing predominant fuel choropleth');
-                
                 // Hide county choropleth if it exists
                 if (map.current.getLayer('county-choropleth')) {
                     map.current.setLayoutProperty('county-choropleth', 'visibility', 'none');
@@ -915,10 +901,7 @@ const DotDensityMap = ({
     // Dot density data generation
     useEffect(() => {
         if (geoData && geoData.features && geoData.features.length > 0) {
-            console.log("Generating multi-attribute dot density data from", geoData.features.length, "features");
-            
             const dotData = generateMultiAttributeDotDensity(geoData, fuelTypes);
-            console.log("Generated dot density data with", dotData.features.length, "points");
             setDotDensityData(dotData);
         }
     }, [geoData, apiUrl]);
@@ -927,23 +910,18 @@ const DotDensityMap = ({
     useEffect(() => {
         // Only proceed if we have both the map initialized and dot data
         if (dotDensityData && map.current && layersInitialized) {
-            console.log("Map is initialized and dot data is ready, adding dot density layers");
-            
             // Check if source already exists
             if (!map.current.getSource('dot-density')) {
-                console.log("Adding dot density source");
                 map.current.addSource('dot-density', {
                     type: 'geojson',
                     data: dotDensityData
                 });
             } else {
-                console.log("Updating existing dot density source");
                 map.current.getSource('dot-density').setData(dotDensityData);
             }
             
             // Add layer if it doesn't exist - using data-driven styling for colors
             if (!map.current.getLayer('state-dot-density-layer')) {
-                console.log("Adding dot density layer");
                 map.current.addLayer({
                     id: 'state-dot-density-layer',
                     type: 'circle',
@@ -954,9 +932,6 @@ const DotDensityMap = ({
                         'circle-opacity': 0.8
                     }
                 }, 'state-borders'); // Make sure it's above other layers
-                console.log("Dot density layer added");
-            } else {
-                console.log("Dot density layer already exists");
             }
             
             // Hide the choropleth layer
@@ -1018,18 +993,10 @@ const DotDensityMap = ({
             if (e.key === 'Tab') {
                 e.preventDefault();
                 
-                // Debug the current focus state
-                console.log('Current focus state:', focus);
-                
                 // Check if we have a city focus, regardless of focus.type
                 if (focus.city) {
-                    // When focused on a city, Tab should focus on the containing state
-                    console.log('City focus detected:', focus.city);
-                    
                     // Make sure we have the state property and it's not empty
                     if (focus.city.state) {
-                        console.log('Focusing on city state:', focus.city.state);
-                        
                         // Update focus to the city's state
                         onFocusChange({
                             type: 'state',
@@ -1167,7 +1134,6 @@ const DotDensityMap = ({
                 e.preventDefault();
                 if (!showingCounties) {
                     displayingCountyData(focus.states[0]);
-                    console.log("AHHH", showingCounties)
                     if (isMapInteractive) {
                         onAnnounce?.(`Showing counties in ${focus.states[0]}. Press Tab to focus on a county.`);
                     }

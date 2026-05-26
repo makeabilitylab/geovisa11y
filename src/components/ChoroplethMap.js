@@ -119,20 +119,17 @@ const ChoroplethMap = ({
                 mode: 'cors',
             });
 
-            console.log("After fetch call!!!");
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const data = await response.json();
-            console.log('Fetched data:', data);
             setGeoData(data);
 
             if (map.current) {
                 const source = map.current.getSource('states');
                 if (source) {
                     source.setData(data);
-                    console.log('Source data updated successfully');
                 } else {
                     console.error('Population source not found');
                 }
@@ -170,8 +167,6 @@ const ChoroplethMap = ({
 
         const data = await response.json();
         setCountyData(data);
-
-        // console.log('County data received:', data);
 
         return data;
     } catch (error) {
@@ -547,8 +542,6 @@ const ChoroplethMap = ({
     useEffect(() => {
         if (mapContainer.current && !map.current) {
             try {
-                // console.log('Map initialization starting...');
-
                 const mapboxToken = window.ENV?.REACT_APP_MAPBOX_TOKEN || process.env.REACT_APP_MAPBOX_TOKEN;
 
                 if (!mapboxToken) {
@@ -572,7 +565,6 @@ const ChoroplethMap = ({
 
                 // Set up layers once when style loads
                 map.current.once('style.load', () => {
-                    // console.log('Style loaded, initializing layers...');
                     initializeLayers();
                     setLayersInitialized(true);
                 });
@@ -592,7 +584,6 @@ const ChoroplethMap = ({
 
     // Update data when dataset changes
     useEffect(() => {
-        console.log("Inside of client user of fetchData...");
         if (map.current && map.current.loaded()) {
             // Turn off LISA layers when dataset changes
             if (showSpatialClusters) {
@@ -658,7 +649,6 @@ const ChoroplethMap = ({
         if (focus.type === 'city' && focus.city) {
             // Fly to the city
             const { name, state, coordinates } = focus.city;
-            console.log('Focusing on city:', focus.city);
 
             map.current.flyTo({
                 center: coordinates,
@@ -697,12 +687,10 @@ const ChoroplethMap = ({
 
             // Check if we already have county data for this state
             const hasCountyData = countyData !== null;
-            // console.log('[COUNTY DEBUG] Has county data:', hasCountyData, 'countyData features:', countyData?.features?.length);
 
             if (hasCountyData) {
                 // We already have county data, just highlight the focused county
                 const highlighted = focusCountyOnMap(countyName);
-                // console.log('[COUNTY DEBUG] County highlighted:', highlighted);
 
                 if (highlighted && isMapInteractive) {
                     onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
@@ -729,12 +717,10 @@ const ChoroplethMap = ({
 
             // Check if we already have county data for this state
             const hasCountyData = countyData !== null;
-            // console.log('[COUNTY DEBUG] Has county data:', hasCountyData, 'countyData features:', countyData?.features?.length);
 
             if (hasCountyData) {
                 // We already have county data, just highlight the focused county
                 const highlighted = focusCountyOnMap(countyName);
-                // console.log('[COUNTY DEBUG] County highlighted:', highlighted);
 
                 if (highlighted && isMapInteractive) {
                     onAnnounce?.(`Now focused on ${countyName}, ${stateName}`);
@@ -1163,18 +1149,10 @@ const ChoroplethMap = ({
             if (e.key === 'Tab') {
                 e.preventDefault();
 
-                // Debug the current focus state
-                console.log('Current focus state:', focus);
-
                 // Check if we have a city focus, regardless of focus.type
                 if (focus.city) {
-                    // When focused on a city, Tab should focus on the containing state
-                    console.log('City focus detected:', focus.city);
-
                     // Make sure we have the state property and it's not empty
                     if (focus.city.state) {
-                        console.log('Focusing on city state:', focus.city.state);
-
                         // Update focus to the city's state
                         onFocusChange({
                             type: 'state',
@@ -1206,10 +1184,6 @@ const ChoroplethMap = ({
                         focusStateOnMap('Kansas');
                     }
                 } else if (localCountiesVisible && !focus.county && countyData) {
-                    // console.log('[COUNTY DEBUG] Should focus on first county. countyData:',
-                    //     countyData ? `Found ${countyData.features.length} counties` : 'No county data',
-                    //     'localCountiesVisible:', localCountiesVisible);
-
                     const firstCounty = countyData?.features[0]?.properties.county_name;
                     if (firstCounty) {
                         onFocusChange({
@@ -1470,7 +1444,6 @@ const ChoroplethMap = ({
     // Add effect to update parent when county data is loaded
     useEffect(() => {
         if (countyData && countyData.features && countyData.features.length > 0) {
-            // console.log('[COUNTY DEBUG] County data loaded, ensuring localCountiesVisible is true');
             setLocalCountiesVisible(true);
             if (!showingCounties) {
                 onShowingCountiesChange?.(true, focus.states[0]);

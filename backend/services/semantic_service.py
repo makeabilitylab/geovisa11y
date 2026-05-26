@@ -1,3 +1,5 @@
+import logging
+
 from config import DevelopmentConfig
 import openai
 import re
@@ -6,6 +8,8 @@ from configs.config import METRIC_MAPPING_SEMANTIC
 
 # Import MetricInfo dataset information via absolute importing
 from services.MetricInfo import MetricInfo
+
+logger = logging.getLogger(__name__)
 
 class SemanticService:
     def __init__(self):
@@ -73,11 +77,10 @@ class SemanticService:
             )
 
             question_type = response.choices[0].message.content.strip().lower()
-            # print(f"Debug - Identified question type: {question_type}")
             return question_type
 
         except Exception as e:
-            print(f"Error in identify_question_type: {str(e)}")
+            logger.error("Error in identify_question_type: %s", e)
             return 'others'
 
     def extract_states(self, question):
@@ -104,11 +107,10 @@ class SemanticService:
                 return []
 
             states = [state.strip() for state in result.split(',')]
-            print(f"Debug - Extracted states: {states}")
             return states
 
         except Exception as e:
-            print(f"Error extracting states: {str(e)}")
+            logger.error("Error extracting states: %s", e)
             return []
 
     def extract_counties(self, question, current_focus=None):
@@ -165,11 +167,10 @@ class SemanticService:
                         if county['state'] is None:
                             county['state'] = state
 
-            print(f"Debug - Extracted counties: {counties}")
             return counties
 
         except Exception as e:
-            print(f"Error extracting counties: {str(e)}")
+            logger.error("Error extracting counties: %s", e)
             return []
 
     def is_out_of_scope(self, question, current_dataset, available_datasets=None):
@@ -223,7 +224,7 @@ class SemanticService:
             )
 
             geo_out_of_scope = geo_response.choices[0].message.content.strip().lower() == 'true'
-            print(f"Geographic scope check: {geo_out_of_scope}")
+            logger.debug("Geographic scope check: %s", geo_out_of_scope)
 
             # If the question is about geographic units not available, it's out of scope
             if geo_out_of_scope:
@@ -287,7 +288,7 @@ class SemanticService:
                     temperature=0
                 )
                 result = response.choices[0].message.content.strip().lower()
-                print(f"Dataset match check: {result}")
+                logger.debug("Dataset match check: %s", result)
 
                 # Clean up the result - remove any parentheses or extra characters
                 result = result.strip('()')
@@ -330,11 +331,11 @@ class SemanticService:
                 temperature=0
             )
             result = response.choices[0].message.content.strip().lower() == 'true'
-            print(f"Metric match check: {result}")
+            logger.debug("Metric match check: %s", result)
             return result
 
         except Exception as e:
-            print(f"Error in out_of_scope check: {str(e)}")
+            logger.error("Error in out_of_scope check: %s", e)
             return False if available_datasets is None else (False, None)  # Default to keeping the question in scope if there's an error
 
     def is_ambiguous_question(self, question, previous_answer=None, current_focus=None, conversation_history=None):
@@ -494,7 +495,6 @@ class SemanticService:
                     "state": location
                 }
 
-            # print(f"Normalized location: {location}, type: {context_type}")
 
             # Format conversation history for context
             conversation_context = ""
@@ -523,7 +523,7 @@ class SemanticService:
             )
 
             result = json.loads(response.choices[0].message.content.strip())
-            print(f"ambiguity_check_result: {result}")
+            logger.debug("ambiguity_check_result: %s", result)
 
             # If ambiguous and we have context, provide it
             if result["is_ambiguous"] and location:
@@ -551,7 +551,7 @@ class SemanticService:
             )
 
         except Exception as e:
-            print(f"Error in ambiguity check: {str(e)}")
+            logger.error("Error in ambiguity check: %s", e)
             # Fallback to basic check
             if any(word in question.lower() for word in ['here', 'this state', 'that state', 'it', 'its']):
                 return True, 'location_reference', {
@@ -632,8 +632,6 @@ class SemanticService:
                 context["conversation_history"] = context_history
 
             user_prompt = f"Question: {question}\nContext: {context}\nAmbiguity Type: {ambiguity_type}"
-            print(f"ambiguious_question_resolution_prompt: {user_prompt}")
-
             response = openai.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -644,11 +642,11 @@ class SemanticService:
             )
 
             resolved_question = response.choices[0].message.content.strip()
-            print(f"ambiguious_question_resolution_result: {resolved_question}")
+            logger.debug("Resolved ambiguous question: %s", resolved_question)
             return resolved_question
 
         except Exception as e:
-            print(f"Error resolving ambiguous question: {str(e)}")
+            logger.error("Error resolving ambiguous question: %s", e)
             return None
 
     def is_navigation_action(self, user_input):
@@ -719,7 +717,7 @@ class SemanticService:
                 else:  # state navigation
                     return True, ("state", location_info["name"])
             except json.JSONDecodeError:
-                print(f"Error parsing JSON response: {sanitizedResult}")
+                logger.debug("Error parsing JSON response: %s", sanitizedResult)
                 # Fall back to regex pattern
                 action_match = re.match(r'^(?:focus\s+on|go\s+to)\s+(.+)$', user_input, re.IGNORECASE)
                 if action_match:
@@ -728,7 +726,7 @@ class SemanticService:
 
         except Exception as e:
             # Error being thrown here.
-            print(f"Error in is_navigation_action: {str(e)}")
+            logger.error("Error in is_navigation_action: %s", e)
             # Fall back to regex pattern if API fails
             action_match = re.match(r'^(?:focus\s+on|go\s+to)\s+(.+)$', user_input, re.IGNORECASE)
             if action_match:

@@ -342,8 +342,6 @@ const Chatbot = ({
                       };
 
             // Log the current focus for debugging
-            console.log("Sending current focus to backend:", currentFocus);
-
             // Build conversation history from messages
             const messageHistory = messages.map(msg => msg.text);
 
@@ -367,8 +365,6 @@ const Chatbot = ({
                 mapViewport
             );
 
-            console.log('Conversation history:', messageHistory);
-
             // Prepare the request data with clear property names to avoid confusion
             const requestData = {
                 input: input,
@@ -381,7 +377,6 @@ const Chatbot = ({
                 raw_state: focus?.states?.[0] || null,
                 showing_counties: showingCounties
             };
-            console.log('Request data:', requestData);
 
             const response = await fetch(`${apiUrl}/api/analyze-input`, {
                 method: 'POST',
@@ -400,13 +395,6 @@ const Chatbot = ({
 
             const data = await response.json();
             const processingTime = Date.now() - startTime;
-
-            console.log('Response:', {
-                "dataset": dataset,
-                "question_type": data.question_type,
-                "result": data.result,
-                "processing_time_ms": processingTime
-            });
 
             // Log the answer data
             await logAnswerData(
@@ -478,7 +466,6 @@ const Chatbot = ({
                 // Handle state/county focusing for relevant question types
                 if (data.question_type === 'retrieve') {
                     if (data.county) {
-                        console.log("Setting county focus:", data.county, data.state);
                         onFocusChange({
                             type: 'county',
                             county: data.county,
@@ -597,8 +584,6 @@ const Chatbot = ({
             if (currentAudioElement) {
                 currentAudioElement.pause();
                 currentAudioElement.currentTime = 0;
-            } else {
-                console.log("Audio cleanup: No element found to clean up."); //
             }
         };
     }, [dataset]);
@@ -621,16 +606,11 @@ const Chatbot = ({
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         // immediately stop every track
         stream.getTracks().forEach(track => track.stop());
-        console.log("Completed")
       } catch (error) {
-        console.log('Microphone permission was denied or error occurred:', error);
+        console.warn('Microphone permission was denied or error occurred:', error);
       }
     }
 
-    // Add useEffect to monitor focused state changes
-    useEffect(() => {
-        console.log('Focus state updated:', focus.type, focus.states, focus.county, focus.city);
-    }, [focus]);
 
     useEffect(() => {
         // Focus the welcome section on component mount
@@ -942,12 +922,8 @@ const Chatbot = ({
                                         onInputClick();
                                     }
                                 }}
-                                onFocus={() => {
-                                    // console.log('Input focused');
-                                }}
-                                onBlur={() => {
-                                    // console.log('Input blurred');
-                                }}
+                                onFocus={() => {}}
+                                onBlur={() => {}}
                                 className={`font-['Roboto'] ${!isInputFocused ? 'opacity-50' : ''}`}
                                 labelProps={{
                                     className: "!text-teal-500"
